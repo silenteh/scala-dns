@@ -1,0 +1,21 @@
+This dns server is NOT production ready !!!
+
+The idea is to develop a scalable DNS server in scala and netty, which emulates route 53 features like:
+
+- wighted round robin
+- alias record
+- nice graphic interface
+- scalable
+
+
+additionally the server should support the definition of CNAMEs round robin or a mix between CNAMEs and IP address
+
+
+
+
+In case you want to contribute, send an email to: silenteh at gmail dot com
+
+
+
+
+
