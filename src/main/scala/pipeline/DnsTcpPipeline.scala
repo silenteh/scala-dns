@@ -4,6 +4,7 @@ import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder
 import org.jboss.netty.handler.codec.frame.Delimiters
 import org.jboss.netty.handler.codec.string.StringEncoder
 import org.jboss.netty.handler.codec.string.StringDecoder
+import frames.DnsMessageDecoder
 
 class DnsTcpPipeline extends ChannelPipelineFactory {
 
@@ -12,8 +13,8 @@ class DnsTcpPipeline extends ChannelPipelineFactory {
     val pipeline = org.jboss.netty.channel.Channels.pipeline
 
     // Add the text line codec combination first,
-    pipeline.addLast("framer", new DelimiterBasedFrameDecoder(
-      8192, (Delimiters.lineDelimiter): _*))
+    val frameDecoder = new DnsMessageDecoder();
+    pipeline.addLast("framer", frameDecoder)
     pipeline.addLast("decoder", new StringDecoder)
     pipeline.addLast("encoder", new StringEncoder)
 

@@ -1,0 +1,5 @@
+package payload
+
+class Additional {
+
+}
