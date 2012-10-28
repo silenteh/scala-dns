@@ -1,5 +1,0 @@
-package payload
-
-class Authority {
-
-}

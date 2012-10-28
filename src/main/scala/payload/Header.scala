@@ -4,7 +4,6 @@ import scala.collection.immutable.BitSet
 
 class Header {
   
-  
   /* *
    * * WARNING !!!
    * * All variables are initialized with a NON-PERMITTED value !
@@ -15,11 +14,11 @@ class Header {
   // generates any kind of query.  This identifier is copied
   // the corresponding reply and can be used by the requester
   // to match up replies to outstanding queries.
-  var id = -1 
+  var id = -1
   
   // QR: A 1 bit field that specifies whether this message is a
   // query (0), or a response (1).
-  var qr = false
+  var qr = -1
   
   // OPCODE: A 4 bit field that specifies kind of query in this
   // message.  This value is set by the originator of a query
@@ -30,30 +29,30 @@ class Header {
   // 3-15            reserved for future use  
   // corresponds to the name which matches the query name, or
   // the first owner name in the answer section.
-  var opcode = BitSet(-1,-1,-1,-1)
+  var opcode = -1
   
   // AA: Authoritative Answer - this bit is valid in responses,
   // and specifies that the responding name server is an
   // authority for the domain name in question section.
   // Note that the contents of the answer section may have
   // multiple owner names because of aliases.  The AA bit  
-  var aa = BitSet(-1)
+  var aa = -1
   
   // TC: TrunCation - specifies that this message was truncated
   // due to length greater than that permitted on the
   // transmission channel.
-  var tc = BitSet(-1)
+  var tc = -1
   
   // RD: Recursion Desired - this bit may be set in a query and
   // is copied into the response.  If RD is set, it directs
   // the name server to pursue the query recursively.
   // Recursive query support is optional.
-  var rd = BitSet(-1) 		// 1 bit
+  var rd = -1 		// 1 bit
   
   // RA: Recursion Available - this be is set or cleared in a
   // response, and denotes whether recursive query support is
   // available in the name server.
-  var ra = BitSet(-1)
+  var ra = -1
   
   // Z: Reserved for future use.  Must be zero in all queries
   // and responses.
@@ -90,7 +89,7 @@ class Header {
   //                    a particular operation (e.g., zone
   //					transfer) for particular data.
   //	6-15            Reserved for future use.  
-  var rcode = BitSet(-1,-1,-1,-1)		// 4 bit
+  var rcode = -1		// 4 bit
   
   // QDCOUNT: an unsigned 16 bit integer specifying the number of
   // entries in the question section.
