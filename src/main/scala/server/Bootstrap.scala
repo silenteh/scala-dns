@@ -44,11 +44,12 @@ object Bootstrap {
   private def startTCP() {
 
     // Configure the TCP pipeline factory.
-    tcpBootstrap.setPipelineFactory(new DnsTcpPipeline)
+    tcpBootstrap.setPipelineFactory(new DnsTcpPipeline())
+    
 
     // Bind and start to accept incoming connections.
     // we need tor efactor this to set it up via config
-    tcpBootstrap.bind(new InetSocketAddress(53))
+    tcpBootstrap.bind(new InetSocketAddress(InetAddress.getByName("0.0.0.0"), 53))
     
   }
   
@@ -57,7 +58,13 @@ object Bootstrap {
     // bind the server to an address and port
     // we need tor efactor this to set it up via config
     //bootstrap.bind(new InetSocketAddress(InetAddress.getByName("192.168.1.100"), 8080));
+    //udpBootstrap.setOption("localAddress", new InetSocketAddress(InetAddress.getByName("0.0.0.0"), 53));
+    udpBootstrap.setOption("tcpNoDelay", true);
+ 	udpBootstrap.setOption("receiveBufferSize", 1048576);
+    udpBootstrap.setPipelineFactory(new DnsTcpPipeline())
+    
     udpBootstrap.bind(new InetSocketAddress(53))
+    
     
   }
   

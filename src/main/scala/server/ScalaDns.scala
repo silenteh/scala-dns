@@ -4,6 +4,9 @@ import scala.collection.immutable.BitSet
 
 object ScalaDns {    
   def main(args: Array[String]) = {
+    
+    Bootstrap.start
+    
    
 //    var b = 166
 //    val bits = new Array[Short](8)

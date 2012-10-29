@@ -10,10 +10,23 @@ The idea is to develop a scalable DNS server in scala and netty, which emulates 
 
 additionally the server should support the definition of CNAMEs round robin or a mix between CNAMEs and IP address
 
-
-
-
 In case you want to contribute, send an email to: silenteh at gmail dot com
+
+
+TEMP: 
+in order to test it on osx:
+
+sudo ipfw add 100 fwd 127.0.0.1,5353 tcp from any to any 53 in
+sudo ipfw add 100 fwd 127.0.0.1,5353 udp from any to any 53 in
+
+
+to remove the rule
+
+sudo ipfw flush
+
+or
+
+sudo ipfw remove 100
 
 
 
