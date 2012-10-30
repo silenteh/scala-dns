@@ -1,5 +1,6 @@
 package payload
 import org.jboss.netty.buffer.ChannelBuffer
+import records._
 
 class RRData(buf: ChannelBuffer) {
   
@@ -16,66 +17,80 @@ class RRData(buf: ChannelBuffer) {
     
     recordtype match {
     	// A 
-    	case 1 =>
+    	case 1 => new A(buf,recordclass,size)
     	  
     	// NS
-    	case 2 =>
+    	case 2 => new NS(buf,recordclass,size)
     	
     	// MD
-    	case 3 =>
+    	case 3 => null // NYI
     	
     	// MF
-    	case 4 =>
+    	case 4 => null // NYI
     	  
     	// CNAME
-    	case 5 =>
+    	case 5 => new CNAME(buf,recordclass,size)
     	  
     	// SOA
-    	case 6 =>
+    	case 6 => new SOA(buf,recordclass,size)
     	  
     	// MB
-    	case 7 =>
+    	case 7 => null
     	  
     	// MG
-    	case 8 =>
+    	case 8 => null 
     	  
     	// MR  
-    	case 9 =>
+    	case 9 => null
     	  
     	// NULL
-    	case 10 =>
+    	case 10 => new NULL(buf,recordclass,size)
     	  
     	// WKS
-    	case 11 =>
+    	case 11 => null
     	
     	// PTR
-    	case 12 =>
+    	case 12 => new PTR(buf,recordclass,size)
     	  
     	//HINFO
-    	case 13 =>
+    	case 13 => null
     	  
     	// MINFO
-    	case 14 =>
+    	case 14 => null 
     	  
     	// MX
-    	case 15 =>
+    	case 15 => new MX(buf,recordclass,size)
     	
     	// TXT
-    	case 16 =>
+    	case 16 => new TXT(buf,recordclass,size)
     	
     	// AXFR
-    	case 252 =>
+    	case 252 => null
     	
     	// *
-    	case 255 =>
-    	  
-    	
-    	                  
+    	case 255 => null    	
     	  
     }
     
     
   }
+  
+  
+//  private def deserializeBasedOnClass(buf: ChannelBuffer, rrecordclass: Int, size: Int) = {
+//    
+//    rrecordclass match {
+//    	case 1 =>
+//    	  
+//    	case 2 =>
+//    	  
+//    	case 3 =>
+//    	  
+//    	case 4 =>
+//    	  
+//    	case 255 =>
+//    }
+//    
+//  }
   
 
   // NAME            a domain name to which this resource record pertains.
