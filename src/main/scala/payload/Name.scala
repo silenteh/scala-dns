@@ -2,6 +2,7 @@ package payload
 import org.jboss.netty.buffer.ChannelBuffer
 import scala.collection.mutable.ListBuffer
 import scala.collection.immutable.List
+import scala.collection.mutable.ArrayBuffer
 
 object Name {
   
@@ -22,16 +23,16 @@ object Name {
 
   // we shoudl rewrite this in a more functional way
   def parse(buf: ChannelBuffer) = {    
-    val list = ListBuffer.empty[List[Byte]]
+    val list = ArrayBuffer.empty[Array[Byte]]
     
 	var namesize = 0	
 	var length = buf.readUnsignedByte
 	var jumped = false
 	
-	while(-1 < length) {
+	while(0 < length) {
 	  
 	  if (length == 0) {
-				list += List.empty[Byte]
+				list += Array.empty[Byte]
 				
 			} else if ((length & MASK_POINTER) != 0) {
 				val p = ((length ^ MASK_POINTER) << 8) + buf.readUnsignedByte();
@@ -47,12 +48,17 @@ object Name {
 				}
 				val marray = new Array[Byte](length)
 				buf.readBytes(marray);
-				list += marray.toList
+				list += marray
 			} else {
 				// throw an exception because the compression is wrong !
 			}
 	  
-	  		length = buf.readUnsignedByte
+	  		length = if(length == 0)
+	  		  -1
+	  		else
+	  		  buf.readUnsignedByte
+	  		
+	  		
 		}		
 
 		if (jumped) {

@@ -3,6 +3,7 @@ import org.jboss.netty.buffer.ChannelBuffer
 
 class NULL(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecord(buf,recordclass,size) {
     
+  val description = "NULL"
   val record = recordclass match {
     	// IN
     	case 1 => {    	    	      	      	  

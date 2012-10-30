@@ -4,7 +4,7 @@ import payload.Name
 
 class PTR(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecord(buf,recordclass,size) {
   
-  
+  val description = "PTR"
   val record = recordclass match {
     	// IN
     	case 1 => Name.parse(buf)

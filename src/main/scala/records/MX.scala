@@ -4,6 +4,7 @@ import payload.Name
 
 class MX(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecord(buf,recordclass,size) {
     
+  val description = "MX"
   val preference = buf.readUnsignedShort
   val record = Name.parse(buf)
   

@@ -4,6 +4,8 @@ import scala.collection.mutable.ArrayBuffer
 
 class TXT(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecord(buf,recordclass,size) {
   
+  
+		val description = "TXT"
 		val strings = new ArrayBuffer[Array[Byte]]()
 		val part = buf.readSlice(size)
 		while (part.readable()) {

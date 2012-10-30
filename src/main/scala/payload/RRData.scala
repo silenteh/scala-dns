@@ -9,13 +9,13 @@ class RRData(buf: ChannelBuffer) {
   val rclass = buf.readUnsignedShort
   val ttl = buf.readUnsignedInt()
   val rdlength = buf.readUnsignedShort
-  val rdata = null // TODO !!!!!
+  val rdata = deserializeRecord(buf, rtype,rclass,rdlength)
   
   
   private def deserializeRecord(buf: ChannelBuffer, recordtype: Int, recordclass: Int, size: Int) = {
     
     
-    recordtype match {
+    val data = recordtype match {
     	// A 
     	case 1 => new A(buf,recordclass,size)
     	  
@@ -64,6 +64,8 @@ class RRData(buf: ChannelBuffer) {
     	// TXT
     	case 16 => new TXT(buf,recordclass,size)
     	
+    	case 28 => new AAAA(buf,recordclass,size)
+    	
     	// AXFR
     	case 252 => null
     	
@@ -71,6 +73,8 @@ class RRData(buf: ChannelBuffer) {
     	case 255 => null    	
     	  
     }
+    
+    data
     
     
   }

@@ -4,6 +4,7 @@ import payload.Name
 
 class NS(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecord(buf,recordclass,size) {
   
+  val description = "NS"
   val record = recordclass match {
     	// IN
     	case 1 => Name.parse(buf)

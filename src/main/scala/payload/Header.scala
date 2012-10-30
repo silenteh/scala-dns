@@ -48,8 +48,7 @@ class Header(buf: ChannelBuffer) {
 	  val qdcount = buf.readUnsignedShort
 	  val ancount = buf.readUnsignedShort
 	  val nscount = buf.readUnsignedShort
-	  val arcount = buf.readUnsignedShort
-	  println("Parsing of the Header: DONE")
+	  val arcount = buf.readUnsignedShort	  
 	  
 	  
 	

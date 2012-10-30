@@ -5,7 +5,7 @@ import org.jboss.netty.buffer.ChannelBuffer
 class AAAA(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecord(buf,recordclass,size) {
   
   
-  
+  val description = "AAAA"
   val record = recordclass match {
     	// IN
     	case 1 => {    		
