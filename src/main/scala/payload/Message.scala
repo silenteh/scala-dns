@@ -4,35 +4,53 @@ import org.jboss.netty.buffer.ChannelBuffer
 // This class reassemble the network frames
 class Message(buf: ChannelBuffer) {
   
-	/**
-	 * 4.1.4. Message compression
-	 */
-	lazy val MASK_POINTER = 0xC0 // 1100 0000
-
-	/**
-	 * 2.3.4. Size limits
-	 */
-	lazy val MAX_LABEL_SIZE = 63 // 0011 1111
-
-	/**
-	 * 2.3.4. Size limits
-	 */
-	lazy val MAX_NAME_SIZE = 255;
-  	
 	
-	{
+	
 	  val header = new Header(buf)
+	  val query = deserializeQuestions(buf, header.qdcount)
+	  val answers = deserializeRRData(buf, header.ancount)
+	  val authority = deserializeRRData(buf, header.nscount)
+	  val additional = deserializeRRData(buf, header.arcount)
 	  
 	  
 	  
 	  println(header.id)
-	  println(header.opcode)
+	  println(header.opcode)	  	  
 	  
 	  
-	  
-	  
-	}
+	
   
+	
+	def deserializeQuestions(buf: ChannelBuffer, n: Int) = {	  
+	    if(n < 1) {
+	    	val dataArray = new Array[Question](n)
+	    	for(i <- 0 until n) {
+	    		val query = new Question(buf)
+	    		dataArray(i) = query
+	    	}
+	    	dataArray
+	    } else {
+	      val dataArray = Array.empty[Question]
+	      dataArray
+	    }
+	  	  
+	}
+	
+	
+	def deserializeRRData(buf: ChannelBuffer, n: Int) = {
+	  if(n < 1) {
+	    val dataArray = new Array[RRData](n)
+		  for(i <- 0 until n) {
+		    val data = new RRData(buf)
+		    dataArray(i) = data
+		  }
+		  dataArray
+	  } else {
+	      val dataArray = Array.empty[RRData]
+	      dataArray
+	  }		  	 
+	}
+	
   
   
 }

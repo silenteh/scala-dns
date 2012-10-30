@@ -6,11 +6,76 @@ class RRData(buf: ChannelBuffer) {
   val name = Name.parse(buf)
   val rtype = buf.readUnsignedShort
   val rclass = buf.readUnsignedShort
-  val ttl = buf.readUnsignedShort
+  val ttl = buf.readUnsignedInt()
   val rdlength = buf.readUnsignedShort
   val rdata = null // TODO !!!!!
   
   
+  private def deserializeRecord(buf: ChannelBuffer, recordtype: Int, recordclass: Int, size: Int) = {
+    
+    
+    recordtype match {
+    	// A 
+    	case 1 =>
+    	  
+    	// NS
+    	case 2 =>
+    	
+    	// MD
+    	case 3 =>
+    	
+    	// MF
+    	case 4 =>
+    	  
+    	// CNAME
+    	case 5 =>
+    	  
+    	// SOA
+    	case 6 =>
+    	  
+    	// MB
+    	case 7 =>
+    	  
+    	// MG
+    	case 8 =>
+    	  
+    	// MR  
+    	case 9 =>
+    	  
+    	// NULL
+    	case 10 =>
+    	  
+    	// WKS
+    	case 11 =>
+    	
+    	// PTR
+    	case 12 =>
+    	  
+    	//HINFO
+    	case 13 =>
+    	  
+    	// MINFO
+    	case 14 =>
+    	  
+    	// MX
+    	case 15 =>
+    	
+    	// TXT
+    	case 16 =>
+    	
+    	// AXFR
+    	case 252 =>
+    	
+    	// *
+    	case 255 =>
+    	  
+    	
+    	                  
+    	  
+    }
+    
+    
+  }
   
 
   // NAME            a domain name to which this resource record pertains.
