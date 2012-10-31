@@ -143,7 +143,7 @@ class Header(buf: ChannelBuffer) {
   //                    information to the particular requester,
   //                    or a name server may not wish to perform
   //                    a particular operation (e.g., zone
-  //					transfer) for particular data.
+  //					transfer) for particular datastructures.
   //	6-15            Reserved for future use.  
   //var rcode = -1		// 4 bit
   

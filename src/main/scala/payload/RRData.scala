@@ -101,12 +101,12 @@ class RRData(buf: ChannelBuffer) {
   //var name = ""
     
   // TYPE         two octets containing one of the RR type codes.  This
-  //              field specifies the meaning of the data in the RDATA
+  //              field specifies the meaning of the datastructures in the RDATA
   //              field.  
   //var rtype= ""
   
     
-  // CLASS        two octets which specify the class of the data in the
+  // CLASS        two octets which specify the class of the datastructures in the
   //              RDATA field.
   //var rclass = ""
     
