@@ -15,10 +15,8 @@
  ******************************************************************************/
 package models
 
-class Domain(extension: String, name: String, ttl: Long, nameservers: List[Host] = List.empty[Host]) {
-  
-  
-  val TTL = ttl
+class Domain(val extension: String, val name: String, val ttl: Long, val nameservers: List[Host] = List.empty[Host]) {
+    
   
   def fullName() = {
     val fn = name + "." + extension

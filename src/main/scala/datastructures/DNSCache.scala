@@ -16,34 +16,46 @@
 package datastructures
 import scala.collection.immutable.TreeMap
 import models.ExtendedDomain
-import scala.collection.mutable.Map
+import scala.collection.immutable.Map
 import scala.Tuple2
+
+// TODO: I need to rewrite the cache and follow more the RFC1034: http://tools.ietf.org/html/rfc1034
 
 object DNSCache {
   
 
-  val domains = TreeMap.empty[String,Map[String,Tuple2[Long,ExtendedDomain]]]
+  //val domains = TreeMap.empty[String,Map[String,Tuple2[Long,ExtendedDomain]]]
+  private val domains = TreeMap[String,Map[String,Tuple2[Long,ExtendedDomain]]]("." -> Map.empty[String, Tuple2[Long,ExtendedDomain]])
   
-  def getDomain(extension: String, name: String):ExtendedDomain = {
+  def getDomain(extension: String, name: String):Option[ExtendedDomain] = {
     val domainMap = domains.get(extension)
-    val ed = domainMap.get(name)
-    val diff = System.currentTimeMillis() - ed._1 - ed._2.TTL
-    val domain = if(diff > 0) {
-      ed._2
-    } else {
-      domainMap.get -= (name)
-      null
-    }
-    domain
+    val domain = domainMap match {
+    	case None => None
+    	case m: Some[Map[String,Tuple2[Long,ExtendedDomain]]] => {    	  
+    		val storedMap = m.get.get(name)
+    		  storedMap match {
+    			case None => None
+    			case t: Some[Tuple2[Long,ExtendedDomain]] => {
+    			  val diff = System.currentTimeMillis() - t.get._1 - t.get._2.ttl * 1000
+    			  if(diff > 0) {
+    				  Some(t.get._2)
+    			  } else {
+    			    None
+    			  }    			  
+    			}
+    		}    		    	 
+    	}    	      	  
+    }    
+    domain            
   }
   
-  def setDomain(extension: String, name: String, domain: ExtendedDomain) = {
-    val storedMap = domains.get(extension).get
-    val domainMap = if(storedMap == null) {
-    	Map[String,ExtendedDomain](name -> domain)
-    } else {
-      storedMap += (name -> Tuple2[Long,ExtendedDomain](System.currentTimeMillis(),domain))
-    }    
-   domainMap
+  def setDomain(domain: ExtendedDomain) = {
+    val storedMap = domains.get(domain.extension).getOrElse(Map.empty[String, Tuple2[Long,ExtendedDomain]])      
+    val updatedMap = storedMap + (domain.name -> Tuple2[Long,ExtendedDomain](System.currentTimeMillis(),domain))            
+    domains + (domain.extension -> updatedMap)   
+    updatedMap
   }
+  
+  
+  
 }
