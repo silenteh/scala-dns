@@ -31,6 +31,4 @@ class SOA(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecor
   
   
   
-  
-
 }

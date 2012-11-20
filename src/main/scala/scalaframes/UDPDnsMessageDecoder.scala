@@ -25,7 +25,7 @@ import payload.Question
 import payload.Message
 
 
-class DnsMessageDecoder extends FrameDecoder {
+class UDPDnsMessageDecoder extends FrameDecoder {
  
   //@Override
   override def decode(ctx: ChannelHandlerContext, channel: Channel, buf: ChannelBuffer): payload.Message = {

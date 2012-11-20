@@ -29,19 +29,6 @@ class Message(buf: ChannelBuffer) {
 	  val authority = deserializeRRData(buf, header.nscount)
 	  val additional = deserializeRRData(buf, header.arcount)
 	  
-	  
-	  
-//	  println(header.id)
-//	  println(header.opcode)	  	  
-//	  println(new String(query(0).qname(0), "UTF-8") + "." + new String(query(0).qname(1), "UTF-8"))
-//	  
-//	  println(query(0).qtype)
-//	  println(query(0).qclass)
-	  
-	  
-	
-	 
-  
 	
 	def deserializeQuestions(buf: ChannelBuffer, n: Int) = {	  
 	    if(n >= 1) {

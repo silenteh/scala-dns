@@ -50,6 +50,12 @@ class DNSCacheTest extends FunSpec with BeforeAndAfter with ShouldMatchers{
     		  'ttl (500)
     		  )      
     }
+    
+    
+    it("should find the list of nameservers of the cached domain") (pending)
+    
+    it("should find the list of hosts of the cached domain") (pending)
+    
   }
   
 }

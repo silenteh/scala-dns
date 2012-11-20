@@ -22,7 +22,7 @@ import java.net.InetSocketAddress
 import org.jboss.netty.channel.socket.nio.NioDatagramChannelFactory
 import org.jboss.netty.bootstrap.ConnectionlessBootstrap
 import java.net.InetAddress
-import pipeline.DnsTcpPipeline
+import pipeline.UDPDnsPipeline
 
 object Bootstrap {
 
@@ -46,12 +46,12 @@ object Bootstrap {
   
   // Starts both services
   def start() {
-    startTCP
+    //startTCP
     startUDP
   } 
   
   def stop() {
-    stopTCP
+    //stopTCP
     stopUDP
   }
   	
@@ -59,7 +59,7 @@ object Bootstrap {
   private def startTCP() {
 
     // Configure the TCP pipeline factory.
-    tcpBootstrap.setPipelineFactory(new DnsTcpPipeline())
+    tcpBootstrap.setPipelineFactory(new UDPDnsPipeline())
     
 
     // Bind and start to accept incoming connections.
@@ -76,7 +76,7 @@ object Bootstrap {
     //udpBootstrap.setOption("localAddress", new InetSocketAddress(InetAddress.getByName("0.0.0.0"), 53));
     udpBootstrap.setOption("tcpNoDelay", true);
  	udpBootstrap.setOption("receiveBufferSize", 1048576);
-    udpBootstrap.setPipelineFactory(new DnsTcpPipeline())
+    udpBootstrap.setPipelineFactory(new UDPDnsPipeline())
     
     udpBootstrap.bind(new InetSocketAddress(53))
     

@@ -1,0 +1,53 @@
+{
+    "root": [ 
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "A.ROOT-SERVERS.NET."},
+    	{"name" : "A.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "198.41.0.4"},
+    	{"name" : "A.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "AAAA", "address" : "2001:503:BA3E::2:30"},
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "B.ROOT-SERVERS.NET."},
+    	{"name" : "B.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "192.228.79.201"},    	
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "C.ROOT-SERVERS.NET."},
+    	{"name" : "C.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "192.33.4.12"},    	
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "D.ROOT-SERVERS.NET."},
+    	{"name" : "D.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "128.8.10.90"},
+    	{"name" : "D.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "AAAA", "address" : "2001:500:2D::D"},
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "E.ROOT-SERVERS.NET."},
+    	{"name" : "E.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "192.203.230.10"},
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "F.ROOT-SERVERS.NET."},
+    	{"name" : "F.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "192.5.5.241"},
+    	{"name" : "F.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "AAAA", "address" : "2001:500:2F::F"},
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "G.ROOT-SERVERS.NET."},
+    	{"name" : "G.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "192.112.36.4"},
+    	    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "H.ROOT-SERVERS.NET."},
+    	{"name" : "H.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "128.63.2.53"},
+    	{"name" : "H.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "AAAA", "address" : "2001:500:1::803F:235"},
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "I.ROOT-SERVERS.NET."},
+    	{"name" : "I.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "192.36.148.17"},
+    	{"name" : "I.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "AAAA", "address" : "2001:7FE::53"},
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "J.ROOT-SERVERS.NET."},
+    	{"name" : "J.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "192.58.128.30"},
+    	{"name" : "J.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "AAAA", "address" : "2001:503:C27::2:30"},
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "K.ROOT-SERVERS.NET."},
+    	{"name" : "K.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "193.0.14.129"},
+    	{"name" : "K.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "AAAA", "address" : "2001:7FD::1"},
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "L.ROOT-SERVERS.NET."},
+    	{"name" : "L.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "199.7.83.42"},
+    	{"name" : "L.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "AAAA", "address" : "2001:500:3::42"},
+    	
+    	{"name" : ".", "TTL" : 3600000, "type" : "NS", "address" : "M.ROOT-SERVERS.NET."},
+    	{"name" : "M.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "A", "address" : "202.12.27.33"},
+    	{"name" : "M.ROOT-SERVERS.NET.", "TTL" : 3600000, "type" : "AAAA", "address" : "2001:DC3::35"}    	
+    	    
+    ]
+}

@@ -19,10 +19,10 @@ import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder
 import org.jboss.netty.handler.codec.frame.Delimiters
 import org.jboss.netty.handler.codec.string.StringEncoder
 import org.jboss.netty.handler.codec.string.StringDecoder
-import scalaframes.DnsMessageDecoder
+import scalaframes.UDPDnsMessageDecoder
 import handlers.DnsHandler
 
-class DnsTcpPipeline extends ChannelPipelineFactory {
+class UDPDnsPipeline extends ChannelPipelineFactory {
 
   override def getPipeline = {
     println("PIPELINING.........")
@@ -30,7 +30,7 @@ class DnsTcpPipeline extends ChannelPipelineFactory {
     val pipeline = org.jboss.netty.channel.Channels.pipeline
 
     // Add the text line codec combination first,
-    val frameDecoder = new DnsMessageDecoder
+    val frameDecoder = new UDPDnsMessageDecoder
     pipeline.addLast("framer", frameDecoder)
     pipeline.addLast("decoder", new StringDecoder)
     pipeline.addLast("encoder", new StringEncoder)
