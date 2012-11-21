@@ -16,11 +16,12 @@
 package payload
 import org.jboss.netty.buffer.ChannelBuffer
 import enums.RecordType
+import org.slf4j.LoggerFactory
 
 // This class reassemble the network frames
 class Message(buf: ChannelBuffer) {
   
-	
+	  val logger = LoggerFactory.getLogger("app")
 	
 	  val header = new Header(buf)
 	  //println("Number of queries: " + header.qdcount)
@@ -63,23 +64,14 @@ class Message(buf: ChannelBuffer) {
   
 	
 	override def toString() = {
-	  
-	  var output = header.opcode match {
+	  val opcodeStr = header.opcode match {
 	  	case 0 => "Standard query"
 	  	case 1 => "Inverse query"
 	  	case 2 => "Status"
 	  	case 4 => "Notify"
 	  	case 5 => "Update"	  		  	
 	  }
-	  
-	  
-	  
-	  
-	  
-	  
-	  output = output + " - " + domainName
-	  output = output + " - type: " + RecordType.apply(query(0).qtype).toString	  	  
-	  output
+	  opcodeStr + " - " + domainName + " - type: " + RecordType.apply(query(0).qtype).toString	  	  
 	}
 	
 	private def domainName() = {

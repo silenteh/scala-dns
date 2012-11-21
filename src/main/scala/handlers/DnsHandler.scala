@@ -17,8 +17,11 @@ package handlers
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler
 import org.jboss.netty.channel.ChannelHandlerContext
 import org.jboss.netty.channel.MessageEvent
+import org.slf4j.LoggerFactory
 
 class DnsHandler extends SimpleChannelUpstreamHandler{
+  
+  val logger = LoggerFactory.getLogger("app")
   
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent )  {
     

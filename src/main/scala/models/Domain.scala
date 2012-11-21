@@ -15,8 +15,9 @@
  ******************************************************************************/
 package models
 
+import org.slf4j.LoggerFactory
+
 class Domain(val extension: String, val name: String, val ttl: Long, val nameservers: List[Host] = List.empty[Host]) {
-    
   
   def fullName() = {
     val fn = name + "." + extension

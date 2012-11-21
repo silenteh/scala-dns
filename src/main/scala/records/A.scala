@@ -15,9 +15,11 @@
  ******************************************************************************/
 package records
 import org.jboss.netty.buffer.ChannelBuffer
+import org.slf4j.LoggerFactory
 
 class A(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecord(buf,recordclass,size){
   
+  val logger = LoggerFactory.getLogger("app")
   
   val description = "A"
 	val record = recordclass match {
@@ -27,6 +29,6 @@ class A(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecord(
     	case 255 => null// not implemented yet
     }
 	
-	println(record)
+	logger.info(record.toString)
   
 }

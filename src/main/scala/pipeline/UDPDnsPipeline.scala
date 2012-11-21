@@ -21,11 +21,14 @@ import org.jboss.netty.handler.codec.string.StringEncoder
 import org.jboss.netty.handler.codec.string.StringDecoder
 import scalaframes.UDPDnsMessageDecoder
 import handlers.DnsHandler
+import org.slf4j.LoggerFactory
 
 class UDPDnsPipeline extends ChannelPipelineFactory {
 
+  val logger = LoggerFactory.getLogger("app")
+  
   override def getPipeline = {
-    println("PIPELINING.........")
+    logger.info("PIPELINING.........")
     // Create a default pipeline implementation.
     val pipeline = org.jboss.netty.channel.Channels.pipeline
 

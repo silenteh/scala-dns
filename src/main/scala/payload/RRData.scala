@@ -16,8 +16,11 @@
 package payload
 import org.jboss.netty.buffer.ChannelBuffer
 import records._
+import org.slf4j.LoggerFactory
 
 class RRData(buf: ChannelBuffer) {
+  
+  val logger = LoggerFactory.getLogger("app")
   
   val name = Name.parse(buf)
   val rtype = buf.readUnsignedShort

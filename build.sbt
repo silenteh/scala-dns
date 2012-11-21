@@ -20,5 +20,6 @@ libraryDependencies += "com.typesafe.akka" % "akka-remote" % "2.0.3"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "1.8" % "test"
 
-libraryDependencies += "typesafe.config" % "config" % "1.0.0"
+libraryDependencies += "org.skife.com.typesafe.config" % "typesafe-config" % "0.3.0"
 
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.3"

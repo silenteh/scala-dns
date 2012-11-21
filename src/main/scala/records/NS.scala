@@ -16,8 +16,11 @@
 package records
 import org.jboss.netty.buffer.ChannelBuffer
 import payload.Name
+import org.slf4j.LoggerFactory
 
 class NS(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecord(buf,recordclass,size) {
+  
+  val logger = LoggerFactory.getLogger("app")
   
   val description = "NS"
   val record = recordclass match {

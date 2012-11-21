@@ -23,10 +23,13 @@ import payload.Header
 import scala.collection.immutable.BitSet
 import payload.Question
 import payload.Message
+import org.slf4j.LoggerFactory
 
 
 class UDPDnsMessageDecoder extends FrameDecoder {
  
+  val logger = LoggerFactory.getLogger("app")
+  
   //@Override
   override def decode(ctx: ChannelHandlerContext, channel: Channel, buf: ChannelBuffer): payload.Message = {
     
@@ -54,19 +57,6 @@ class UDPDnsMessageDecoder extends FrameDecoder {
      message
      
   }
-     
-  
-  
-  
-  
-  
-  
-  
-
-  
-  
-  
-  
   
   def fromBytesToString(buf: ChannelBuffer, length: Int) = {
     val marray = new Array[Byte](length)
@@ -74,7 +64,7 @@ class UDPDnsMessageDecoder extends FrameDecoder {
 	new String(marray, "UTF-8")
   }
   
-  def toBitArracy(byte: Int, size: Short): Array[Short] = {
+  /*def toBitArracy(byte: Int, size: Short): Array[Short] = {
     var b = byte
     val bits = new Array[Short](size)
     for(i <- 0 to size){      
@@ -83,21 +73,23 @@ class UDPDnsMessageDecoder extends FrameDecoder {
       b >>= 1 
     }
     bits
-  }
+  }*/
+  
+  def toBitArracy(byte: Int, size: Short): Array[Short] = 
+    if(size == 0) Array() else toBitArracy(byte >> 1, (size - 1).toShort) :+ (byte % 2).toShort
   
   // there is probably a better way via bit operations to calculate this.
-  def toInt(bits: Array[Short]): Int = {
+  /*def toInt(bits: Array[Short]): Int = {
     var n = 0
     val limit = bits.length
     for(i <- 0 to limit) {
       n = n + bits(i) * (scala.math.pow(2, i)).toInt
     }    
     n    
-  }
-  
-  
-  
-  
+  }*/
+
+  def toInt(bits: Array[Short]): Int = 
+    if (bits.isEmpty) 0 else (bits.head * (scala.math.pow(2, bits.tail.length))).toInt + toInt(bits.tail)
   
   def bufferMarshall(buf: ChannelBuffer, marshall: Int): Any = {
     
@@ -118,7 +110,7 @@ class UDPDnsMessageDecoder extends FrameDecoder {
 
      // Read the length field.
      //val length = buf.readUnsigned
-     println(buf.readableBytes())
+     logger.info(buf.readableBytes().toString)
      
 
 //     // Make sure if there's enough bytes in the buffer.

@@ -15,10 +15,11 @@
  ******************************************************************************/
 package payload
 import org.jboss.netty.buffer.ChannelBuffer
+import org.slf4j.LoggerFactory
 
 class Question(buf: ChannelBuffer) {
   
-  
+  val logger = LoggerFactory.getLogger("app")
   val qname = Name.parse(buf) 
   val qtype = buf.readUnsignedShort
   val qclass = buf.readUnsignedShort

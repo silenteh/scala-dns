@@ -16,8 +16,12 @@
 package server
 
 import scala.collection.immutable.BitSet
+import org.slf4j.LoggerFactory
 
-object ScalaDns {    
+object ScalaDns {
+  
+  val logger = LoggerFactory.getLogger("app")
+  
   def main(args: Array[String]) = {
     
     Bootstrap.start

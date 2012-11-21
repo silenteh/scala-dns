@@ -1,8 +1,11 @@
 package zones
 import com.codahale.jerkson.Json._
+import org.slf4j.LoggerFactory
 
 
 object Util {
+  
+  val logger = LoggerFactory.getLogger("app")
   
   def fromJsonFile(fileName: String) = {    
     val jsonInput = io.Source.fromFile(fileName).mkString

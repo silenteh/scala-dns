@@ -16,9 +16,11 @@
 package records
 import org.jboss.netty.buffer.ChannelBuffer
 import scala.collection.mutable.ArrayBuffer
+import org.slf4j.LoggerFactory
 
 class TXT(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecord(buf,recordclass,size) {
   
+		val logger = LoggerFactory.getLogger("app")
   
 		val description = "TXT"
 		val strings = new ArrayBuffer[Array[Byte]]()

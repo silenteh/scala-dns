@@ -17,9 +17,11 @@ package payload
 
 import scala.collection.immutable.BitSet
 import org.jboss.netty.buffer.ChannelBuffer
+import org.slf4j.LoggerFactory
 
 class Header(buf: ChannelBuffer) {
   
+    val logger = LoggerFactory.getLogger("app")
   
 	lazy val MIN_USHORT = 0;
 	lazy val MAX_USHORT = 0xFFFF;
@@ -41,7 +43,6 @@ class Header(buf: ChannelBuffer) {
   
 	
 	// TODO: VERIFY that the bits are 16 !!
-	
 	  
 	  val id = buf.readUnsignedShort
 	  val flagsInt = buf.readUnsignedShort

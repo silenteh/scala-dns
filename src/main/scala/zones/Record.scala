@@ -1,4 +1,4 @@
 package zones
 import enums.RecordType
 
-case class Record(val domainName: String, val rtype: Int, val ttl: Int, val data: String) {}
+case class Record(domainName: String, rtype: Int, ttl: Int, data: String)

@@ -16,9 +16,12 @@
 package records
 import org.jboss.netty.buffer.ChannelBuffer
 import payload.Name
+import org.slf4j.LoggerFactory
 
 class MX(buf: ChannelBuffer, recordclass: Int, size: Int) extends AbstractRecord(buf,recordclass,size) {
     
+  val logger = LoggerFactory.getLogger("app")
+  
   val description = "MX"
   val preference = buf.readUnsignedShort
   val record = Name.parse(buf)
