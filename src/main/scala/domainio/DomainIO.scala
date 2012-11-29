@@ -37,29 +37,15 @@ object DomainIO {
   
   def loadDomains(domainfolder: File = dataPath) = {
     val domains = domainfolder.listFiles
-    domains.foreach(loadDomain(_))
+    domains.filter(_.getName.endsWith(".json")).foreach(loadDomain(_))
     DNSCache.logDomains
   }
   
   def loadDomain(domainfile: File) = {
-    
-    /*def lhmToMap(lhm: LinkedHashMap[String, Any]): Map[String, Any] = lhm.map{
-      case (key: String, value: Any) => (key, value match {
-        case value: LinkedHashMap[String, Any] => lhmToMap(value)
-        case value: ArrayList[_] => value.map(v => v match {
-          case value: LinkedHashMap[String, Any] => lhmToMap(value)
-          case _ => v
-        }).toList
-        case _ => value
-      })
-    }.toMap*/
-    
-    //val parsedDomain = Json.readValue(domainfile, classOf[ExtendedDomain])
     try {
       DNSCache.setDomain(Json.readValue(domainfile, classOf[ExtendedDomain]))
     } catch {
-      case ex: JsonParseException => Unit
-      //case ex: JsonMappingException => Unit
+      case ex: JsonParseException => logger.warn("Broken json file: " + domainfile.getAbsolutePath)
     }
   }
   
