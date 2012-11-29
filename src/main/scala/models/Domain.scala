@@ -16,8 +16,9 @@
 package models
 
 import org.slf4j.LoggerFactory
+import org.codehaus.jackson.annotate.JsonProperty
 
-class Domain(val extension: String, val name: String, val ttl: Long, val nameservers: List[Host] = List.empty[Host]) {
+/*class Domain(val extension: String, val name: String, val ttl: Long, val nameservers: List[Host] = List.empty[Host]) {
   
   def fullName() = {
     val fn = name + "." + extension
@@ -31,4 +32,21 @@ class Domain(val extension: String, val name: String, val ttl: Long, val nameser
   
   
 
+}*/
+
+abstract class AbstractDomain {
+  val fullName: String
+  val ttl: Long
+  val nameservers: Array[NSHost]
+  
+  private lazy val nameParts = fullName.split("""\.""")
+  lazy val extension = nameParts(nameParts.size - 1)
+  lazy val name = if(nameParts.size > 1) nameParts.slice(0, nameParts.size - 1).mkString(".") else ""
+  lazy val reverseFullName = fullName.split(".").reverse.mkString(".")
 }
+
+case class Domain(
+  @JsonProperty("origin") val fullName: String = null, 
+  @JsonProperty("ttl") val ttl: Long = -1, 
+  @JsonProperty("ns") val nameservers: Array[NSHost] = Array()
+) extends AbstractDomain

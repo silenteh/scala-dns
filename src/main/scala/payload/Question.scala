@@ -17,12 +17,13 @@ package payload
 import org.jboss.netty.buffer.ChannelBuffer
 import org.slf4j.LoggerFactory
 
-class Question(buf: ChannelBuffer) {
+case class Question(qname: List[Array[Byte]], qtype: Int, qclass: Int) {
+  def toByteArray = 
+    Name.toByteArray(qname) ++ RRData.shortToBytes(qtype.toShort) ++ RRData.shortToBytes(qclass.toShort)
+}
   
-  val logger = LoggerFactory.getLogger("app")
-  val qname = Name.parse(buf) 
-  val qtype = buf.readUnsignedShort
-  val qclass = buf.readUnsignedShort
+  
+  
   
   
   
@@ -44,4 +45,14 @@ class Question(buf: ChannelBuffer) {
   //              For example, the QCLASS field is IN for the Internet.
   //var qclass = ""
 
+
+object Question {
+  val logger = LoggerFactory.getLogger("app")
+  
+  def apply(buf: ChannelBuffer) = 
+    new Question(
+      Name.parse(buf), 
+      buf.readUnsignedShort,
+      buf.readUnsignedShort
+    )
 }

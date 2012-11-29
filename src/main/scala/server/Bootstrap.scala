@@ -69,9 +69,9 @@ object Bootstrap {
   }
   
   private def startUDP() {
-        
+    
     // bind the server to an address and port
-    // we need tor efactor this to set it up via config
+    // we need to refactor this to set it up via config
     //bootstrap.bind(new InetSocketAddress(InetAddress.getByName("192.168.1.100"), 8080));
     //udpBootstrap.setOption("localAddress", new InetSocketAddress(InetAddress.getByName("0.0.0.0"), 53));
     udpBootstrap.setOption("tcpNoDelay", true);

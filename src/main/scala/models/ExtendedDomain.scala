@@ -15,6 +15,53 @@
  ******************************************************************************/
 package models
 
-class ExtendedDomain(extension: String,name: String,ttl: Long, 
-    nameservers: List[Host] = List.empty[Host], val hosts: List[Host] = List.empty[Host])  
-    extends Domain(extension,name,ttl,nameservers) {}
+import org.codehaus.jackson.annotate.JsonProperty
+import org.codehaus.jackson.annotate.JsonManagedReference
+import enums.RecordType
+
+case class ExtendedDomain(
+  @JsonProperty("origin") fullName: String,
+  @JsonProperty("ttl") ttl: Long,
+  @JsonProperty("NS")@JsonManagedReference("domain-ns") nameservers: Array[NSHost] = Array(),
+  @JsonProperty("SOA") settings: Array[Soa] = null,
+  @JsonProperty("CNAME") cname: Array[CnameHost] = null,
+  @JsonProperty("A") address: Array[AddressHost] = null,
+  @JsonProperty("MX") mailx: Array[MXHost] = null,
+  @JsonProperty("HSS") otherhosts: Array[GenericHost] = null
+) extends AbstractDomain {
+  lazy val hosts: List[Host] =
+    hostsToList(nameservers) ++ hostsToList(cname) ++ hostsToList(address) ++ hostsToList(mailx) ++ hostsToList(otherhosts)
+
+  private def hostsToList[T <: Host](hosts: Array[T]): List[Host] =
+    if (hosts != null) hosts.toList else Nil
+
+  def findHost(name: String = null, typ: Int = 0) = 
+    RecordType(typ).toString match {
+      case "A" =>
+        address.find(host => host.name == name)
+      case "AAAA" =>
+        None
+      case "CNAME" =>
+        cname.find(host => host.name == name)
+      case "MX" =>
+        if (!mailx.isEmpty) Some(mailx.minBy(_.priority)) else None
+      case "NS" =>
+        None
+      case "SOA" =>
+        None
+      case "PTR" =>
+        None
+      case "TXT" =>
+        None
+      case _ =>
+        None
+    }
+  
+  def getHost(name: String = null, typ: Int = 0) =
+    findHost(name, typ) match {
+      case Some(host) => host
+      case None => throw new HostNotFoundException
+    }
+}
+
+class HostNotFoundException extends Exception

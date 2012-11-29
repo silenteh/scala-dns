@@ -24,7 +24,7 @@ object RecordType extends Enumeration {
   val PTR = Value(12)
   val MX = Value(15)
   val TXT = Value(16)
-  val AAAA = Value(28)    
+  val AAAA = Value(28)
   
   
   

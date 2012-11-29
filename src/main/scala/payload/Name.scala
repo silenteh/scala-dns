@@ -21,6 +21,7 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.immutable.List
 import scala.collection.mutable.ArrayBuffer
 import org.slf4j.LoggerFactory
+import scala.annotation.tailrec
 
 object Name {
 
@@ -44,54 +45,18 @@ object Name {
   // we should rewrite this in a more functional way
   
   def parse(buf: ChannelBuffer) = {
-    /*val list = ArrayBuffer.empty[Array[Byte]]
-
-    var namesize = 0
-    var length = buf.readUnsignedByte
-    var jumped = false
-
-    while (0 < length) {
-
-      if (length == 0) {
-        list += Array.empty[Byte]
-
-      } else if ((length & MASK_POINTER) != 0) {
-        val p = ((length ^ MASK_POINTER) << 8) + buf.readUnsignedByte();
-        if (jumped == false) {
-          buf.markReaderIndex()
-          jumped = true
-        }
-        buf.readerIndex(p);
-      } else if (length <= MAX_LABEL_SIZE) {
-        namesize += length;
-        if (MAX_NAME_SIZE < namesize) {
-          // throw an exception where the name must be 255 or less					
-        }
-        val marray = new Array[Byte](length)
-        buf.readBytes(marray);
-        list += marray
-      } else {
-        // throw an exception because the compression is wrong !
-      }
-
-      length = if (length == 0) -1 else buf.readUnsignedByte
-    }
-
-    if (jumped) {
-      buf.resetReaderIndex();
-    }
-
-    list.toList*/
-    
-    def loop(namesize: Int, length: Short, jumped: Boolean, list: Vector[Array[Byte]]): Vector[Array[Byte]] =
+    @tailrec
+    def loop(namesize: Int, length: Short, jumped: Boolean, list: List[Array[Byte]]): List[Array[Byte]] = {
       if (length <= 0 || buf.readableBytes < 1) {
         if(jumped) buf.resetReaderIndex
-        list
+        Array[Byte]() :: list
+        
       } else if ((length & MASK_POINTER) != 0) {
         val p = ((length ^ MASK_POINTER) << 8) + buf.readUnsignedByte
         if (!jumped) buf.markReaderIndex
         buf.readerIndex(p)
         loop(namesize, buf.readUnsignedByte, true, list)
+        
       } else if (length <= MAX_LABEL_SIZE) {
         val ns = namesize + length
         if (MAX_NAME_SIZE < ns) {
@@ -99,12 +64,21 @@ object Name {
         }
         val marray = new Array[Byte](length)
         buf.readBytes(marray)
-        loop(ns, buf.readUnsignedByte, jumped, list :+ marray)
+        loop(ns, buf.readUnsignedByte, jumped, marray :: list)
+        
       } else {
         throw new Error("compression is wrong")
       }
-
-    loop(0, buf.readUnsignedByte, false, Vector()).toList
+    }
+    
+    loop(0, buf.readUnsignedByte, false, Nil).reverse
   }
-
+  // TODO: VALIDATE!!!
+  def toByteArray(name: List[Array[Byte]]): Array[Byte] = 
+    name.foldRight(Array[Byte]()) {case(bytes, total) => 
+      RRData.shortToByte((bytes.length & MAX_LABEL_SIZE).toShort) ++ bytes ++ total}
+  
+  def toByteArray(name: String): Array[Byte] = 
+    toByteArray(name.split(".").map(_.getBytes).toList)
+    
 }

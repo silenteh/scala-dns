@@ -29,30 +29,49 @@ object DNSCache {
   
   val logger = LoggerFactory.getLogger("app")
   
-  private val domains = TreeMap[String,Map[String, (Long, ExtendedDomain)]]("." -> Map())
+  //find a mutable equivalent to TreeMap
+  private var domains = TreeMap[String,Map[String, (Long, ExtendedDomain)]]("." -> Map())
   
-  def getDomain(extension: String, name: String):Option[ExtendedDomain] = {
+  def findDomain(extension: String, name: String):Option[ExtendedDomain] = 
     domains.get(extension) match {
       case None => None
-      case Some(domainsEntry) =>     	  
-    	domainsEntry.get(name) match {
+      case Some(storedMap) => 
+    	storedMap.get(name) match {
     	  case None => None
-    	  case Some(t) => {
-    		val diff = System.currentTimeMillis() - t._1 - t._2.ttl * 1000
-    		if(diff > 0) Some(t._2) 
+    	  case Some((timestamp, domain)) => {
+    		val diff = timestamp + domain.ttl * 1000 - System.currentTimeMillis() //Time inserted + TTL in milliseconds - Current time
+    		if(diff > 0) Some(domain) 
     		else None			  
     	  }
-        }    		    	 
+        }
     }                
-  }
+  
+  def getDomain(extension: String, name: String) = 
+    findDomain(extension, name) match {
+      case Some(domain) => domain
+      case None => throw new DomainNotFoundException
+    }
   
   def setDomain(domain: ExtendedDomain) = {
     val storedMap = domains.get(domain.extension).getOrElse(Map())      
     val updatedMap = storedMap + (domain.name -> (System.currentTimeMillis(), domain))            
-    domains + (domain.extension -> updatedMap)
+    domains = domains + (domain.extension -> updatedMap)
     updatedMap
   }
   
+  def removeDomain(extension: String, name: String): Unit = 
+    domains.get(extension) match {
+      case Some(storedMap) => 
+        if(storedMap.contains(name)) {
+          val updatedMap = storedMap - name
+          domains = 
+            if(updatedMap.size == 0) domains - extension
+            else domains + (extension -> updatedMap)
+        }
+      case _ => Unit
+    }
   
-  
+  def logDomains = logger.debug(domains.toString)
 }
+
+class DomainNotFoundException extends Exception

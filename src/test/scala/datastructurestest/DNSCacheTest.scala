@@ -32,13 +32,13 @@ class DNSCacheTest extends FunSpec with BeforeAndAfter with ShouldMatchers{
 
     // check if the cache object is initialized correctly
     it("should return None for the root domain: .") {     
-      val result = cache.getDomain(".","")
+      val result = cache.findDomain(".","")
       assert(result === None)      
     }
     
     // check if the adding of a domain name works
     it("should allow the insertion of an entry to the cache and return the map just added") {     
-      val result = cache.setDomain(new ExtendedDomain("com","example",500))
+      val result = cache.setDomain(new ExtendedDomain("example.com",500))
       result should not be ("empty")
       result should not be (None)
       result should contain key ("example")
@@ -50,7 +50,6 @@ class DNSCacheTest extends FunSpec with BeforeAndAfter with ShouldMatchers{
     		  'ttl (500)
     		  )      
     }
-    
     
     it("should find the list of nameservers of the cached domain") (pending)
     
