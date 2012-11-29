@@ -58,12 +58,11 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
                 record.toByteArray.length,
                 record)
             }
-          }
-
+          }.flatten
           val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
             message.header.recursionDesired, false, 0, ResponseCode.OK.id, message.header.questionCount, answers.length, 0, 0)
 
-          Message(header, message.query, answers.flatten, message.authority, message.additional)
+          Message(header, message.query, answers, message.authority, message.additional)
         } catch {
           case ex: DomainNotFoundException => {
             val header = Header(message.header.id, true, message.header.opcode, false, message.header.truncated,

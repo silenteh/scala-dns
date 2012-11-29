@@ -17,8 +17,7 @@ object ResponseCode extends Enumeration {
   // 4 : Not Implemented - The name server does not support the requested kind of query.
   val NOT_IMPLEMENTED = Value(4)
   
-  // 5 : Refused - The name server refuses to perform the specified operation for policy reasons.  For example, a name
-  // server may not wish to provide the information to the particular requester, or a name server may not wish to perform 
-  // a particular operation
+  // 5 : Refused - The name server refuses to perform the specified operation for policy reasons.  For example, a name server
+  // may not wish to provide the information to the particular requester, or a name server may not wish to perform a particular operation
   val REFUSED = Value(5)
 }
