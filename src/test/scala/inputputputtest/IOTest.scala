@@ -12,10 +12,11 @@ import java.io.BufferedOutputStream
 import java.io.FileOutputStream
 import domainio.DomainIO
 import datastructures.DNSCache
-import models.Soa
+import models.SoaHost
 import models.NSHost
 import models.AddressHost
 import models.ExtendedDomain
+import models.WeightedIP
 import domainio.DomainIO
 
 class IOTest extends FunSpec with BeforeAndAfter with ShouldMatchers {
@@ -41,7 +42,7 @@ class IOTest extends FunSpec with BeforeAndAfter with ShouldMatchers {
 	it("should read all json files from a specified folder into ExtendedDomain objects") {
 	  val domains = DomainIO.loadDomains(pathFile)
 	  
-	  val examplecom = DNSCache.findDomain("com", "example")
+	  val examplecom = DNSCache.findDomain(1, "com", "example")
 	  //val example2com = DNSCache.getDomain("com", "example2")
 	  //val examplenet = DNSCache.getDomain("net", "example")
 	  //val example2net = DNSCache.getDomain("net", "example2")
@@ -80,9 +81,9 @@ class IOTest extends FunSpec with BeforeAndAfter with ShouldMatchers {
 	}
 	
 	it("should write a json file from an ExtendedDomain object") {
-	  val soa = Array(new Soa("in", "1", Array("ns1.testexample.com"), "123456789", "1", "1", "1", "1"))
-	  val nsHosts = Array(new NSHost("in", 10, "ns1.testexample.com"), new NSHost("in", 5, "ns2.testexample.com"))
-	  val addressHosts = Array(new AddressHost("in", "host1.testexample.com", Array("10.0.0.1")), new AddressHost("in", "host2.testexample.com", Array("10.0.0.2", "10.0.0.3")))
+	  val soa = Array(new SoaHost("in", "1", "@", "ns1.testexample.com", "ns2.testexample.com", "123456789", "1", "1", "1", "1"))
+	  val nsHosts = Array(new NSHost("in", "@", 10, "ns1.testexample.com"), new NSHost("in", "@", 5, "ns2.testexample.com"))
+	  val addressHosts = Array(new AddressHost("in", "host1.testexample.com", Array(new WeightedIP(1, "10.0.0.1"))), new AddressHost("in", "host2.testexample.com", Array(new WeightedIP(1, "10.0.0.2"), new WeightedIP(1, "10.0.0.3"))))
 	  val domain = new ExtendedDomain("testexample.com.", 500, nsHosts, soa, null, addressHosts, null, null)
 	  
 	  pathFile.listFiles.find(file => file.getName == domain.fullName + "json") should be(None)

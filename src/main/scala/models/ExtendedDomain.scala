@@ -22,8 +22,8 @@ import enums.RecordType
 case class ExtendedDomain(
   @JsonProperty("origin") fullName: String,
   @JsonProperty("ttl") ttl: Long,
-  @JsonProperty("NS")@JsonManagedReference("domain-ns") nameservers: Array[NSHost] = Array(),
-  @JsonProperty("SOA") settings: Array[Soa] = null,
+  @JsonProperty("NS") nameservers: Array[NSHost] = Array(),
+  @JsonProperty("SOA") settings: Array[SoaHost] = null,
   @JsonProperty("CNAME") cname: Array[CnameHost] = null,
   @JsonProperty("A") address: Array[AddressHost] = null,
   @JsonProperty("MX") mailx: Array[MXHost] = null,
@@ -31,30 +31,24 @@ case class ExtendedDomain(
 ) extends AbstractDomain {
   lazy val hosts: List[Host] =
     hostsToList(nameservers) ++ hostsToList(cname) ++ hostsToList(address) ++ hostsToList(mailx) ++ hostsToList(otherhosts)
-
-  private def hostsToList[T <: Host](hosts: Array[T]): List[Host] =
-    if (hosts != null) hosts.toList else Nil
+    
+  def hasRootEntry(typ: Int = 0) = 
+    findHost(fullName, typ) != None || findHost("@", typ) != None || findHost(fullName, 5) != None || findHost("@", 5) != None
 
   def findHost(name: String = null, typ: Int = 0) = 
     RecordType(typ).toString match {
-      case "A" =>
-        address.find(host => host.name == name)
-      case "AAAA" =>
-        None
-      case "CNAME" =>
-        cname.find(host => host.name == name)
-      case "MX" =>
-        if (!mailx.isEmpty) Some(mailx.minBy(_.priority)) else None
-      case "NS" =>
-        None
-      case "SOA" =>
-        None
-      case "PTR" =>
-        None
-      case "TXT" =>
-        None
-      case _ =>
-        None
+      case "A" => findInArrayWithNull(address, name)
+      case "AAAA" => None
+      case "CNAME" => findInArrayWithNull(cname, name)
+      case "NS" => findInArrayWithNull(nameservers, name)
+      case "SOA" => findInArrayWithNull(settings, name)
+      case "PTR" => None
+      case "TXT" => None
+      case "MX" => if(mailx != null) {
+        val mx = mailx.filter(compareHostName(_, name))
+        if(mx.isEmpty) None else Some(mx.minBy(_.priority))
+      } else None
+      case _ => None
     }
   
   def getHost(name: String = null, typ: Int = 0) =
@@ -62,6 +56,29 @@ case class ExtendedDomain(
       case Some(host) => host
       case None => throw new HostNotFoundException
     }
+  
+  def findHosts(name: String) = 
+    hosts.filter(_ match {
+      case host: AddressHost => host.name == name
+      case host: CnameHost => host.name == name
+      case host: NSHost => host.hostname == "%s.%s".format(name, fullName)
+      case host: MXHost => host.hostname == "%s.%s".format(name, fullName)
+      case _ => false
+    })
+  
+  def getHosts(name: String) = { 
+    val hosts = findHosts(name)
+    if(!hosts.isEmpty) hosts else throw new HostNotFoundException
+  }
+  
+  private def compareHostName(host: Host, name: String) = 
+    host.name == name || (name == fullName && (host.name == fullName || host.name == "@"))
+    
+  private def hostsToList[T <: Host](hosts: Array[T]): List[Host] =
+    if (hosts != null) hosts.toList else Nil
+    
+  private def findInArrayWithNull[T <: Host](array: Array[T], name: String) = 
+    if(array != null) array.find(compareHostName(_, name)) else None
 }
 
 class HostNotFoundException extends Exception

@@ -39,9 +39,9 @@ abstract class AbstractDomain {
   val ttl: Long
   val nameservers: Array[NSHost]
   
-  private lazy val nameParts = fullName.split("""\.""")
+  lazy val nameParts = fullName.split("""\.""")
   lazy val extension = nameParts(nameParts.size - 1)
-  lazy val name = if(nameParts.size > 1) nameParts.slice(0, nameParts.size - 1).mkString(".") else ""
+  lazy val name = if(nameParts.size > 1) nameParts.take(nameParts.size - 1).mkString(".") else ""
   lazy val reverseFullName = fullName.split(".").reverse.mkString(".")
 }
 

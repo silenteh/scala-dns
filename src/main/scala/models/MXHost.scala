@@ -16,25 +16,13 @@
 package models
 
 import org.codehaus.jackson.annotate.JsonProperty
-import org.codehaus.jackson.annotate.JsonIgnoreProperties
-import org.codehaus.jackson.annotate.JsonIgnore
-import org.codehaus.jackson.annotate.JsonBackReference
-import records._
-import payload.RRData
-import scala.annotation.tailrec
+import records.MX
 
-/*class Host(name: String, domain: ExtendedDomain, recordType: Int, ip: List[String] = List.empty[String])*/
-
-abstract class Host(val typ: String) {
-  val cls: String
-  val name: String
-  
-  protected def getRData: Any
-  
-  def toRData = 
-    getRData match {
-      case rd: AbstractRecord => Array(rd)
-      case rd: Array[AbstractRecord] => rd
-      case _ => throw new Error("Something went wrong")
-    }
+case class MXHost(
+  @JsonProperty("class") cls: String = null,
+  @JsonProperty("name") name: String = null,
+  @JsonProperty("value") hostname: String = null, 
+  @JsonProperty("priority") priority: Int = -1
+) extends Host("MX") {
+  protected def getRData = new MX(priority, (hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList)
 }

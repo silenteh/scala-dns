@@ -46,10 +46,15 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
         logger.info("Request bytes: " + message.toByteArray.toList.toString)
         val response = try {
           val answers = message.query.map { query =>
-            val qname = List("ext", "name", "host").zip(query.qname.filter(_.length > 0).map(new String(_, "UTF-8")).reverse).toMap.withDefaultValue("")
-            val domain = DNSCache.getDomain(qname("ext"), qname("name"))
-
-            domain.getHost(qname("host"), query.qtype).toRData.map { record =>
+            val qname = query.qname.filter(_.length > 0).map(new String(_, "UTF-8"))
+            val domain = DNSCache.getDomain(query.qtype, qname)
+            
+            val hostname = {
+              val hnm = qname.take(qname.indexOfSlice(domain.nameParts)).mkString(".")
+              if(hnm.length == 0 || hnm == "@") domain.fullName else hnm
+            }
+            
+            domain.getHost(hostname, query.qtype).toRData.map { record =>
               new RRData(
                 ((domain.fullName.split("""\.""") :+ "").map(_.getBytes)).toList,
                 RecordType.withName(record.description).id,
@@ -75,13 +80,17 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
             Message(header, message.query, message.answers, message.authority, message.additional)
           }
           case ex: Exception => {
+            ex.printStackTrace
+            logger.error(ex.getClass.getName + "\n" + ex.getStackTraceString)
             val header = Header(message.header.id, true, message.header.opcode, false, message.header.truncated,
               message.header.recursionDesired, false, 0, ResponseCode.SERVER_FAILURE.id, message.header.questionCount, 0, 0, 0)
             Message(header, message.query, message.answers, message.authority, message.additional)
           }
         }
-        logger.debug("Response bytes: " + response.toByteArray.toList.toString)
-        e.getChannel.write(ChannelBuffers.copiedBuffer(response.toByteArray), e.getRemoteAddress)
+        val responseBytes = response.toByteArray
+        logger.debug("Response length: " + responseBytes.length.toString)
+        logger.debug("Response bytes: " + responseBytes.toList.toString)
+        e.getChannel.write(ChannelBuffers.copiedBuffer(responseBytes), e.getRemoteAddress)
       }
       case _ => {
         logger.error("Unsupported message type")
