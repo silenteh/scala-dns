@@ -37,8 +37,8 @@ case class SoaHost(
   @tailrec
   private def timeStrToLong(time: String, number: String = "", value: Long = 0L): Long =
     if(time.isEmpty) value + (if(number != "") number.toLong else 0L)
-    else if("[0-9]".matches(time.head.toString)) timeStrToLong(time.tail, number + time.head, value)
-    else timeStrToLong(time.tail, "", value + strNumToLong(number) * timeStrs(time.toString))
+    else if(time.head.toString.matches("[0-9]")) timeStrToLong(time.tail, number + time.head, value)
+    else timeStrToLong(time.tail, "", value + strNumToLong(number) * timeStrs(time.head.toString))
   
   private def strNumToLong(number: String): Long = 
     if(number == "") 0L else number.toLong

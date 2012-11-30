@@ -36,14 +36,17 @@ object DomainIO {
   logger.info(dataPath.getAbsolutePath())
   
   def loadDomains(domainfolder: File = dataPath) = {
-    val domains = domainfolder.listFiles
-    domains.filter(_.getName.endsWith(".json")).foreach(loadDomain(_))
+    val domainFiles = domainfolder.listFiles.filter(_.getName.endsWith(".json"))
+    val domainNames = domainFiles.map(domainFile => domainFile.getName.take(domainFile.getName.indexOfSlice("json")))
+    domainFiles.foreach(loadDomain(_, domainNames))
     DNSCache.logDomains
   }
   
-  def loadDomain(domainfile: File) = {
+  def loadDomain(domainfile: File, domainNames: Array[String]) = {
     try {
-      DNSCache.setDomain(Json.readValue(domainfile, classOf[ExtendedDomain]))
+      val domain = Json.readValue(domainfile, classOf[ExtendedDomain])
+      if (validate(domain, domainNames)) DNSCache.setDomain(domain)
+      else logger.warn("Misplaced entry: " + domainfile.getAbsolutePath)
     } catch {
       case ex: JsonParseException => logger.warn("Broken json file: " + domainfile.getAbsolutePath)
     }
@@ -51,5 +54,14 @@ object DomainIO {
   
   def storeDomain(domain: ExtendedDomain, path: String = dataPathStr) = {
     Json.writeValue(new File(path + domain.fullName + "json"), domain)
+  }
+  
+  def validate(domain: ExtendedDomain, domainNames: Array[String]) = {
+    def findName(domainNameParts: Array[String]): Boolean = 
+      if(domainNameParts.isEmpty) true
+      else if(domainNames.contains(domainNameParts.mkString(".") + "." + domain.fullName)) false
+      else findName(domainNameParts.tail)
+    
+    domain.hosts.forall(host => findName(host.name.split("""\.""").tail))
   }
 }

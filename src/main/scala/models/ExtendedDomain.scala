@@ -37,15 +37,15 @@ case class ExtendedDomain(
 
   def findHost(name: String = null, typ: Int = 0) = 
     RecordType(typ).toString match {
-      case "A" => findInArrayWithNull(address, name)
+      case "A" => findInArrayWithNull(address, compareHostName(name))
       case "AAAA" => None
-      case "CNAME" => findInArrayWithNull(cname, name)
-      case "NS" => findInArrayWithNull(nameservers, name)
-      case "SOA" => findInArrayWithNull(settings, name)
+      case "CNAME" => findInArrayWithNull(cname, compareHostName(name))
+      case "NS" => findInArrayWithNull(nameservers, compareHostName(name))
+      case "SOA" => findInArrayWithNull(settings, compareHostName(name))
       case "PTR" => None
       case "TXT" => None
       case "MX" => if(mailx != null) {
-        val mx = mailx.filter(compareHostName(_, name))
+        val mx = mailx.filter(compareHostName(name)(_))
         if(mx.isEmpty) None else Some(mx.minBy(_.priority))
       } else None
       case _ => None
@@ -71,14 +71,14 @@ case class ExtendedDomain(
     if(!hosts.isEmpty) hosts else throw new HostNotFoundException
   }
   
-  private def compareHostName(host: Host, name: String) = 
+  private def compareHostName(name: String)(host: Host) = 
     host.name == name || (name == fullName && (host.name == fullName || host.name == "@"))
     
   private def hostsToList[T <: Host](hosts: Array[T]): List[Host] =
     if (hosts != null) hosts.toList else Nil
     
-  private def findInArrayWithNull[T <: Host](array: Array[T], name: String) = 
-    if(array != null) array.find(compareHostName(_, name)) else None
+  private def findInArrayWithNull[T <: Host](array: Array[T], condition: T => Boolean) = 
+    if(array != null) array.find(condition) else None
 }
 
 class HostNotFoundException extends Exception
