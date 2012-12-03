@@ -47,6 +47,7 @@ object DomainIO {
       val domain = Json.readValue(domainfile, classOf[ExtendedDomain])
       if (validate(domain, domainNames)) DNSCache.setDomain(domain)
       else logger.warn("Misplaced entry: " + domainfile.getAbsolutePath)
+      //if (validate(domain, domainNames) < 2) DNSCache.setDomain(domain)
     } catch {
       case ex: JsonParseException => logger.warn("Broken json file: " + domainfile.getAbsolutePath)
     }
@@ -61,7 +62,25 @@ object DomainIO {
       if(domainNameParts.isEmpty) true
       else if(domainNames.contains(domainNameParts.mkString(".") + "." + domain.fullName)) false
       else findName(domainNameParts.tail)
-    
+      
     domain.hosts.forall(host => findName(host.name.split("""\.""").tail))
   }
+  
+  /*def validate(domain: ExtendedDomain, domainNames: Array[String]) = {
+    def findName(domainNameParts: Array[String]): String = 
+      if(domainNameParts.isEmpty) domain.fullName
+      else if(!domainNames.contains(domainNameParts.mkString(".") + "." + domain.fullName)) findName(domainNameParts.tail)
+      else domainNameParts.mkString(".") + "." + domain.fullName
+    
+    val unreachable = domain.hosts.foldLeft(true) {(allValid, host) => 
+      val name = findName(host.name.split("""\.""").tail)
+      val valid = name == domain.fullName
+      if(!valid) logger.warn(
+        "Unreachable entry '%s' in %sjson zone file. Rename it and move it to %sjson zone file."
+          .format(host.name, domain.fullName, name))
+      valid && allValid
+    }
+    
+    if(unreachable) 1 else 0
+  }*/
 }

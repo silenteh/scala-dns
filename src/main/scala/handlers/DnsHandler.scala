@@ -34,6 +34,13 @@ import models.HostNotFoundException
 import enums.ResponseCode
 import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.channel.ChannelFutureListener
+import models.CnameHost
+import scala.collection.mutable
+import datastructures.DomainNotFoundException
+import models.HostNotFoundException
+import datastructures.DomainNotFoundException
+import payload.Name
+import records.CNAME
 
 class DnsHandler extends SimpleChannelUpstreamHandler {
 
@@ -48,13 +55,13 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
           val answers = message.query.map { query =>
             val qname = query.qname.filter(_.length > 0).map(new String(_, "UTF-8"))
             val domain = DNSCache.getDomain(query.qtype, qname)
-            
-            val hostname = {
+
+            /*val hostname = {
               val hnm = qname.take(qname.indexOfSlice(domain.nameParts)).mkString(".")
-              if(hnm.length == 0 || hnm == "@") domain.fullName else hnm
+              if (hnm.length == 0 || hnm == "@") domain.fullName else hnm
             }
             
-            domain.getHost(hostname, query.qtype).toRData.map { record =>
+			domain.getHost(hostname, query.qtype).toRData.map { record =>
               new RRData(
                 ((domain.fullName.split("""\.""") :+ "").map(_.getBytes)).toList,
                 RecordType.withName(record.description).id,
@@ -63,6 +70,32 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
                 record.toByteArray.length,
                 record)
             }
+
+            val hosts = domain.getHosts(hostname).filter(h => h.typ == RecordType(query.qtype).toString || h.typ == RecordType.CNAME.toString).map(host => host match {
+              case host: CnameHost => resolveCname(host, query.qtype, query.qclass)
+              case _ => host.toRData
+            })
+
+            hosts.flatten.map { record =>
+              new RRData(
+                ((domain.fullName.split("""\.""") :+ "").map(_.getBytes)).toList,
+                RecordType.withName(record.description).id,
+                query.qclass,
+                domain.ttl,
+                record.toByteArray.length,
+                record)
+            }*/
+
+            hostToRecords(qname, query.qtype, query.qclass).map { record =>
+              new RRData(
+                ((domain.fullName.split("""\.""") :+ "").map(_.getBytes)).toList,
+                RecordType.withName(record.description).id,
+                query.qclass,
+                domain.ttl,
+                record.toByteArray.length,
+                record)
+            }
+            
           }.flatten
           val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
             message.header.recursionDesired, false, 0, ResponseCode.OK.id, message.header.questionCount, answers.length, 0, 0)
@@ -72,7 +105,7 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
           case ex: DomainNotFoundException => {
             val header = Header(message.header.id, true, message.header.opcode, false, message.header.truncated,
               message.header.recursionDesired, false, 0, ResponseCode.REFUSED.id, message.header.questionCount, 0, 0, 0)
-        	Message(header, message.query, message.answers, message.authority, message.additional)
+            Message(header, message.query, message.answers, message.authority, message.additional)
           }
           case ex: HostNotFoundException => {
             val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
@@ -80,7 +113,6 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
             Message(header, message.query, message.answers, message.authority, message.additional)
           }
           case ex: Exception => {
-            ex.printStackTrace
             logger.error(ex.getClass.getName + "\n" + ex.getStackTraceString)
             val header = Header(message.header.id, true, message.header.opcode, false, message.header.truncated,
               message.header.recursionDesired, false, 0, ResponseCode.SERVER_FAILURE.id, message.header.questionCount, 0, 0, 0)
@@ -96,5 +128,41 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
         logger.error("Unsupported message type")
       }
     }
+  }
+
+  def hostToRecords(qname: List[String], qtype: Int, qclass: Int) = {
+    
+    val domain = DNSCache.getDomain(qtype, qname)
+
+    def hostname(qname: List[String], domain: ExtendedDomain) = {
+      val hnm = qname.take(qname.indexOfSlice(domain.nameParts)).mkString(".")
+      if (hnm.length == 0 || hnm == "@") domain.fullName else hnm
+    }
+    
+    def resolveHost(host: Host, records: Array[AbstractRecord], cnames: Map[String, Array[AbstractRecord]], oldDomain: ExtendedDomain): Array[AbstractRecord] = {
+      host match {
+        case host: CnameHost => {
+          if(!cnames.contains(host.hostname)) {
+            try {
+              val qname = if(host.hostname == "@") oldDomain.nameParts.toList else host.hostname.split("""\.""").toList
+              val domain = if(host.hostname == "@") oldDomain else DNSCache.getDomain(qtype, qname)
+              val newHost = if(host.hostname != "@") host else host.changeHostname(qname.mkString("."))
+              records ++ domain.getHosts(hostname(qname, domain))
+                .filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
+                  .map(resolveHost(_, Array(), cnames + (host.hostname -> newHost.toRData), domain)).flatten
+            } catch {
+              case ex: DomainNotFoundException => records ++ host.toRData
+            }
+          } else records
+        }
+        case _ => records ++ cnames.values.flatten ++ host.toRData
+      }
+    }
+    
+    val records = domain.getHosts(hostname(qname, domain)).filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString).map {h => 
+      resolveHost(h, Array(), Map(), domain)
+    }.flatten
+    
+    if(!records.isEmpty) records else throw new HostNotFoundException
   }
 }

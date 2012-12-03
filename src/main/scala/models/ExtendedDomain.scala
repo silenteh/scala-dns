@@ -58,17 +58,12 @@ case class ExtendedDomain(
     }
   
   def findHosts(name: String) = 
-    hosts.filter(_ match {
-      case host: AddressHost => host.name == name
-      case host: CnameHost => host.name == name
-      case host: NSHost => host.hostname == "%s.%s".format(name, fullName)
-      case host: MXHost => host.hostname == "%s.%s".format(name, fullName)
-      case _ => false
-    })
+    hosts.filter(compareHostName(name)(_))
   
   def getHosts(name: String) = { 
     val hosts = findHosts(name)
-    if(!hosts.isEmpty) hosts else throw new HostNotFoundException
+    //if(!hosts.isEmpty) hosts else throw new HostNotFoundException
+    hosts
   }
   
   private def compareHostName(name: String)(host: Host) = 

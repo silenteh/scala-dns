@@ -23,5 +23,7 @@ case class CnameHost(
   @JsonProperty("name") name: String = null, 
   @JsonProperty("value") hostname: String
 ) extends Host("CNAME") {
-  protected def getRData = new CNAME((hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList)
+  protected def getRData = new CNAME((hostname.split("""\.""").map(_.getBytes) :+ Array[Byte]()).toList)
+  
+  def changeHostname(hname: String) = CnameHost(cls, name, hname)
 }

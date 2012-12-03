@@ -79,6 +79,6 @@ object Name {
       RRData.shortToByte((bytes.length & MAX_LABEL_SIZE).toShort) ++ bytes ++ total}
   
   def toByteArray(name: String): Array[Byte] = 
-    toByteArray(name.split(".").map(_.getBytes).toList)
+    toByteArray(name.split("""\.""").map(_.getBytes).toList)
     
 }

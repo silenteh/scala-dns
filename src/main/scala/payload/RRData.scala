@@ -40,9 +40,7 @@ object RRData {
   val logger = LoggerFactory.getLogger("app")
 
   def apply(buf: ChannelBuffer) = {
-    logger.debug("deserte")
     val name = Name.parse(buf)
-    logger.debug(name.toString);
     val rtype = buf.readUnsignedShort
     val rclass = buf.readUnsignedShort
     val ttl = buf.readUnsignedInt()
