@@ -32,6 +32,12 @@ case class TXT(strings: Array[Array[Byte]]) extends AbstractRecord {
   lazy val getStrings = strings.map(new String(_, "UTF-8"))
     
   def toByteArray = strings.foldRight(Array[Byte]()) {case (bytes, total) => bytes ++ total}
+  
+  def isEqualTo(any: Any) = any match {
+    case r: TXT => r.strings.deep == strings.deep
+    case _ => false
+  }
+  
 }
 
 object TXT {

@@ -22,6 +22,7 @@ abstract class AbstractRecord {
   
   def toByteArray: Array[Byte]
   
+  def isEqualTo(any: Any): Boolean
 }
 
 object AbstractRecord {

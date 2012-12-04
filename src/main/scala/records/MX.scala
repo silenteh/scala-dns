@@ -26,6 +26,11 @@ case class MX(preference: Int, record: List[Array[Byte]]) extends AbstractRecord
   val description = "MX"
   
   def toByteArray = RRData.shortToBytes(preference.toShort) ++ Name.toByteArray(record)
+  
+  def isEqualTo(any: Any) = any match {
+    case r: MX => r.preference == preference && r.record.toArray.deep == record.toArray.deep
+    case _ => false
+  }
 }
 
 object MX {

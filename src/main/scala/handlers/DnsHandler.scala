@@ -53,58 +53,38 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
         logger.info(message.toString)
         logger.info("Request bytes: " + message.toByteArray.toList.toString)
         val response = try {
-          val answers = message.query.map { query =>
+          val answers = distinctAliases(message.query.map { query =>
             val qname = query.qname.filter(_.length > 0).map(new String(_, "UTF-8"))
             val domain = DNSCache.getDomain(query.qtype, qname)
 
-            /*val hostname = {
-              val hnm = qname.take(qname.indexOfSlice(domain.nameParts)).mkString(".")
-              if (hnm.length == 0 || hnm == "@") domain.fullName else hnm
-            }
-            
-			domain.getHost(hostname, query.qtype).toRData.map { record =>
-              new RRData(
-                ((domain.fullName.split("""\.""") :+ "").map(_.getBytes)).toList,
-                RecordType.withName(record.description).id,
-                query.qclass,
-                domain.ttl,
-                record.toByteArray.length,
-                record)
-            }
-
-            val hosts = domain.getHosts(hostname).filter(h => h.typ == RecordType(query.qtype).toString || h.typ == RecordType.CNAME.toString).map(host => host match {
-              case host: CnameHost => resolveCname(host, query.qtype, query.qclass)
-              case _ => host.toRData
-            })
-
-            hosts.flatten.map { record =>
-              new RRData(
-                ((domain.fullName.split("""\.""") :+ "").map(_.getBytes)).toList,
-                RecordType.withName(record.description).id,
-                query.qclass,
-                domain.ttl,
-                record.toByteArray.length,
-                record)
-            }*/
-
             val records = {
               val rdata = hostToRecords(qname, query.qtype, query.qclass)
-
-              if (!rdata.isEmpty) rdata
-              else wildcardsToRecords(domain, qname, query.qtype, query.qclass)
+              if (!rdata.isEmpty) rdata else wildcardsToRecords(domain, qname, query.qtype, query.qclass)
             }
 
-            records.map { record =>
-              new RRData(
-                ((domain.fullName.split("""\.""") :+ "").map(_.getBytes)).toList,
-                RecordType.withName(record.description).id,
-                query.qclass,
-                domain.ttl,
-                record.toByteArray.length,
-                record)
+            // @TODO: Implement additional where appropriate
+
+            // @TODO: Return SOA when host not found
+
+            records.map {
+              case (name, record) =>
+                new RRData(
+                  (((name).split("""\.""") :+ "").map(_.getBytes)).toList,
+                  RecordType.withName(record.description).id,
+                  query.qclass,
+                  domain.ttl,
+                  record.toByteArray.length,
+                  record)
             }
 
-          }.flatten
+          }.flatten)
+
+          distinctAliases(answers).map(a => logger.debug(a.rdata.toString))
+
+          answers.foreach(_.rdata match {
+            case rd: CNAME => logger.debug("Name: " + rd.record.map(new String(_, "UTF-8")).mkString("\\\"", ".", "\\\""))
+            case _ => Unit
+          })
 
           if (!answers.isEmpty) {
             val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
@@ -121,11 +101,6 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
               message.header.recursionDesired, false, 0, ResponseCode.REFUSED.id, message.header.questionCount, 0, 0, 0)
             Message(header, message.query, message.answers, message.authority, message.additional)
           }
-          /*case ex: HostNotFoundException => {
-            val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
-              message.header.recursionDesired, false, 0, ResponseCode.NAME_ERROR.id, message.header.questionCount, 0, 0, 0)
-            Message(header, message.query, message.answers, message.authority, message.additional)
-          }*/
           case ex: Exception => {
             logger.error(ex.getClass.getName + "\n" + ex.getStackTraceString)
             val header = Header(message.header.id, true, message.header.opcode, false, message.header.truncated,
@@ -153,32 +128,48 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
       if (hnm.length == 0 || hnm == "@") domain.fullName else hnm
     }
 
-    def resolveHost(host: Host, records: Array[AbstractRecord], cnames: Map[String, Array[AbstractRecord]], oldDomain: ExtendedDomain): Array[AbstractRecord] = {
+    // Not a tail recursion
+    def resolveHost(
+      host: Host,
+      records: Array[(String, AbstractRecord)],
+      cnames: Map[String, Array[AbstractRecord]],
+      oldDomain: ExtendedDomain): Array[(String, AbstractRecord)] =
       host match {
-        case host: CnameHost => {
+        case host: CnameHost =>
           if (!cnames.contains(host.hostname)) {
             try {
-              val qname = if (host.hostname == "@") oldDomain.nameParts.toList else host.hostname.split("""\.""").toList
-              val domain = if (host.hostname == "@") oldDomain else DNSCache.getDomain(qtype, qname)
-              val newHost = if (host.hostname != "@") host else host.changeHostname(qname.mkString("."))
+              val qname = if (host.hostname.contains("@")) oldDomain.nameParts.toList else host.hostname.split("""\.""").toList
+              val domain = if (host.hostname.contains("@")) oldDomain else DNSCache.getDomain(qtype, qname)
+              val newHost = if (!host.hostname.contains("@")) host else host.changeHostname(qname.mkString("."))
+
               records ++ domain.getHosts(hostname(qname, domain))
                 .filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
-                .map(resolveHost(_, Array(), cnames + (host.hostname -> newHost.toRData), domain)).flatten
+                .map(resolveHost(_, Array(), cnames + (newHost.hostname -> newHost.toRData), domain)).flatten
             } catch {
               // Cname points to an external domain, search cache
-              case ex: DomainNotFoundException => records ++ host.toRData
+              case ex: DomainNotFoundException => records ++ host.toRData.map((host.hostname, _))
             }
-          } else records
+          } else {
+            logger.error("Infinite loop when resolving a CNAME: " + cnames.keys.mkString(" -> ") + " -> " + host.hostname)
+            records
+          }
+        case _ => {
+          val absname =
+            if (host.name == "@") domain.fullName
+            else if (!host.name.endsWith(""".""")) host.name + "." + domain.fullName
+            else host.name
+          cnames.map { case (name, hostnames) => hostnames.map((name, _)) }.flatten.toArray ++ records ++ host.toRData.map((absname, _))
         }
-        case _ => records ++ cnames.values.flatten ++ host.toRData
       }
-    }
 
-    domain.getHosts(hostname(qname, domain)).filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString).map { h =>
-      resolveHost(h, Array(), Map(), domain)
-    }.flatten
-
-    //if(!records.isEmpty) records else throw new HostNotFoundException
+    domain.getHosts(hostname(qname, domain)).filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
+      .map { host =>
+        val cnames = host match {
+          case h: CnameHost => Map(qname.mkString(".") + "." -> host.toRData)
+          case _ => Map[String, Array[AbstractRecord]]()
+        }
+        resolveHost(host, Array(), cnames, domain)
+      }.flatten
   }
 
   def wildcardsToRecords(domain: ExtendedDomain, qname: List[String], qtype: Int, qclass: Int) = {
@@ -188,14 +179,25 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
     else {
 
       @tailrec
-      def findWC(qname: List[String]): List[AbstractRecord] =
+      def findWC(qname: List[String], name: String): List[(String, AbstractRecord)] =
         if (qname.isEmpty) hostToRecords("*" :: domain.nameParts.toList, qtype, qclass)
         else {
           val rdata = hostToRecords("*" :: qname ++ domain.nameParts, qtype, qclass)
-          if (!rdata.isEmpty) rdata else findWC(qname.tail)
+          if (!rdata.isEmpty) rdata.map { case (n, r) => (n.replace("""*""", name), r) }
+          else findWC(qname.tail, name + "." + qname.head)
         }
 
-      findWC(wc.tail)
+      findWC(wc.tail, wc.head)
     }
   }
+
+  @tailrec
+  final def distinctAliases(records: Array[RRData], results: Array[RRData] = Array()): Array[RRData] =
+    if (records.isEmpty) results
+    else records.head match {
+      case RRData(name, _, _, _, _, record: CNAME) =>
+        if (results.exists(_.name.toArray.deep == name.toArray.deep)) distinctAliases(records.tail, results)
+        else distinctAliases(records.tail, results :+ records.head)
+      case _ => distinctAliases(records.tail, results :+ records.head)
+    }
 }

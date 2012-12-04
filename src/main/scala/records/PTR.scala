@@ -25,6 +25,11 @@ case class PTR(record: List[Array[Byte]]) extends AbstractRecord {
   val description = "PTR"
   
   def toByteArray = Name.toByteArray(record)
+  
+  def isEqualTo(any: Any) = any match {
+    case r: PTR => r.record.toArray.deep == record.toArray.deep
+    case _ => false
+  }
 }
 
 object PTR {

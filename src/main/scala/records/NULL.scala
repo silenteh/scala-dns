@@ -25,6 +25,11 @@ case class NULL(record: Array[Byte]) extends AbstractRecord {
   
   lazy val toByteArray = record
 
+  def isEqualTo(any: Any) = any match {
+    case r: NULL => r.record.deep == record.deep
+    case _ => false
+  }
+  
 }
 
 object NULL {

@@ -25,6 +25,11 @@ case class CNAME(record: List[Array[Byte]]) extends AbstractRecord {
   val description = "CNAME"
 
   def toByteArray = Name.toByteArray(record)
+  
+  def isEqualTo(any: Any) = any match {
+    case r: CNAME => r.record.toArray.deep == record.toArray.deep
+    case _ => false
+  }
 }
 
 object CNAME {

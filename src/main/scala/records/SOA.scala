@@ -33,6 +33,12 @@ case class SOA(
   
   val description = "SOA"
   
+  def isEqualTo(any: Any) = any match {
+    case r: SOA => r.mname.toArray.deep == mname.toArray.deep && r.rname.toArray.deep == rname.toArray.deep && r.serial == serial &&
+      r.refresh == refresh && r.retry == retry && r.expire == expire && r.minimum == minimum
+    case _ => false
+  }
+    
   def toByteArray = Name.toByteArray(mname) ++ Name.toByteArray(rname) ++ RRData.intToBytes(serial.toInt) ++
     RRData.intToBytes(refresh.toInt) ++ RRData.intToBytes(retry.toInt) ++ RRData.intToBytes(expire.toInt) ++
     RRData.intToBytes(minimum.toInt)

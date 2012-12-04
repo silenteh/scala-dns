@@ -27,6 +27,11 @@ case class A(record: Long) extends AbstractRecord {
 
   def toByteArray = RRData.intToBytes(record.toInt)
   def addressToByteArray = Array()
+  
+  def isEqualTo(any: Any) = any match {
+    case r: A => r.record == record
+    case _ => false
+  }
 
 }
 
