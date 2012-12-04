@@ -25,5 +25,5 @@ case class CnameHost(
 ) extends Host("CNAME") {
   protected def getRData = new CNAME((hostname.split("""\.""").map(_.getBytes) :+ Array[Byte]()).toList)
   
-  def changeHostname(hname: String) = CnameHost(cls, name, hname)
+  def changeHostname(hostname: String) = CnameHost(cls, name, hostname)
 }

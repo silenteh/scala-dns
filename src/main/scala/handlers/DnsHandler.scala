@@ -58,8 +58,8 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
             val domain = DNSCache.getDomain(query.qtype, qname)
 
             val records = {
-              val rdata = hostToRecords(qname, query.qtype, query.qclass)
-              if (!rdata.isEmpty) rdata else wildcardsToRecords(domain, qname, query.qtype, query.qclass)
+              val rdata = DnsResponseBuilder.hostToRecords(qname, query.qtype, query.qclass)
+              if (!rdata.isEmpty) rdata else DnsResponseBuilder.wildcardsToRecords(domain, qname, query.qtype, query.qclass)
             }
 
             // @TODO: Implement additional where appropriate
@@ -76,15 +76,7 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
                   record.toByteArray.length,
                   record)
             }
-
           }.flatten)
-
-          distinctAliases(answers).map(a => logger.debug(a.rdata.toString))
-
-          answers.foreach(_.rdata match {
-            case rd: CNAME => logger.debug("Name: " + rd.record.map(new String(_, "UTF-8")).mkString("\\\"", ".", "\\\""))
-            case _ => Unit
-          })
 
           if (!answers.isEmpty) {
             val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
@@ -119,80 +111,8 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
     }
   }
 
-  def hostToRecords(qname: List[String], qtype: Int, qclass: Int) = {
-
-    val domain = DNSCache.getDomain(qtype, qname)
-
-    def hostname(qname: List[String], domain: ExtendedDomain) = {
-      val hnm = qname.take(qname.indexOfSlice(domain.nameParts)).mkString(".")
-      if (hnm.length == 0 || hnm == "@") domain.fullName else hnm
-    }
-
-    // Not a tail recursion
-    def resolveHost(
-      host: Host,
-      records: Array[(String, AbstractRecord)],
-      cnames: Map[String, Array[AbstractRecord]],
-      oldDomain: ExtendedDomain): Array[(String, AbstractRecord)] =
-      host match {
-        case host: CnameHost =>
-          if (!cnames.contains(host.hostname)) {
-            try {
-              val qname = if (host.hostname.contains("@")) oldDomain.nameParts.toList else host.hostname.split("""\.""").toList
-              val domain = if (host.hostname.contains("@")) oldDomain else DNSCache.getDomain(qtype, qname)
-              val newHost = if (!host.hostname.contains("@")) host else host.changeHostname(qname.mkString("."))
-
-              records ++ domain.getHosts(hostname(qname, domain))
-                .filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
-                .map(resolveHost(_, Array(), cnames + (newHost.hostname -> newHost.toRData), domain)).flatten
-            } catch {
-              // Cname points to an external domain, search cache
-              case ex: DomainNotFoundException => records ++ host.toRData.map((host.hostname, _))
-            }
-          } else {
-            logger.error("Infinite loop when resolving a CNAME: " + cnames.keys.mkString(" -> ") + " -> " + host.hostname)
-            records
-          }
-        case _ => {
-          val absname =
-            if (host.name == "@") domain.fullName
-            else if (!host.name.endsWith(""".""")) host.name + "." + domain.fullName
-            else host.name
-          cnames.map { case (name, hostnames) => hostnames.map((name, _)) }.flatten.toArray ++ records ++ host.toRData.map((absname, _))
-        }
-      }
-
-    domain.getHosts(hostname(qname, domain)).filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
-      .map { host =>
-        val cnames = host match {
-          case h: CnameHost => Map(qname.mkString(".") + "." -> host.toRData)
-          case _ => Map[String, Array[AbstractRecord]]()
-        }
-        resolveHost(host, Array(), cnames, domain)
-      }.flatten
-  }
-
-  def wildcardsToRecords(domain: ExtendedDomain, qname: List[String], qtype: Int, qclass: Int) = {
-    val wc = qname.take(qname.indexOfSlice(domain.nameParts))
-
-    if (wc.size + domain.nameParts.size <= 1) List()
-    else {
-
-      @tailrec
-      def findWC(qname: List[String], name: String): List[(String, AbstractRecord)] =
-        if (qname.isEmpty) hostToRecords("*" :: domain.nameParts.toList, qtype, qclass)
-        else {
-          val rdata = hostToRecords("*" :: qname ++ domain.nameParts, qtype, qclass)
-          if (!rdata.isEmpty) rdata.map { case (n, r) => (n.replace("""*""", name), r) }
-          else findWC(qname.tail, name + "." + qname.head)
-        }
-
-      findWC(wc.tail, wc.head)
-    }
-  }
-
   @tailrec
-  final def distinctAliases(records: Array[RRData], results: Array[RRData] = Array()): Array[RRData] =
+  private def distinctAliases(records: Array[RRData], results: Array[RRData] = Array()): Array[RRData] =
     if (records.isEmpty) results
     else records.head match {
       case RRData(name, _, _, _, _, record: CNAME) =>
