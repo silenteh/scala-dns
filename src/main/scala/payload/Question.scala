@@ -20,6 +20,12 @@ import org.slf4j.LoggerFactory
 case class Question(qname: List[Array[Byte]], qtype: Int, qclass: Int) {
   def toByteArray = 
     Name.toByteArray(qname) ++ RRData.shortToBytes(qtype.toShort) ++ RRData.shortToBytes(qclass.toShort)
+    
+  def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = {
+    val qnameBytes = Name.toCompressedByteArray(qname, input)
+    (qnameBytes._1 ++ RRData.shortToBytes(qtype.toShort) ++ RRData.shortToBytes(qclass.toShort), qnameBytes._2)
+  }
+    
 }
   
   

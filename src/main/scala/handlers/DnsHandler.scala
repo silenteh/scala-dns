@@ -26,7 +26,7 @@ import enums.RecordType
 import models.Host
 import payload.Header
 import models.AddressHost
-import records.AbstractRecord
+import records._
 import models.ExtendedDomain
 import payload.RRData
 import datastructures.DomainNotFoundException
@@ -36,9 +36,6 @@ import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.channel.ChannelFutureListener
 import models.CnameHost
 import scala.collection.mutable
-import datastructures.DomainNotFoundException
-import models.HostNotFoundException
-import datastructures.DomainNotFoundException
 import payload.Name
 import records.CNAME
 import scala.annotation.tailrec
@@ -53,35 +50,51 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
         logger.info(message.toString)
         logger.info("Request bytes: " + message.toByteArray.toList.toString)
         val response = try {
-          val answers = distinctAliases(message.query.map { query =>
+          val responseParts = message.query.map { query =>
             val qname = query.qname.filter(_.length > 0).map(new String(_, "UTF-8"))
             val domain = DNSCache.getDomain(query.qtype, qname)
 
             val records = {
               val rdata = DnsResponseBuilder.hostToRecords(qname, query.qtype, query.qclass)
-              if (!rdata.isEmpty) rdata else DnsResponseBuilder.wildcardsToRecords(domain, qname, query.qtype, query.qclass)
+              if (!rdata.isEmpty) rdata 
+              else DnsResponseBuilder.ancestorToRecords(domain, qname, query.qtype, query.qclass, true)
             }
 
+            // @TODO: Return NS when host not found
+            
+            val authority = 
+              if(!records.isEmpty) List[(String, AbstractRecord)]()
+              else DnsResponseBuilder.ancestorToRecords(domain, qname, RecordType.NS.id, query.qclass, false)
+            
             // @TODO: Implement additional where appropriate
-
-            // @TODO: Return SOA when host not found
-
-            records.map {
-              case (name, record) =>
-                new RRData(
-                  (((name).split("""\.""") :+ "").map(_.getBytes)).toList,
-                  RecordType.withName(record.description).id,
-                  query.qclass,
-                  domain.ttl,
-                  record.toByteArray.length,
-                  record)
-            }
-          }.flatten)
-
+            
+            val additionals = 
+              if(query.qtype != RecordType.A.id) List[(String, AbstractRecord)]()
+              else (records ++ authority).map {case(name, record) =>
+                record match {
+                  case r: MX => 
+                    DnsResponseBuilder.hostToRecords(r.record.map(new String(_, "UTF-8")), RecordType.A.id, query.qclass)
+                  case r: NS => 
+                    DnsResponseBuilder.hostToRecords(r.record.map(new String(_, "UTF-8")), RecordType.A.id, query.qclass)
+                  case _ => 
+                    List[(String, AbstractRecord)]()
+                }
+              }.flatten
+              
+            List(
+              "answer" -> recordsToRRData(domain, query.qclass, records),
+              "authority" -> recordsToRRData(domain, query.qclass, authority),
+              "additional" -> recordsToRRData(domain, query.qclass, additionals)
+            )
+          }.flatten.groupBy(_._1).map { case(typ, records) => (typ, distinctAliases(records.map(_._2).flatten)) }
+          
+          val (answers, authorities, additionals) = 
+            (responseParts("answer"), responseParts("authority"), responseParts("additional"))
+          
           if (!answers.isEmpty) {
             val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
               message.header.recursionDesired, false, 0, ResponseCode.OK.id, message.header.questionCount, answers.length, 0, 0)
-            Message(header, message.query, answers, message.authority, message.additional)
+            Message(header, message.query, answers, authorities, additionals)
           } else {
             val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
               message.header.recursionDesired, false, 0, ResponseCode.NAME_ERROR.id, message.header.questionCount, 0, 0, 0)
@@ -103,6 +116,9 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
         val responseBytes = response.toByteArray
         logger.debug("Response length: " + responseBytes.length.toString)
         logger.debug("Response bytes: " + responseBytes.toList.toString)
+        //val compressedResponseBytes = response.toCompressedByteArray((Array[Byte](), Map[String, Int]()))._1
+        //logger.debug("Compressed response length: " + compressedResponseBytes.length.toString)
+        //logger.debug("Compressed response bytes: " + compressedResponseBytes.toList.toString)
         e.getChannel.write(ChannelBuffers.copiedBuffer(responseBytes), e.getRemoteAddress)
       }
       case _ => {
@@ -111,6 +127,18 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
     }
   }
 
+  private def recordsToRRData(domain: ExtendedDomain, qclass: Int, records: List[(String, AbstractRecord)]) = 
+    records.map {
+      case (name, record) =>
+        new RRData(
+          (((name).split("""\.""") :+ "").map(_.getBytes)).toList,
+          RecordType.withName(record.description).id,
+          qclass,
+          domain.ttl,
+          record.toByteArray.length,
+          record)
+    }
+  
   @tailrec
   private def distinctAliases(records: Array[RRData], results: Array[RRData] = Array()): Array[RRData] =
     if (records.isEmpty) results

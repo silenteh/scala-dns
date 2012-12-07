@@ -39,7 +39,8 @@ case class Header(
   def toByteArray = {
     getBytes(
       (id << 16) + (boolToInt(response) << 15) + (opcode << 11) + (boolToInt(authoritative) << 10) + (boolToInt(truncated) << 9) +
-        (boolToInt(recursionDesired) << 8) + (boolToInt(recursionAvailable) << 6) + (zero << 4) + rcode) ++ getBytes((questionCount << 16) + answerCount) ++ getBytes((authorityCount << 16) + additionalCount)
+      (boolToInt(recursionDesired) << 8) + (boolToInt(recursionAvailable) << 6) + (zero << 4) + rcode) ++ 
+      getBytes((questionCount << 16) + answerCount) ++ getBytes((authorityCount << 16) + additionalCount)
   }
 
   def getBytes(number: Int): Array[Byte] = {
@@ -49,6 +50,8 @@ case class Header(
   }
 
   def boolToInt(bool: Boolean) = if (bool) 1.toShort else 0.toShort
+  
+  def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = (input._1 ++ toByteArray, input._2)
 }
 
 object Header {

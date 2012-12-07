@@ -63,7 +63,7 @@ object Bootstrap {
     
 
     // Bind and start to accept incoming connections.
-    // we need tor efactor this to set it up via config
+    // we need to refactor this to set it up via config
     tcpBootstrap.bind(new InetSocketAddress(InetAddress.getByName("0.0.0.0"), 53))
     
   }

@@ -44,6 +44,12 @@ case class Message(
     answers.foldRight(Array[Byte]()){case(answer, total) => answer.toByteArray ++ total} ++
     authority.foldRight(Array[Byte]()){case(authority, total) => authority.toByteArray ++ total} ++
     additional.foldRight(Array[Byte]()){case(additional, total) => additional.toByteArray ++ total}
+    
+  def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = {
+    val headerBytes = header.toCompressedByteArray(input)
+    val queryBytes = query.foldRight(headerBytes) {case(question, total) => question.toCompressedByteArray(total)}
+    (answers ++ authority ++ additional).foldRight(queryBytes) {case(item, total) => item.toCompressedByteArray(total)}
+  }
   
   private def domainName = query(0).qname.map(new String(_, "UTF-8")).mkString(".")
 }

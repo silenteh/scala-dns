@@ -22,6 +22,8 @@ abstract class AbstractRecord {
   
   def toByteArray: Array[Byte]
   
+  def toCompressedByteArray(input: (Array[Byte], Map[String, Int])): (Array[Byte], Map[String, Int])
+  
   def isEqualTo(any: Any): Boolean
 }
 

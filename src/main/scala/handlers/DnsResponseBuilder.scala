@@ -18,21 +18,20 @@ package handlers
 import datastructures.DNSCache
 import models.ExtendedDomain
 import models.Host
-import records.AbstractRecord
 import models.CnameHost
 import enums.RecordType
 import datastructures.DomainNotFoundException
 import scala.annotation.tailrec
 import payload.RRData
-import records.CNAME
+import records._
 import org.slf4j.LoggerFactory
 
 object DnsResponseBuilder {
   val logger = LoggerFactory.getLogger("app")
 
-  def hostToRecords(qname: List[String], qtype: Int, qclass: Int) = {
+  def hostToRecords(qname: List[String], qtype: Int, qclass: Int): List[(String, AbstractRecord)] = {
     val domain = DNSCache.getDomain(qtype, qname)
-
+    
     domain.getHosts(relativeHostName(qname, domain))
       .filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
       .map { host =>
@@ -41,22 +40,30 @@ object DnsResponseBuilder {
       }.flatten
   }
 
-  def wildcardsToRecords(domain: ExtendedDomain, qname: List[String], qtype: Int, qclass: Int) = {
-    val wc = qname.take(qname.indexOfSlice(domain.nameParts))
+  // Queries for ancestors of a specified host name, stops when the first match is found, 
+  // e.g. for www.example.com host name the example.com and com host names would be examined.
+  // When a "wildcards" parameter is set to true, all queries are prefixed with "*".
+  def ancestorToRecords(domain: ExtendedDomain, qname: List[String], qtype: Int, qclass: Int, wildcards: Boolean) = {
+    val name = qname.take(qname.indexOfSlice(domain.nameParts))
 
-    if (wc.size + domain.nameParts.size <= 1) List()
+    if (name.size + domain.nameParts.size <= 1) List()
     else {
 
       @tailrec
-      def findWC(qname: List[String], name: String): List[(String, AbstractRecord)] =
-        if (qname.isEmpty) hostToRecords("*" :: domain.nameParts.toList, qtype, qclass)
-        else {
+      def findHost(qname: List[String], name: String): List[(String, AbstractRecord)] = 
+        if (qname.isEmpty && wildcards) hostToRecords("*" :: domain.nameParts.toList, qtype, qclass)
+        else if (qname.isEmpty) hostToRecords("*" :: domain.nameParts.toList, qtype, qclass)
+        else if (wildcards) {
           val rdata = hostToRecords("*" :: qname ++ domain.nameParts, qtype, qclass)
           if (!rdata.isEmpty) rdata.map { case (n, r) => (n.replace("""*""", name), r) }
-          else findWC(qname.tail, name + "." + qname.head)
+          else findHost(qname.tail, name + "." + qname.head)
+        } else {
+          val rdata = hostToRecords(qname ++ domain.nameParts, qtype, qclass)
+          if (!rdata.isEmpty) rdata
+          else findHost(qname.tail, name + "." + qname.head)
         }
-
-      findWC(wc.tail, wc.head)
+      
+      findHost(name.tail, name.head)
     }
   }
 
@@ -76,7 +83,7 @@ object DnsResponseBuilder {
             val (qname, newDomain, newHost) = 
               if(host.hostname.contains("@")) {
                 val qname = oldDomain.nameParts.toList
-                (qname, oldDomain, host.changeHostname(qname.mkString(".")))
+                (qname, oldDomain, host.changeHostname(qname.mkString(".") + "."))
               } else {
                 val qname = absoluteHostName(host.hostname, domain.fullName).split("""\.""").toList
                 (qname, DNSCache.getDomain(qtype, qname), host)
@@ -90,7 +97,7 @@ object DnsResponseBuilder {
               }.flatten
           } catch {
             // Cname points to an external domain, search cache
-            // Add the last internal to the result Cname only if the host name is resolved
+            // Add the last internal result to the Cnames only if the host name is resolved
             case ex: DomainNotFoundException => records ++ host.toRData.map((host.hostname, _))
           }
         } else {
@@ -108,8 +115,10 @@ object DnsResponseBuilder {
     if (hnm.length == 0 || hnm == "@") domain.fullName else hnm
   }
   
-  private def absoluteHostName(name: String, basename: String) =
-    if (name == "@") basename else if (name.endsWith(""".""")) name else name + "." + basename
+  private def absoluteHostName(name: String, basename: String) = 
+    if (name == "@") basename
+    else if (name.contains(basename)) name
+    else name + "." + basename
     
   private def recordsToFlatArray[T](records: Map[String, Array[T]]) = 
     records.map {case(name, value) => value.map((name, _))}.flatten.toArray

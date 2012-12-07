@@ -30,6 +30,7 @@ case class AAAA(record: Array[Byte]) extends AbstractRecord {
     case _ => false
   }
   
+  def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = (input._1 ++ toByteArray, input._2)
 }
 
 object AAAA {

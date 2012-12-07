@@ -30,6 +30,10 @@ case class CNAME(record: List[Array[Byte]]) extends AbstractRecord {
     case r: CNAME => r.record.toArray.deep == record.toArray.deep
     case _ => false
   }
+  
+  def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = Name.toCompressedByteArray(record, input)
+  
+  override def toString = "CNAME(%s)".format(record.map(new String(_, "UTF-8")).mkString("."))
 }
 
 object CNAME {

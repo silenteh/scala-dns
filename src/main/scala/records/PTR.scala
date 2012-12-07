@@ -30,6 +30,8 @@ case class PTR(record: List[Array[Byte]]) extends AbstractRecord {
     case r: PTR => r.record.toArray.deep == record.toArray.deep
     case _ => false
   }
+  
+  def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = Name.toCompressedByteArray(record, input)
 }
 
 object PTR {

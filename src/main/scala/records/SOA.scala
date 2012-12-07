@@ -42,6 +42,14 @@ case class SOA(
   def toByteArray = Name.toByteArray(mname) ++ Name.toByteArray(rname) ++ RRData.intToBytes(serial.toInt) ++
     RRData.intToBytes(refresh.toInt) ++ RRData.intToBytes(retry.toInt) ++ RRData.intToBytes(expire.toInt) ++
     RRData.intToBytes(minimum.toInt)
+    
+  def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = {
+    val mnameBytes = Name.toCompressedByteArray(mname, input)
+    val rnameBytes = Name.toCompressedByteArray(rname, mnameBytes)
+    
+    (rnameBytes._1 ++ RRData.intToBytes(serial.toInt) ++ RRData.intToBytes(refresh.toInt) ++ RRData.intToBytes(retry.toInt) ++ 
+    RRData.intToBytes(expire.toInt) ++ RRData.intToBytes(minimum.toInt), rnameBytes._2)
+  }
 }
 
 object SOA {

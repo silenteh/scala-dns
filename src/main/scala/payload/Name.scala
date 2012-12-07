@@ -52,7 +52,8 @@ object Name {
         Array[Byte]() :: list
         
       } else if ((length & MASK_POINTER) != 0) {
-        val p = ((length ^ MASK_POINTER) << 8) + buf.readUnsignedByte
+        //val p = ((length ^ MASK_POINTER) << 8) + buf.readUnsignedByte
+        val p = length ^ MASK_POINTER
         if (!jumped) buf.markReaderIndex
         buf.readerIndex(p)
         loop(namesize, buf.readUnsignedByte, true, list)
@@ -73,7 +74,7 @@ object Name {
     
     loop(0, buf.readUnsignedByte, false, Nil).reverse
   }
-  // TODO: VALIDATE!!!
+
   def toByteArray(name: List[Array[Byte]]): Array[Byte] = 
     name.foldRight(Array[Byte]()) {case(bytes, total) => 
       RRData.shortToByte((bytes.length & MAX_LABEL_SIZE).toShort) ++ bytes ++ total}
@@ -81,4 +82,39 @@ object Name {
   def toByteArray(name: String): Array[Byte] = 
     toByteArray(name.split("""\.""").map(_.getBytes).toList)
     
+  def toCompressedByteArray(
+    name: List[Array[Byte]], 
+    input: (Array[Byte], Map[String, Int])
+  ): (Array[Byte], Map[String, Int]) = {
+    val (bytes, names) = input
+    
+    logger.debug("Names: " + names.toString)
+    
+    @tailrec
+    def checkExisting(name: List[Array[Byte]]): List[Array[Byte]] = 
+      if(name.isEmpty) Nil
+      else if(names.contains(nameToString(name))) name
+      else checkExisting(name.tail)
+    
+    @tailrec
+    def storeNewName(name: List[Array[Byte]], offset: Int = 0, map: Map[String, Int] = Map()): Map[String, Int] = 
+      if(name.isEmpty || name.head.isEmpty) map 
+      else storeNewName(name.tail, offset + name.head.length + 1, map + (nameToString(name) -> (bytes.length + offset)))
+    
+    val existingName = checkExisting(name)
+    /*val (newName, trailer) = 
+      if(existingName.isEmpty) (name, Array(0.toByte)
+      else (name.take(name.indexOfSlice(existingName)), RRData.shortToByte((names(existingName) + MASK_POINTER).toShort))*/
+    val newName = if(existingName.isEmpty) name else name.take(name.indexOfSlice(existingName))
+    
+    logger.debug("Old name: " + name.map(new String(_, "UTF-8")).mkString("."))
+    logger.debug("Existing name: " + existingName.map(new String(_, "UTF-8")).mkString("."))
+    logger.debug("New name: " + newName.map(new String(_, "UTF-8")).mkString("."))
+    
+    
+    val trailer = if(existingName.isEmpty) Array() else RRData.shortToByte((names(nameToString(existingName)) + MASK_POINTER).toShort)
+    (bytes ++ toByteArray(newName) ++ trailer, if(newName.isEmpty) names else names ++ storeNewName(newName))
+  }
+  
+  def nameToString(name: List[Array[Byte]]) = name.map(new String(_, "UTF-8")).mkString(".")
 }

@@ -31,6 +31,9 @@ case class MX(preference: Int, record: List[Array[Byte]]) extends AbstractRecord
     case r: MX => r.preference == preference && r.record.toArray.deep == record.toArray.deep
     case _ => false
   }
+  
+  def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = 
+    Name.toCompressedByteArray(record, (input._1 ++ RRData.shortToBytes(preference.toShort), input._2))
 }
 
 object MX {
