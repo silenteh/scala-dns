@@ -36,9 +36,11 @@ case class RRData(
   
   def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = {
     val nameBytes = Name.toCompressedByteArray(name, input)
-    val rrHeaderBytes = (nameBytes._1 ++ RRData.shortToBytes(rtype.toShort) ++ RRData.shortToBytes(rclass.toShort) ++ 
-      RRData.intToBytes(ttl.toInt) ++ RRData.shortToBytes(rdlength.toShort), nameBytes._2)
-    rdata.toCompressedByteArray(rrHeaderBytes)
+    val rrHeaderBytes = nameBytes._1 ++ RRData.shortToBytes(rtype.toShort) ++ RRData.shortToBytes(rclass.toShort) ++ 
+      RRData.intToBytes(ttl.toInt)
+    val compressedRData = rdata.toCompressedByteArray((rrHeaderBytes ++ RRData.shortToBytes(0.toShort), nameBytes._2))
+    val newRDLength = compressedRData._1.length - rrHeaderBytes.length - 2
+    (rrHeaderBytes ++ RRData.shortToBytes(newRDLength.toShort) ++ compressedRData._1.takeRight(newRDLength), compressedRData._2)
   }
   
   override def toString = 

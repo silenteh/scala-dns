@@ -86,7 +86,7 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
               "authority" -> recordsToRRData(domain, query.qclass, authority),
               "additional" -> recordsToRRData(domain, query.qclass, additionals)
             )
-          }.flatten.groupBy(_._1).map { case(typ, records) => (typ, distinctAliases(records.map(_._2).flatten)) }
+          }.flatten.groupBy(_._1).map { case(typ, records) => (typ, records.map(_._2).flatten) }
           
           val (answers, authorities, additionals) = 
             (responseParts("answer"), responseParts("authority"), responseParts("additional"))
@@ -113,13 +113,13 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
             Message(header, message.query, message.answers, message.authority, message.additional)
           }
         }
-        val responseBytes = response.toByteArray
+        /*val responseBytes = response.toByteArray
         logger.debug("Response length: " + responseBytes.length.toString)
-        logger.debug("Response bytes: " + responseBytes.toList.toString)
-        //val compressedResponseBytes = response.toCompressedByteArray((Array[Byte](), Map[String, Int]()))._1
-        //logger.debug("Compressed response length: " + compressedResponseBytes.length.toString)
-        //logger.debug("Compressed response bytes: " + compressedResponseBytes.toList.toString)
-        e.getChannel.write(ChannelBuffers.copiedBuffer(responseBytes), e.getRemoteAddress)
+        logger.debug("Response bytes: " + responseBytes.toList.toString)*/
+        val compressedResponseBytes = response.toCompressedByteArray((Array[Byte](), Map[String, Int]()))._1
+        logger.debug("Compressed response length: " + compressedResponseBytes.length.toString)
+        logger.debug("Compressed response bytes: " + compressedResponseBytes.toList.toString)
+        e.getChannel.write(ChannelBuffers.copiedBuffer(compressedResponseBytes), e.getRemoteAddress)
       }
       case _ => {
         logger.error("Unsupported message type")

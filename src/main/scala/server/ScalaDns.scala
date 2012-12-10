@@ -24,11 +24,11 @@ object ScalaDns {
   val logger = LoggerFactory.getLogger("app")
   
   def main(args: Array[String]) = {
-   
+
     DomainIO.loadDomains()
     
     Bootstrap.start
-    
+
 //    var b = 166
 //    val bits = new Array[Short](8)
     //println(b)

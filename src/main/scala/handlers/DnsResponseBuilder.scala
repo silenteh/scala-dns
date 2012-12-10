@@ -31,13 +31,12 @@ object DnsResponseBuilder {
 
   def hostToRecords(qname: List[String], qtype: Int, qclass: Int): List[(String, AbstractRecord)] = {
     val domain = DNSCache.getDomain(qtype, qname)
-    
-    domain.getHosts(relativeHostName(qname, domain))
+    filterDuplicities(qname.mkString(".") + ".", domain.getHosts(relativeHostName(qname, domain))
       .filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
       .map { host =>
         val usedCnames = initUsedCnames(host, qname)
-        resolveHost(domain, host, qtype, usedCnames, domain)
-      }.flatten
+        resolveHost(domain, host, qtype, usedCnames, List(), domain)
+      }).flatten
   }
 
   // Queries for ancestors of a specified host name, stops when the first match is found, 
@@ -72,13 +71,14 @@ object DnsResponseBuilder {
     domain: ExtendedDomain,
     host: Host, 
     qtype: Int,  
-    usedCnames: Map[String, Array[AbstractRecord]],
+    usedCnames: List[String],
+    shownCnames: List[(String, Array[AbstractRecord])],
     oldDomain: ExtendedDomain,
     records: Array[(String, AbstractRecord)] = Array()
   ): Array[(String, AbstractRecord)] =
     host match {
       case host: CnameHost =>
-        if (!usedCnames.contains(host.hostname)) {
+        if (!usedCnames.contains(absoluteHostName(host.hostname, domain.fullName))) {
           try {
             val (qname, newDomain, newHost) = 
               if(host.hostname.contains("@")) {
@@ -92,21 +92,23 @@ object DnsResponseBuilder {
             records ++ newDomain.getHosts(relativeHostName(qname, newDomain))
               .filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
               .map {
-                val absname = absoluteHostName(newHost.hostname, newDomain.fullName)
-                resolveHost(domain, _, qtype, usedCnames + (absname -> newHost.toRData), newDomain)
+                val absoluteCname = absoluteHostName(newHost.hostname, newDomain.fullName)
+                val absoluteHostname = absoluteHostName(newHost.name, oldDomain.fullName)
+                resolveHost(domain, _, qtype, absoluteCname :: usedCnames, (absoluteHostname, newHost.toRData) :: shownCnames, newDomain)
               }.flatten
           } catch {
             // Cname points to an external domain, search cache
             // Add the last internal result to the Cnames only if the host name is resolved
-            case ex: DomainNotFoundException => records ++ host.toRData.map((host.hostname, _))
+            case ex: DomainNotFoundException => 
+              records ++ recordsToFlatArray(shownCnames.reverse) ++ host.toRData.map((absoluteHostName(host.name, oldDomain.fullName), _))
           }
         } else {
-          logger.error("Infinite loop when resolving a CNAME: " + usedCnames.keys.mkString(" -> ") + " -> " + host.hostname)
+          logger.error("Infinite loop when resolving a CNAME: " + usedCnames.reverse.mkString(" -> ") + " -> " + host.hostname)
           records
         }
       case _ => {
-        val absname = absoluteHostName(host.name, domain.fullName)
-        records ++ recordsToFlatArray(usedCnames) ++ host.toRData.map((absname, _))
+        val absname = absoluteHostName(host.name, oldDomain.fullName)
+        records ++ recordsToFlatArray(shownCnames.reverse) ++ host.toRData.map((absname, _))
       }
     }
   
@@ -117,15 +119,30 @@ object DnsResponseBuilder {
   
   private def absoluteHostName(name: String, basename: String) = 
     if (name == "@") basename
-    else if (name.contains(basename)) name
+    else if (name.endsWith(".")) name
     else name + "." + basename
     
-  private def recordsToFlatArray[T](records: Map[String, Array[T]]) = 
+  private def recordsToFlatArray[T](records: List[(String, Array[T])]) = 
     records.map {case(name, value) => value.map((name, _))}.flatten.toArray
     
   private def initUsedCnames(host: Host, qname: List[String]) = 
     host match {
-      case h: CnameHost => Map(qname.mkString(".") + "." -> host.toRData)
-      case _ => Map[String, Array[AbstractRecord]]()
+      case h: CnameHost => List(qname.mkString(".") + ".")
+      case _ => List[String]()
     }
+    
+  private def filterDuplicities(qname: String, records: List[Array[(String, AbstractRecord)]]) = {
+    val filteredRecords = records.map {record => 
+      val isDuplicateEntry = record.exists {case (name, value) => records
+        .filterNot(_.deep == record.deep).exists(_.exists(r => r._1 == name && r._2.isInstanceOf[CNAME]))} 
+      
+      if(!isDuplicateEntry) record
+      else record.filter(_._2 match {
+        case r: CNAME => !record.exists(!_._2.isInstanceOf[CNAME])
+        case _ => true
+      }).map(r => (qname, r._2))
+    }
+    if(filteredRecords.map(_.filter(_._2.isInstanceOf[A])).distinct.length > 1) filteredRecords
+    else filteredRecords.map(_.distinct)
+  }
 }
