@@ -142,7 +142,8 @@ object DnsResponseBuilder {
         case _ => true
       }).map(r => (qname, r._2))
     }
-    if(filteredRecords.map(_.filter(_._2.isInstanceOf[A])).distinct.length > 1) filteredRecords
+    
+    if(filteredRecords.map(_.filter(_._2.isInstanceOf[A])).flatten.distinct.length > 1) filteredRecords
     else filteredRecords.map(_.distinct)
   }
 }
