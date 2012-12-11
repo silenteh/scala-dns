@@ -116,7 +116,15 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
         /*val responseBytes = response.toByteArray
         logger.debug("Response length: " + responseBytes.length.toString)
         logger.debug("Response bytes: " + responseBytes.toList.toString)*/
-        val compressedResponseBytes = response.toCompressedByteArray((Array[Byte](), Map[String, Int]()))._1
+        val compressedResponseBytes = {
+          val bytes = response.toCompressedByteArray((Array[Byte](), Map[String, Int]()))._1
+          if(bytes.length <= 512) bytes
+          else {
+            val headerBytes = response.header.setTruncated(true).toCompressedByteArray(Array[Byte](), Map[String, Int]())._1
+            headerBytes ++ bytes.takeRight(bytes.length - headerBytes.length)
+          }
+        }
+        
         logger.debug("Compressed response length: " + compressedResponseBytes.length.toString)
         logger.debug("Compressed response bytes: " + compressedResponseBytes.toList.toString)
         e.getChannel.write(ChannelBuffers.copiedBuffer(compressedResponseBytes), e.getRemoteAddress)

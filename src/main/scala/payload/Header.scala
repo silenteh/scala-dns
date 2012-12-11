@@ -52,6 +52,9 @@ case class Header(
   def boolToInt(bool: Boolean) = if (bool) 1.toShort else 0.toShort
   
   def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = (input._1 ++ toByteArray, input._2)
+  
+  def setTruncated(truncated: Boolean) = Header(id, response, opcode, authoritative, truncated, recursionDesired, recursionAvailable,
+    zero, rcode, questionCount, answerCount, authorityCount, additionalCount)
 }
 
 object Header {
