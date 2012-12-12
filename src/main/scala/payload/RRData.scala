@@ -70,7 +70,7 @@ object RRData {
       // NS
       case 2 => NS(buf, recordclass, size)
       // MD
-      case 3 => null // NYI
+      case 3 => AAAA(buf, recordclass, size) // NYI
       // MF
       case 4 => null // NYI
       // CNAME

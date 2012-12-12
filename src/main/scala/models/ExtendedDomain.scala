@@ -26,11 +26,13 @@ case class ExtendedDomain(
   @JsonProperty("SOA") settings: Array[SoaHost] = null,
   @JsonProperty("CNAME") cname: Array[CnameHost] = null,
   @JsonProperty("A") address: Array[AddressHost] = null,
+  @JsonProperty("AAAA") ipv6address: Array[IPv6AddressHost] = null,
   @JsonProperty("MX") mailx: Array[MXHost] = null,
   @JsonProperty("HSS") otherhosts: Array[GenericHost] = null
 ) extends AbstractDomain {
   lazy val hosts: List[Host] =
-    hostsToList(nameservers) ++ hostsToList(cname) ++ hostsToList(address) ++ hostsToList(mailx) ++ hostsToList(otherhosts)
+    hostsToList(nameservers) ++ hostsToList(cname) ++ hostsToList(address) ++ hostsToList(ipv6address) ++ 
+    hostsToList(mailx) ++ hostsToList(otherhosts)
     
   def hasRootEntry(typ: Int = 0) = 
     findHost(fullName, typ) != None || findHost("@", typ) != None || findHost(fullName, 5) != None || findHost("@", 5) != None
@@ -38,7 +40,7 @@ case class ExtendedDomain(
   def findHost(name: String = null, typ: Int = 0) = 
     RecordType(typ).toString match {
       case "A" => findInArrayWithNull(address, compareHostName(name))
-      case "AAAA" => None
+      case "AAAA" => findInArrayWithNull(ipv6address, compareHostName(name))
       case "CNAME" => findInArrayWithNull(cname, compareHostName(name))
       case "NS" => findInArrayWithNull(nameservers, compareHostName(name))
       case "SOA" => findInArrayWithNull(settings, compareHostName(name))
