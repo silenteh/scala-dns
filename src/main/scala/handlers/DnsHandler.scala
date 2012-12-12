@@ -21,28 +21,31 @@ import org.jboss.netty.channel.ChannelHandlerContext
 import org.jboss.netty.channel.MessageEvent
 import org.slf4j.LoggerFactory
 import payload.Message
-import datastructures.DNSCache
-import enums.RecordType
-import models.Host
+import payload.Name
 import payload.Header
-import models.AddressHost
-import records._
-import models.ExtendedDomain
 import payload.RRData
+import datastructures.DNSCache
 import datastructures.DomainNotFoundException
-import models.HostNotFoundException
+import enums.RecordType
 import enums.ResponseCode
+import models.Host
+import models.AddressHost
+import models.ExtendedDomain
+import models.HostNotFoundException
+import models.CnameHost
+import records._
 import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.channel.ChannelFutureListener
-import models.CnameHost
+
 import scala.collection.mutable
-import payload.Name
-import records.CNAME
+
 import scala.annotation.tailrec
+import configs.ConfigService
 
 class DnsHandler extends SimpleChannelUpstreamHandler {
 
   val logger = LoggerFactory.getLogger("app")
+  val UdpResponseMaxSize = ConfigService.config.getInt("udpResponseMaxSize")
 
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
     e.getMessage match {
@@ -53,13 +56,13 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
           val responseParts = message.query.map { query =>
             val qname = query.qname.filter(_.length > 0).map(new String(_, "UTF-8"))
             val domain = DNSCache.getDomain(query.qtype, qname)
-
+            
             val records = {
               val rdata = DnsResponseBuilder.hostToRecords(qname, query.qtype, query.qclass)
               if (!rdata.isEmpty) rdata 
               else DnsResponseBuilder.ancestorToRecords(domain, qname, query.qtype, query.qclass, true)
             }
-
+            
             // @TODO: Return NS when host not found
             
             val authority = 
@@ -118,7 +121,7 @@ class DnsHandler extends SimpleChannelUpstreamHandler {
         logger.debug("Response bytes: " + responseBytes.toList.toString)*/
         val compressedResponseBytes = {
           val bytes = response.toCompressedByteArray((Array[Byte](), Map[String, Int]()))._1
-          if(bytes.length <= 512) bytes
+          if(bytes.length <= UdpResponseMaxSize) bytes
           else {
             val headerBytes = response.header.setTruncated(true).toCompressedByteArray(Array[Byte](), Map[String, Int]())._1
             headerBytes ++ bytes.takeRight(bytes.length - headerBytes.length)
