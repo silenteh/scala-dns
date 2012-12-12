@@ -27,12 +27,14 @@ case class ExtendedDomain(
   @JsonProperty("CNAME") cname: Array[CnameHost] = null,
   @JsonProperty("A") address: Array[AddressHost] = null,
   @JsonProperty("AAAA") ipv6address: Array[IPv6AddressHost] = null,
+  @JsonProperty("PTR") pointer: Array[PointerHost] = null,
+  @JsonProperty("TXT") text: Array[TxtHost] = null,
   @JsonProperty("MX") mailx: Array[MXHost] = null,
-  @JsonProperty("HSS") otherhosts: Array[GenericHost] = null
+  @JsonProperty("OH") otherhosts: Array[GenericHost] = null
 ) extends AbstractDomain {
   lazy val hosts: List[Host] =
     hostsToList(nameservers) ++ hostsToList(cname) ++ hostsToList(address) ++ hostsToList(ipv6address) ++ 
-    hostsToList(mailx) ++ hostsToList(otherhosts)
+    hostsToList(pointer) ++ hostsToList(text) ++ hostsToList(mailx) ++ hostsToList(otherhosts)
     
   def hasRootEntry(typ: Int = 0) = 
     findHost(fullName, typ) != None || findHost("@", typ) != None || findHost(fullName, 5) != None || findHost("@", 5) != None
@@ -44,8 +46,8 @@ case class ExtendedDomain(
       case "CNAME" => findInArrayWithNull(cname, compareHostName(name))
       case "NS" => findInArrayWithNull(nameservers, compareHostName(name))
       case "SOA" => findInArrayWithNull(settings, compareHostName(name))
-      case "PTR" => None
-      case "TXT" => None
+      case "PTR" => findInArrayWithNull(pointer, compareHostName(name))
+      case "TXT" => findInArrayWithNull(text, compareHostName(name))
       case "MX" => if(mailx != null) {
         val mx = mailx.filter(compareHostName(name)(_))
         if(mx.isEmpty) None else Some(mx.minBy(_.priority))

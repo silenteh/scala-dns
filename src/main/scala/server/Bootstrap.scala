@@ -23,6 +23,7 @@ import org.jboss.netty.channel.socket.nio.NioDatagramChannelFactory
 import org.jboss.netty.bootstrap.ConnectionlessBootstrap
 import java.net.InetAddress
 import pipeline.UDPDnsPipeline
+import pipeline.TCPDnsPipeline
 
 object Bootstrap {
 
@@ -30,12 +31,13 @@ object Bootstrap {
   val cores = Runtime.getRuntime().availableProcessors() + 1
   
   // Java Executors
-  val executorTCP = Executors.newFixedThreadPool(cores)
+  val executorTCPBoss = Executors.newFixedThreadPool(cores)
+  val executorTCPWorker = Executors.newFixedThreadPool(cores)
   val executorUDP = Executors.newFixedThreadPool(cores)
   
   // ### TCP
   // bootstraps so they can be closed down gracefully
-  val tcpFactory = new NioServerSocketChannelFactory(executorTCP, executorTCP)
+  val tcpFactory = new NioServerSocketChannelFactory(executorTCPBoss, executorTCPWorker)//new NioServerSocketChannelFactory(executorTCP, executorTCP)
   val tcpBootstrap = new ServerBootstrap(tcpFactory)
   
   
@@ -46,25 +48,22 @@ object Bootstrap {
   
   // Starts both services
   def start() {
-    //startTCP
+    startTCP
     startUDP
   } 
   
   def stop() {
-    //stopTCP
+    stopTCP
     stopUDP
   }
   	
   
   private def startTCP() {
-
     // Configure the TCP pipeline factory.
-    tcpBootstrap.setPipelineFactory(new UDPDnsPipeline())
-    
-
+    tcpBootstrap.setPipelineFactory(new TCPDnsPipeline())
     // Bind and start to accept incoming connections.
     // we need to refactor this to set it up via config
-    tcpBootstrap.bind(new InetSocketAddress(InetAddress.getByName("0.0.0.0"), 53))
+    tcpBootstrap.bind(new InetSocketAddress("0.0.0.0", 53))
     
   }
   

@@ -96,7 +96,7 @@ object Header {
       buf.readUnsignedShort, // ancount
       buf.readUnsignedShort, // nscount
       buf.readUnsignedShort // arcount
-      )
+    )
   }
 
   def shiftBits(n: Int, shift: Int, mask: Int) =

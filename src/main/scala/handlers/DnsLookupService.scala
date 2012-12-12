@@ -26,7 +26,7 @@ import payload.RRData
 import records._
 import org.slf4j.LoggerFactory
 
-object DnsResponseBuilder {
+object DnsLookupService {
   val logger = LoggerFactory.getLogger("app")
 
   def hostToRecords(qname: List[String], qtype: Int, qclass: Int): List[(String, AbstractRecord)] = {

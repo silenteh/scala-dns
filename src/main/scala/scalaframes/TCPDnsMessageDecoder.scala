@@ -28,15 +28,15 @@ import payload.Message
 import org.slf4j.LoggerFactory
 import scala.annotation.tailrec
 
-class UDPDnsMessageDecoder extends FrameDecoder {
+class TCPDnsMessageDecoder extends FrameDecoder {
 
   val logger = LoggerFactory.getLogger("app")
 
   //@Override
   override def decode(ctx: ChannelHandlerContext, channel: Channel, buf: ChannelBuffer): payload.Message = {
     
-    // 12 it is the minimum lenght in bytes of the header
-    if (buf.readableBytes() < 12) null
+    // 14 bytes: 2(length of the data) + 12(the minimum length in bytes of the header)
+    if (buf.readableBytes() < 14) null
     else {
       // The length field was not received yet - return null.
       // This method will be invoked again when more packets are
@@ -53,6 +53,7 @@ class UDPDnsMessageDecoder extends FrameDecoder {
       // Read the length field.
       //val length = buf.readUnsigned
       //println(buf.readableBytes())
+      val length = buf.readUnsignedShort
       payload.Message(buf)
     }
 
