@@ -22,8 +22,11 @@ import org.jboss.netty.handler.codec.http.multipart.DefaultHttpDataFactory
 import collection.JavaConversions._
 import org.jboss.netty.handler.codec.http.multipart.Attribute
 import java.net.URLDecoder
+import org.slf4j.LoggerFactory
 
 object UriParser {
+  
+  val logger = LoggerFactory.getLogger("app")
   
   def uriPath(request: HttpRequest): List[String] = uriPath(request.getUri)
   
@@ -53,7 +56,7 @@ object UriParser {
     val decUri = URLDecoder.decode(uri, "UTF-8")
     val qStrStart = decUri.indexOf("?")
     
-    decUri.substring(qStrStart + 1, decUri.length - 1)
+    decUri.substring(qStrStart + 1, decUri.length)
   }
   
   def postParams(request: HttpRequest) = if(request.getMethod != HttpMethod.POST) null else {

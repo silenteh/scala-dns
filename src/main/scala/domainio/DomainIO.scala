@@ -15,6 +15,8 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.DeserializationConfig
 import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.annotation.JsonInclude
 
 object DomainIO {
 
@@ -29,6 +31,7 @@ object DomainIO {
     val m = new ObjectMapper()
     //m.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     m.registerModule(DefaultScalaModule)
+    m.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     m.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
     m
   }

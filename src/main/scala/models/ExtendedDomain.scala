@@ -18,7 +18,9 @@ package models
 import enums.RecordType
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+@JsonIgnoreProperties(Array("typ"))
 case class ExtendedDomain(
   @JsonProperty("origin") fullName: String,
   @JsonProperty("ttl") ttl: Long,

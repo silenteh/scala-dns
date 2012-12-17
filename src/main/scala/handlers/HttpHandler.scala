@@ -70,12 +70,18 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
   
   private def handleGetRequest(request: HttpRequest) = {
     val path = UriParser.uriPath(request.getUri)
-    if(path.isEmpty) {
-      val domains = DNSCache.getDomains.map { case(top, value) => 
-        value.map { case (middle, (updated, domain)) => DomainIO.Json.writeValueAsString(domain)}
+    val queryString = UriParser.uriQueryString(request)
+    if(path.length == 1 && path(0) == "domains" && !queryString.isEmpty && queryString.contains("menu")) {
+      val domains = DNSCache.getDomains.map { case(extension, value) =>
+        value.map { case (name, value) => (name + "." + extension)}
+      }.flatten.toList
+      DomainIO.Json.writeValueAsString(domains)
+    } else if(path.length == 1 && path(0) == "domains") {
+      val domains = DNSCache.getDomains.map { case(extension, value) => 
+        value.map { case (name, (timestamp, domain)) => DomainIO.Json.writeValueAsString(domain)}
       }.flatten.toList
       "{\"domains\":[" + domains.mkString(",") + "]}"
-    } else if(path.length == 2 && path(0) == "domain") {
+    } else if(path.length == 2 && path(0) == "domains") {
       val extension = path(1).substring(path(1).lastIndexOf(".") + 1)
       val name = path(1).substring(0, path(1).lastIndexOf("."))
       val domain = DNSCache.getDomains(extension)(name)
