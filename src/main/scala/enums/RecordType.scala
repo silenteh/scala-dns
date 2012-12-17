@@ -27,6 +27,7 @@ object RecordType extends Enumeration {
   val AAAA = Value(28)
   val SRV = Value(33)
   
-  
+  val AXFR = Value(252)
+  val ALL = Value(255)
   
 }

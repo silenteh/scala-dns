@@ -15,9 +15,9 @@
  ******************************************************************************/
 package models
 
-import org.codehaus.jackson.annotate.JsonProperty
-import org.codehaus.jackson.annotate.JsonManagedReference
 import enums.RecordType
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 case class ExtendedDomain(
   @JsonProperty("origin") fullName: String,
@@ -32,13 +32,17 @@ case class ExtendedDomain(
   @JsonProperty("MX") mailx: Array[MXHost] = null,
   @JsonProperty("OH") otherhosts: Array[GenericHost] = null
 ) extends AbstractDomain {
+  @JsonIgnore
   lazy val hosts: List[Host] =
     hostsToList(nameservers) ++ hostsToList(cname) ++ hostsToList(address) ++ hostsToList(ipv6address) ++ 
-    hostsToList(pointer) ++ hostsToList(text) ++ hostsToList(mailx) ++ hostsToList(otherhosts)
-    
+    hostsToList(settings) ++ hostsToList(pointer) ++ hostsToList(text) ++ hostsToList(mailx) ++ hostsToList(otherhosts)
+  
+  @JsonIgnore
   def hasRootEntry(typ: Int = 0) = 
-    findHost(fullName, typ) != None || findHost("@", typ) != None || findHost(fullName, 5) != None || findHost("@", 5) != None
+    if(typ == RecordType.ALL.id || typ == RecordType.AXFR.id) !findHosts(fullName).isEmpty || !findHosts("@").isEmpty
+    else findHost(fullName, typ) != None || findHost("@", typ) != None || findHost(fullName, 5) != None || findHost("@", 5) != None
 
+  @JsonIgnore
   def findHost(name: String = null, typ: Int = 0) = 
     RecordType(typ).toString match {
       case "A" => findInArrayWithNull(address, compareHostName(name))
@@ -55,29 +59,33 @@ case class ExtendedDomain(
       case _ => None
     }
   
+  @JsonIgnore
   def getHost(name: String = null, typ: Int = 0) =
     findHost(name, typ) match {
       case Some(host) => host
       case None => throw new HostNotFoundException
     }
   
+  @JsonIgnore
   def findHosts(name: String) = 
     hosts.filter(compareHostName(name)(_))
   
-  def getHosts(name: String) = { 
-    val hosts = findHosts(name)
-    //if(!hosts.isEmpty) hosts else throw new HostNotFoundException
-    hosts
-  }
+  @JsonIgnore
+  def getHosts(name: String) =  
+    findHosts(name)
   
+  @JsonIgnore
   private def compareHostName(name: String)(host: Host) = 
     host.name == name || (name == fullName && (host.name == fullName || host.name == "@"))
-    
+  
+  @JsonIgnore
   private def hostsToList[T <: Host](hosts: Array[T]): List[Host] =
     if (hosts != null) hosts.toList else Nil
-    
+  
+  @JsonIgnore
   private def findInArrayWithNull[T <: Host](array: Array[T], condition: T => Boolean) = 
     if(array != null) array.find(condition) else None
+  
 }
 
 class HostNotFoundException extends Exception

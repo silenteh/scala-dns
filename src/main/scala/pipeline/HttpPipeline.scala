@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package zones
+package pipeline
+
+import org.jboss.netty.channel.ChannelPipelineFactory
 import org.slf4j.LoggerFactory
+import org.jboss.netty.channel.ChannelPipeline
+import org.jboss.netty.channel.Channels
+import org.jboss.netty.handler.codec.http.HttpRequestDecoder
+import org.jboss.netty.handler.codec.http.HttpResponseEncoder
+import handlers.HttpHandler
 
-
-object Util {
+class HttpPipeline extends ChannelPipelineFactory {
   
   val logger = LoggerFactory.getLogger("app")
   
-  /*def fromJsonFile(fileName: String) = {    
-    val jsonInput = io.Source.fromFile(fileName).mkString
-    val parsedObj = parse[Zone](jsonInput)
-    parsedObj    
+  def getPipeline(): ChannelPipeline = {
+    logger.info("PIPELINING.........")
+    val pipeline = Channels.pipeline
+    pipeline.addLast("decoder", new HttpRequestDecoder)
+    //pipeline.addLast("aggregator", new HttpChunkAggregator(ServerPipelineFactory.MaxFrameSize))
+    pipeline.addLast("encoder", new HttpResponseEncoder)
+    pipeline.addLast("http_handler",new HttpHandler)
+    pipeline
   }
   
-  
-  def toJsonFile(fileName: String, zone: Zone) = {    
-    val zoneJson = generate(zone)
-    val output = new java.io.BufferedWriter(new java.io.FileWriter(new java.io.File(fileName)))
-    output.write(zoneJson)
-    output.flush
-    output.close    
-  }*/
-  
-
 }

@@ -15,8 +15,8 @@
  ******************************************************************************/
 package models
 
-import org.codehaus.jackson.annotate.JsonProperty
 import records.AAAA
+import com.fasterxml.jackson.annotation.JsonProperty
 
 case class IPv6AddressHost(
   @JsonProperty("class") cls: String = null,

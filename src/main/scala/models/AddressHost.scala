@@ -15,8 +15,9 @@
  ******************************************************************************/
 package models
 
-import org.codehaus.jackson.annotate.JsonProperty
+//import org.codehaus.jackson.annotate.JsonProperty
 import records.A
+import com.fasterxml.jackson.annotation.JsonProperty
 
 case class AddressHost(
   @JsonProperty("class") cls: String = null,

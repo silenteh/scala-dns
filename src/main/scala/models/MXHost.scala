@@ -15,8 +15,8 @@
  ******************************************************************************/
 package models
 
-import org.codehaus.jackson.annotate.JsonProperty
 import records.MX
+import com.fasterxml.jackson.annotation.JsonProperty
 
 case class MXHost(
   @JsonProperty("class") cls: String = null,

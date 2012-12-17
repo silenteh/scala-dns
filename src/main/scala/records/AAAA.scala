@@ -27,7 +27,7 @@ case class AAAA(record: Array[Byte]) extends AbstractRecord {
   def toByteArray = record
 
   def isEqualTo(any: Any) = any match {
-    case r: AAAA => r.record == record
+    case r: AAAA => r.record.deep == record.deep
     case _ => false
   }
   

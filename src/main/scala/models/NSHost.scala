@@ -15,8 +15,8 @@
  ******************************************************************************/
 package models
 
-import org.codehaus.jackson.annotate.JsonProperty
 import records.NS
+import com.fasterxml.jackson.annotation.JsonProperty
 
 case class NSHost(
   @JsonProperty("class") cls: String = null,

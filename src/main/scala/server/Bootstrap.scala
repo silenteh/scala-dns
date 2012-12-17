@@ -24,6 +24,7 @@ import org.jboss.netty.bootstrap.ConnectionlessBootstrap
 import java.net.InetAddress
 import pipeline.UDPDnsPipeline
 import pipeline.TCPDnsPipeline
+import pipeline.HttpPipeline
 
 object Bootstrap {
 
@@ -31,30 +32,37 @@ object Bootstrap {
   val cores = Runtime.getRuntime().availableProcessors() + 1
   
   // Java Executors
-  val executorTCPBoss = Executors.newFixedThreadPool(cores)
-  val executorTCPWorker = Executors.newFixedThreadPool(cores)
-  val executorUDP = Executors.newFixedThreadPool(cores)
+  val executorHttpBoss = Executors.newCachedThreadPool//Executors.newFixedThreadPool(cores)
+  val executorHttpWorker = Executors.newCachedThreadPool//Executors.newFixedThreadPool(cores)
+  val executorTCPBoss = Executors.newCachedThreadPool//Executors.newFixedThreadPool(cores)
+  val executorTCPWorker = Executors.newCachedThreadPool//Executors.newFixedThreadPool(cores)
+  val executorUDP = Executors.newCachedThreadPool//Executors.newFixedThreadPool(cores)
+  
+  // ### Http
+  // bootstraps so they can be closed down gracefully
+  val httpFactory = new NioServerSocketChannelFactory(executorHttpBoss, executorHttpWorker)//new NioServerSocketChannelFactory(executorTCP, executorTCP)
+  val httpBootstrap = new ServerBootstrap(httpFactory)
   
   // ### TCP
   // bootstraps so they can be closed down gracefully
   val tcpFactory = new NioServerSocketChannelFactory(executorTCPBoss, executorTCPWorker)//new NioServerSocketChannelFactory(executorTCP, executorTCP)
   val tcpBootstrap = new ServerBootstrap(tcpFactory)
   
-  
   // ### UDP
   val udpFactory = new NioDatagramChannelFactory(executorUDP)
   val udpBootstrap = new ConnectionlessBootstrap(udpFactory)
-  
   
   // Starts both services
   def start() {
     startTCP
     startUDP
+    startHttp
   } 
   
   def stop() {
     stopTCP
     stopUDP
+    stopHttp
   }
   	
   
@@ -82,6 +90,11 @@ object Bootstrap {
     
   }
   
+  private def startHttp() {
+    httpBootstrap.setPipelineFactory(new HttpPipeline)
+    httpBootstrap.bind(new InetSocketAddress("127.0.0.1", 80))
+  }
+  
   private def stopTCP() {
     tcpBootstrap.releaseExternalResources()
   }
@@ -90,8 +103,8 @@ object Bootstrap {
     udpBootstrap.releaseExternalResources()
   }
   
-  
-  
-  
+  private def stopHttp() {
+    httpBootstrap.releaseExternalResources()
+  }
   
 }

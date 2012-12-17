@@ -48,7 +48,7 @@ class UDPDnsHandler extends SimpleChannelUpstreamHandler {
   val UdpResponseMaxSize = ConfigService.config.getInt("udpResponseMaxSize")
 
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
-    logger.info("UDP. There is nothing else to say.")
+    logger.info("This is UDP.")
     e.getMessage match {
       case message: Message => {
         logger.info(message.toString)

@@ -47,7 +47,7 @@ public class DnsMessageDecoder extends FrameDecoder {
 	     }
 
 	     // There's enough bytes in the buffer. Read it.
-	     ChannelBuffer frame = buf.readBytes(length);
+	     //ChannelBuffer frame = buf.readBytes(length);
 
 	     // Successfully decoded a frame.  Return the decoded frame.
 	     return null;

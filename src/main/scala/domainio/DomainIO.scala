@@ -8,14 +8,13 @@ import java.util.LinkedHashMap
 import java.util.ArrayList
 import models.Domain
 import models.Host
-import org.codehaus.jackson.map.ObjectMapper
-import org.codehaus.jackson.map.DeserializationConfig
 import java.text.SimpleDateFormat
 import models.ExtendedDomain
 import datastructures.DNSCache
-import org.codehaus.jackson.map.SerializationConfig
-import org.codehaus.jackson.map.JsonMappingException
-import org.codehaus.jackson.JsonParseException
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.DeserializationConfig
+import com.fasterxml.jackson.core.JsonParseException
 
 object DomainIO {
 
@@ -28,7 +27,8 @@ object DomainIO {
   
   val Json = {
     val m = new ObjectMapper()
-    m.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    //m.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    m.registerModule(DefaultScalaModule)
     m.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
     m
   }

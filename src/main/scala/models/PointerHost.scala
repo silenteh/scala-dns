@@ -15,8 +15,8 @@
  ******************************************************************************/
 package models
 
-import org.codehaus.jackson.annotate.JsonProperty
 import records.PTR
+import com.fasterxml.jackson.annotation.JsonProperty
 
 case class PointerHost(
   @JsonProperty("class") cls: String = null,

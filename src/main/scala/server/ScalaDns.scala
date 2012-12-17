@@ -18,6 +18,11 @@ package server
 import scala.collection.immutable.BitSet
 import org.slf4j.LoggerFactory
 import domainio.DomainIO
+import handlers.DnsLookupService
+import models.WeightedIP
+import models.AddressHost
+//import com.codahale.jerkson.Json
+import models.ExtendedDomain
 
 object ScalaDns {
   
@@ -26,6 +31,13 @@ object ScalaDns {
   def main(args: Array[String]) = {
 
     DomainIO.loadDomains()
+    
+    //val zoneRecords = DnsLookupService.zoneToRecords("www2" :: "example" :: "com" :: Nil, 1)
+    //logger.debug(zoneRecords.toList.mkString("\n"))
+    
+    /*val addressHost = new AddressHost("IN", "www", Array(new WeightedIP(1, "192.168.1.12"), new WeightedIP(1, "192.168.0.1")))
+    val domain = new ExtendedDomain("example.com.", 86400L, null, null, null, Array(addressHost), null, null, null, null, null)
+    logger.debug(Json.generate(domain))*/
     
     Bootstrap.start
 

@@ -15,7 +15,7 @@
  ******************************************************************************/
 package models
 
-import org.codehaus.jackson.annotate.JsonProperty
+import com.fasterxml.jackson.annotation.JsonProperty
 
 case class GenericHost(
   @JsonProperty("type") override val typ: String = null,

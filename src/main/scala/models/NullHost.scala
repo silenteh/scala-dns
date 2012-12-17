@@ -15,11 +15,11 @@
  ******************************************************************************/
 package models
 
-import org.codehaus.jackson.annotate.JsonProperty
 import payload.RRData
 import java.io.ObjectOutputStream
 import java.io.ByteArrayOutputStream
 import records.NULL
+import com.fasterxml.jackson.annotation.JsonProperty
 
 case class NullHost(
   @JsonProperty("class") cls: String = null,

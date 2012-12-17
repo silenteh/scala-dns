@@ -40,7 +40,7 @@ object DNSCache {
   def findDomain(typ: Int, parts: String*): Option[ExtendedDomain] = 
     findDomain(typ, parts.toList)
     
-  def findDomain(typ: Int, parts: List[String]): Option[ExtendedDomain] = {
+  def findDomain(typ: Int, parts: List[String], ignoreTimestamp: Boolean = false): Option[ExtendedDomain] = {
     
     @tailrec
     def findDomainName(storedMap: Map[String, (Long, ExtendedDomain)], name: Seq[String]): Option[ExtendedDomain] = 
@@ -96,6 +96,8 @@ object DNSCache {
   
   def logDomains = logger.debug(domains.toString)
   
+  def getDomains = domains
+  
   /*def findDomain(extension: String, name: String): Option[ExtendedDomain] = 
     domains.get(extension) match {
       case None => None
@@ -108,7 +110,7 @@ object DNSCache {
     		else None			  
     	  }
         }
-    }*/  
+    }*/
 }
 
 class DomainNotFoundException extends Exception

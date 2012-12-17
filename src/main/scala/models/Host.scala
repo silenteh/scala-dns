@@ -15,17 +15,14 @@
  ******************************************************************************/
 package models
 
-import org.codehaus.jackson.annotate.JsonProperty
-import org.codehaus.jackson.annotate.JsonIgnoreProperties
-import org.codehaus.jackson.annotate.JsonIgnore
-import org.codehaus.jackson.annotate.JsonBackReference
 import records._
 import payload.RRData
 import scala.annotation.tailrec
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 /*class Host(name: String, domain: ExtendedDomain, recordType: Int, ip: List[String] = List.empty[String])*/
 
-abstract class Host(val typ: String) {
+abstract class Host(@JsonIgnore val typ: String) {
   val cls: String
   val name: String
   

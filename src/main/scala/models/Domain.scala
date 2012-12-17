@@ -16,7 +16,8 @@
 package models
 
 import org.slf4j.LoggerFactory
-import org.codehaus.jackson.annotate.JsonProperty
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 /*class Domain(val extension: String, val name: String, val ttl: Long, val nameservers: List[Host] = List.empty[Host]) {
   
@@ -35,14 +36,14 @@ import org.codehaus.jackson.annotate.JsonProperty
 }*/
 
 abstract class AbstractDomain {
-  val fullName: String
+  @JsonIgnore val fullName: String
   val ttl: Long
   val nameservers: Array[NSHost]
   
-  lazy val nameParts = fullName.split("""\.""")
-  lazy val extension = nameParts(nameParts.size - 1)
-  lazy val name = if(nameParts.size > 1) nameParts.take(nameParts.size - 1).mkString(".") else ""
-  lazy val reverseFullName = fullName.split(".").reverse.mkString(".")
+  @JsonIgnore lazy val nameParts = fullName.split("""\.""")
+  @JsonIgnore lazy val extension = nameParts(nameParts.size - 1)
+  @JsonIgnore lazy val name = if(nameParts.size > 1) nameParts.take(nameParts.size - 1).mkString(".") else ""
+  @JsonIgnore lazy val reverseFullName = fullName.split(".").reverse.mkString(".")
 }
 
 case class Domain(
