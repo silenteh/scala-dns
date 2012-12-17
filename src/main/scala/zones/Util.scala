@@ -1,5 +1,4 @@
 package zones
-import com.codahale.jerkson.Json._
 import org.slf4j.LoggerFactory
 
 
@@ -7,7 +6,7 @@ object Util {
   
   val logger = LoggerFactory.getLogger("app")
   
-  def fromJsonFile(fileName: String) = {    
+  /*def fromJsonFile(fileName: String) = {    
     val jsonInput = io.Source.fromFile(fileName).mkString
     val parsedObj = parse[Zone](jsonInput)
     parsedObj    
@@ -20,7 +19,7 @@ object Util {
     output.write(zoneJson)
     output.flush
     output.close    
-  }
+  }*/
   
 
 }

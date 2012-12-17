@@ -2,16 +2,16 @@ package zones
 import scala.collection.immutable.List
 import java.io.File
 import configs.ConfigService
-import com.codahale.jerkson.Json._
+//import com.codahale.jerkson.Json._
 import org.slf4j.LoggerFactory
    
 object SBelt {
   
   val logger = LoggerFactory.getLogger("app")
   
-  lazy val rootServers = listOfServer
+  //lazy val rootServers = listOfServer
   
-  private def listOfServer(): List[Zone] = {
+  /*private def listOfServer(): List[Zone] = {
       val servers = List.empty[Zone]
       val file = ConfigService.config.getString("rootservers")
       val lines = io.Source.fromFile(file).getLines.toList	  
@@ -24,6 +24,6 @@ object SBelt {
 	  }
 	  loop(servers,lines)	  
 	  
-  }
+  }*/
   
 }

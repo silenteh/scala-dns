@@ -10,8 +10,6 @@ resolvers += "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshot
 
 resolvers += "repo.codahale.com" at "http://repo.codahale.com"
 
-libraryDependencies += "com.codahale" % "jerkson_2.9.1" % "0.5.0"
-
 libraryDependencies += 	"io.netty" % "netty" % "3.5.8.Final"
 
 libraryDependencies += "com.typesafe.akka" % "akka-actor" % "2.0.3"
@@ -23,3 +21,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "1.8" % "test"
 libraryDependencies += "org.skife.com.typesafe.config" % "typesafe-config" % "0.3.0"
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.3"
+
+libraryDependencies += "com.fasterxml.jackson.module" % "jackson-module-scala" % "2.1.2"
+
+libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.1.2"
