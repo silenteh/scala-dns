@@ -20,13 +20,17 @@ import java.io.ObjectOutputStream
 import java.io.ByteArrayOutputStream
 import records.NULL
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+@JsonIgnoreProperties(Array("typ"))
 case class NullHost(
   @JsonProperty("class") cls: String = null,
   @JsonProperty("name") name: String = null,
   @JsonProperty("value") value: Any
 ) extends Host("NULL") {
 
+  def setName(newname: String) = NullHost(cls, newname, value)
+  
   def getRData = new NULL(valueByteArray)
   
   lazy val valueByteArray = value match {

@@ -17,12 +17,15 @@ package models
 
 import records.MX
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+@JsonIgnoreProperties(Array("typ"))
 case class MXHost(
   @JsonProperty("class") cls: String = null,
   @JsonProperty("name") name: String = null,
   @JsonProperty("value") hostname: String = null, 
   @JsonProperty("priority") priority: Int = -1
 ) extends Host("MX") {
+  def setName(newname: String) = MXHost(cls, newname, hostname, priority)
   protected def getRData = new MX(priority, (hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList)
 }

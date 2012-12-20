@@ -19,7 +19,9 @@ import scala.annotation.tailrec
 import records.SOA
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+@JsonIgnoreProperties(Array("typ"))
 case class SoaHost(
   @JsonProperty("class") cls: String = null,
   @JsonProperty("name") name: String = null,
@@ -32,6 +34,8 @@ case class SoaHost(
   @JsonProperty("expire") expire: String = null,
   @JsonProperty("minimum") minimum: String = null
 ) extends Host("SOA") {
+  
+  def setName(newname: String) = SoaHost(cls, newname, mname, rname, ttl, serial, refresh, retry, expire, minimum)
   
   @JsonIgnore
   private lazy val timeStrs = Map("S" -> 1L, "M" -> 60L, "H" -> 3600L, "D" -> 86400L).withDefaultValue(0L)

@@ -75,7 +75,7 @@ case class ExtendedDomain(
   @JsonIgnore
   def getHosts(name: String) =  
     findHosts(name)
-  
+    
   @JsonIgnore
   private def compareHostName(name: String)(host: Host) = 
     host.name == name || (name == fullName && (host.name == fullName || host.name == "@"))
@@ -88,6 +88,53 @@ case class ExtendedDomain(
   private def findInArrayWithNull[T <: Host](array: Array[T], condition: T => Boolean) = 
     if(array != null) array.find(condition) else None
   
+  def addHost(host: Host) = {
+    def add[T <: Host](array: Array[T], host: T) = if(array == null) List(host) else host :: array.toList
+    host match {
+      case h: NSHost => 
+        new ExtendedDomain(fullName, ttl, add(nameservers, h).toArray, settings, cname, address, ipv6address, pointer, text, mailx, otherhosts)
+      case h: SoaHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, add(settings, h).toArray, cname, address, ipv6address, pointer, text, mailx, otherhosts)
+      case h: CnameHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, add(cname, h).toArray, address, ipv6address, pointer, text, mailx, otherhosts)
+      case h: AddressHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, add(address, h).toArray, ipv6address, pointer, text, mailx, otherhosts)
+      case h: IPv6AddressHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, address, add(ipv6address, h).toArray, pointer, text, mailx, otherhosts)
+      case h: PointerHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, address, ipv6address, add(pointer, h).toArray, text, mailx, otherhosts)
+      case h: TxtHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, address, ipv6address, pointer, add(text, h).toArray, mailx, otherhosts)
+      case h: MXHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, address, ipv6address, pointer, text, add(mailx, h).toArray, otherhosts)
+      case h: GenericHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, address, ipv6address, pointer, text, mailx, add(otherhosts, h).toArray)
+    }
+  }
+  
+  def removeHost(host: Host) = {
+    def remove[T <: Host](array: Array[T], host: T) = if(array == null) array else array.filterNot(_ == host)
+    host match {
+      case h: NSHost => 
+        new ExtendedDomain(fullName, ttl, remove(nameservers, h), settings, cname, address, ipv6address, pointer, text, mailx, otherhosts)
+      case h: SoaHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, remove(settings, h), cname, address, ipv6address, pointer, text, mailx, otherhosts)
+      case h: CnameHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, remove(cname, h), address, ipv6address, pointer, text, mailx, otherhosts)
+      case h: AddressHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, remove(address, h), ipv6address, pointer, text, mailx, otherhosts)
+      case h: IPv6AddressHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, address, remove(ipv6address, h), pointer, text, mailx, otherhosts)
+      case h: PointerHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, address, ipv6address, remove(pointer, h), text, mailx, otherhosts)
+      case h: TxtHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, address, ipv6address, pointer, remove(text, h), mailx, otherhosts)
+      case h: MXHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, address, ipv6address, pointer, text, remove(mailx, h), otherhosts)
+      case h: GenericHost => 
+        new ExtendedDomain(fullName, ttl, nameservers, settings, cname, address, ipv6address, pointer, text, mailx, remove(otherhosts, h))
+    }
+  }
 }
 
 class HostNotFoundException extends Exception

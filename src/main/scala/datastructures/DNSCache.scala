@@ -40,7 +40,7 @@ object DNSCache {
   def findDomain(typ: Int, parts: String*): Option[ExtendedDomain] = 
     findDomain(typ, parts.toList)
     
-  def findDomain(typ: Int, parts: List[String], ignoreTimestamp: Boolean = false): Option[ExtendedDomain] = {
+  def findDomain(typ: Int, parts: List[String]): Option[ExtendedDomain] = {
     
     @tailrec
     def findDomainName(storedMap: Map[String, (Long, ExtendedDomain)], name: Seq[String]): Option[ExtendedDomain] = 
@@ -97,6 +97,12 @@ object DNSCache {
   def logDomains = logger.debug(domains.toString)
   
   def getDomains = domains
+  
+  def getDomainNames = domains.map { case(extension, domains) =>
+    domains.map { case(name, domain) =>
+      name + "." + extension
+    }
+  }.flatten.toArray
   
   /*def findDomain(extension: String, name: String): Option[ExtendedDomain] = 
     domains.get(extension) match {

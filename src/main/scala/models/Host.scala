@@ -28,6 +28,8 @@ abstract class Host(@JsonIgnore val typ: String) {
   
   protected def getRData: Any
   
+  def setName(newname: String): Host
+  
   def toRData = 
     getRData match {
       case rd: AbstractRecord => Array(rd)

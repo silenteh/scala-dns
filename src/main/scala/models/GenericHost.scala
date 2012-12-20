@@ -16,12 +16,15 @@
 package models
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+@JsonIgnoreProperties(Array("typ"))
 case class GenericHost(
   @JsonProperty("type") override val typ: String = null,
   @JsonProperty("class") cls: String = null,
   @JsonProperty("name") name: String = null,
   @JsonProperty("value") value: String = ""
 ) extends Host(typ) {
+  def setName(newname: String) = GenericHost(typ, cls, newname, value)
   protected def getRData = Unit
 }

@@ -17,13 +17,16 @@ package models
 
 import records.PTR
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+@JsonIgnoreProperties(Array("typ"))
 case class PointerHost(
   @JsonProperty("class") cls: String = null,
   @JsonProperty("name") name: String = null, 
   @JsonProperty("value") ptrdname: String
 ) extends Host("PTR") {
 
+  def setName(newname: String) = PointerHost(cls, newname, ptrdname)
   protected def getRData = new PTR((ptrdname.split("""\.""").map(_.getBytes) :+ Array[Byte]()).toList)
 
 }

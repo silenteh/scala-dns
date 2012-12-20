@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+		<title>Scala DNS Admin</title>
+		<style type="text/css">
+			.hidden {display: none;}
+		</style>
+	</head>
+	<body>
+		<h1>Scala DNS</h1>
+		<div data-type="nav">
+			<a href="#" data-type="perm" data-name="all">All domains</a> |
+			<a href="#" data-type="perm" data-name="new">Add new domain</a>
+		</div>
+		<div data-type="content"></div>
+		
+		<div data-type="content-right"></div>
+		
+		<div data-type="templates" class="hidden">
+			<div data-type="message-tpl"></div>
+		
+			<div data-type="domain-form-tpl" class="hidden">
+				<h2>Form</h2>
+				<form>
+					<div data-type="domain-form-submit"><input type="button" data-type="submit" value="Submit"/></div>
+					<table data-type="domain-form-main">
+						<tr>
+							<td colspan="3">Origin:</td>
+							<td><input type="text" name="origin"/></td>
+						</tr>
+						<tr>
+							<td colspan="3">TTL:</td>
+							<td><input type="text" name="ttl"/></td>
+						</tr>
+					</table>
+					<h3 data-type="domain-form-soa-head-tpl"><a href="#" data-type="domain-form-add">+</a> SOA Records (<span data-type="count">0</span>)</h3>
+					<table data-type="domain-form-soa-tpl">
+						<tr data-name="name">
+							<td rowspan="9" valign="top"><a href="#" data-type="domain-form-remove">X</a></td>
+							<td colspan="2">Name:</td>
+							<td><input type="text" name="soaname[]"/></td>
+						</tr>
+						<tr data-name="class">
+							<td colspan="2">Class:</td>
+							<td><input type="text" name="soaclass[]"/></td>
+						</tr>
+						<tr data-name="ttl">
+							<td colspan="2">TTL:</td>
+							<td><input type="text" name="soattl[]"/></td>
+						</tr>
+						<tr data-name="mname">
+							<td colspan="2">MName:</td>
+							<td><input type="text" name="soamname[]"/></td>
+						</tr>
+						<tr data-name="rname">
+							<td colspan="2">RName:</td>
+							<td><input type="text" name="soarname[]"/></td>
+						</tr>
+						<tr data-name="serial">
+							<td colspan="2">Serial:</td>
+							<td><input type="text" name="soaserial[]"/></td>
+						</tr>
+						<tr data-name="refresh">
+							<td colspan="2">Refresh:</td>
+							<td><input type="text" name="soarefresh[]"/></td>
+						</tr>
+						<tr data-name="expire">
+							<td colspan="2">Expire:</td>
+							<td><input type="text" name="soaexpire[]"/></td>
+						</tr>
+						<tr data-name="minimum">
+							<td colspan="2">Minimum:</td>
+							<td><input type="text" name="soaminimum[]"/></td>
+						</tr>
+					</table>
+					<h3 data-type="domain-form-ns-head-tpl"><a href="#" data-type="domain-form-add">+</a> NS Records (<span data-type="count">0</span>)</h3>
+					<table data-type="domain-form-ns-tpl">
+						<tr data-name="name">
+							<td rowspan="3" valign="top"><a href="#" data-type="domain-form-remove">X</a></td>
+							<td colspan="2">Name:</td>
+							<td><input type="text" name="nsname[]"/></td>
+						</tr>
+						<tr data-name="class">
+							<td colspan="2">Class:</td>
+							<td><input type="text" name="nsclass[]"/></td>
+						</tr>
+						<tr data-name="value">
+							<td colspan="2">Name server:</td>
+							<td><input type="text" name="nsvalue[]"/></td>
+						</tr>
+					</table>
+					<h3 data-type="domain-form-mx-head-tpl"><a href="#" data-type="domain-form-add">+</a> MX Records (<span data-type="count">0</span>)</h3>
+					<table data-type="domain-form-mx-tpl">
+						<tr data-name="name">
+							<td rowspan="4" valign="top"><a href="#" data-type="domain-form-remove">X</a></td>
+							<td colspan="2">Name:</td>
+							<td><input type="text" name="mxname[]"/></td>
+						</tr>
+						<tr data-name="class">
+							<td colspan="2">Class:</td>
+							<td><input type="text" name="mxclass[]"/></td>
+						</tr>
+						<tr data-name="priority">
+							<td colspan="2">Priority:</td>
+							<td><input type="text" name="mxpriority[]"/></td>
+						</tr>
+						<tr data-name="value">
+							<td colspan="2">MX server:</td>
+							<td><input type="text" name="mxvalue[]"/></td>
+						</tr>
+					</table>
+					<h3 data-type="domain-form-a-head-tpl"><a href="#" data-type="domain-form-add">+</a> A Records (<span data-type="count">0</span>)</h3>
+					<table data-type="domain-form-a-tpl">
+						<tr data-name="name">
+							<td rowspan="5" valign="top"><a href="#" data-type="domain-form-remove">X</a></td>
+							<td colspan="2">Name:</td>
+							<td><input type="text" name="aname[]"/></td>
+						</tr>
+						<tr data-name="class">
+							<td colspan="2">Class:</td>
+							<td><input type="text" name="aclass[]"/></td>
+						</tr>
+						<tr>
+							<td colspan="3"><a href="#" data-type="domain-form-add">+</a> Addresses:</td>
+						</tr>
+						<tr>
+							<td colspan="3">
+								<table data-type="domain-form-a-subtpl">
+									<tr data-name="weight">
+										<td rowspan="2" valign="top"><a href="#" data-type="domain-form-remove">X</a>
+										<td>Weight:</td>
+										<td><input type="text" name="aweight[][]"/></td>
+									</tr>
+									<tr data-name="value">
+										<td>Address:</td>
+										<td><input type="text" name="avalue[][]"/></td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+					<h3 data-type="domain-form-aaaa-head-tpl"><a href="#" data-type="domain-form-add">+</a> AAAA Records (<span data-type="count">0</span>)</h3>
+					<table data-type="domain-form-aaaa-tpl">
+						<tr data-name="name">
+							<td rowspan="5" valign="top"><a href="#" data-type="domain-form-remove">X</a></td>
+							<td colspan="2">Name:</td>
+							<td><input type="text" name="aaaaname[]"/></td>
+						</tr>
+						<tr data-name="class">
+							<td colspan="2">Class:</td>
+							<td><input type="text" name="aaaaclass[]"/></td>
+						</tr>
+						<tr>
+							<td colspan="3"><a href="#" data-type="domain-form-add">+</a> Addresses:</td>
+						</tr>
+						<tr>
+							<td colspan="3">
+								<table data-type="domain-form-aaaa-subtpl">
+									<tr data-name="weight">
+										<td rowspan="2" valign="top"><a href="#" data-type="domain-form-remove">X</a>
+										<td>Weight:</td>
+										<td><input type="text" name="aaaaweight[][]"/></td>
+									</tr>
+									<tr data-name="value">
+										<td>Address:</td>
+										<td><input type="text" name="aaaavalue[][]"/></td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+					<h3 data-type="domain-form-cname-head-tpl"><a href="#" data-type="domain-form-add">+</a> CNAME Records (<span data-type="count">0</span>)</h3>
+					<table data-type="domain-form-cname-tpl">
+						<tr data-name="name">
+							<td rowspan="3" valign="top"><a href="#" data-type="domain-form-remove">X</a></td>
+							<td colspan="2">Name:</td>
+							<td><input type="text" name="cnamename[]"/></td>
+						</tr>
+						<tr data-name="class">
+							<td colspan="2">Class:</td>
+							<td><input type="text" name="cnameclass[]"/></td>
+						</tr>
+						<tr data-name="value">
+							<td colspan="2">Host name:</td>
+							<td><input type="text" name="cnamevalue[]"/></td>
+						</tr>
+					</table>
+					<h3 data-type="domain-form-ptr-head-tpl"><a href="#" data-type="domain-form-add">+</a> PTR Records (<span data-type="count">0</span>)</h3>
+					<table data-type="domain-form-ptr-tpl" >
+						<tr data-name="name">
+							<td rowspan="3" valign="top"><a href="#" data-type="domain-form-remove">X</a></td>
+							<td colspan="2">Name:</td>
+							<td><input type="text" name="ptrname[]"/></td>
+						</tr>
+						<tr data-name="class">
+							<td colspan="2">Class:</td>
+							<td><input type="text" name="ptrclass[]"/></td>
+						</tr>
+						<tr data-name="value">
+							<td colspan="2">Pointer:</td>
+							<td><input type="text" name="ptrvalue[]"/></td>
+						</tr>
+					</table>
+					<h3 data-type="domain-form-txt-head-tpl"><a href="#" data-type="domain-form-add">+</a> TXT Records (<span data-type="count">0</span>)</h3>
+					<table data-type="domain-form-txt-tpl">
+						<tr data-name="name">
+							<td rowspan="4" valign="top"><a href="#" data-type="domain-form-remove">X</a></td>
+							<td colspan="2">Name:</td>
+							<td><input type="text" name="txtname[]"/></td>
+						</tr>
+						<tr data-name="class">
+							<td colspan="2">Class:</td>
+							<td><input type="text" name="txtclass[]"/></td>
+						</tr>
+						<tr>
+							<td colspan="3"><a href="#" data-type="domain-form-add">+</a> Texts:</td>
+						</tr>
+						<tr>
+							<td colspan="3">
+								<table data-type="domain-form-txt-subtpl">
+									<tr data-name="text">
+										<td><a href="#" data-type="domain-form-remove">X</a>
+										<td>Text:</td>
+										<td><input type="text" name="txttext[][]"/></td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+					<div data-type="domain-form-submit"><input type="submit" value="Submit"/></div>
+				</form>
+			</div>
+		
+		</div>
+		
+		<script type="text/javascript" src="js/jquery-1.8.0.min.js"></script>
+		<script type="text/javascript" src="js/json2.js"></script>
+		<script type="text/javascript" src="js/validate.js"></script>
+		<script type="text/javascript" src="js/script.js"></script>
+	</body>
+</html>

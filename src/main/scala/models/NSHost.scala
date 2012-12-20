@@ -17,12 +17,15 @@ package models
 
 import records.NS
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+@JsonIgnoreProperties(Array("typ"))
 case class NSHost(
   @JsonProperty("class") cls: String = null,
   @JsonProperty("name") name: String = null,
   @JsonProperty("weight") weight: Int = 0,
   @JsonProperty("value") hostname: String = null
 ) extends Host("NS") {
+  def setName(newname: String) = NSHost(cls, newname, weight, hostname)
   protected def getRData = new NS((hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList)
 }

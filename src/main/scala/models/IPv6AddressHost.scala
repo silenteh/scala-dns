@@ -17,12 +17,16 @@ package models
 
 import records.AAAA
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+@JsonIgnoreProperties(Array("typ"))
 case class IPv6AddressHost(
   @JsonProperty("class") cls: String = null,
   @JsonProperty("name") name: String = null, 
   @JsonProperty("value") ips: Array[WeightedIP] = null
 ) extends Host("AAAA") {
+  def setName(newname: String) = IPv6AddressHost(cls, newname, ips)
+  
   protected def getRData = 
     if(ips.size == 1) ips(0).weightIP.map(ip => new AAAA(ipToBytes(ip))) 
     else ips.map(wip => wip.weightIP.map(ip => new AAAA(ipToBytes(ip)))).flatten

@@ -17,13 +17,16 @@ package models
 
 import records.TXT
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+@JsonIgnoreProperties(Array("typ"))
 case class TxtHost(
   @JsonProperty("class") cls: String = null,
   @JsonProperty("name") name: String = null, 
   @JsonProperty("value") strings: Array[String]
 ) extends Host("TXT") {
 
+  def setName(newname: String) = TxtHost(cls, newname, strings)
   def getRData = new TXT(strings.map(_.getBytes))
 
 }
