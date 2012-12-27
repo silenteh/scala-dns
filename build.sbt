@@ -25,3 +25,5 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.3"
 libraryDependencies += "com.fasterxml.jackson.module" % "jackson-module-scala" % "2.1.2"
 
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.1.2"
+
+libraryDependencies += "org.apache.servicemix.bundles" % "org.apache.servicemix.bundles.aws-java-sdk" % "1.3.27"

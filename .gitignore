@@ -41,3 +41,10 @@ project/plugins/project/
 # Scala-IDE specific
 .scala_dependencies
 
+#intellij IDE files
+.idea/
+.idea_modules/
+
+
+
+
