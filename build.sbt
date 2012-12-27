@@ -10,7 +10,7 @@ resolvers += "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshot
 
 resolvers += "repo.codahale.com" at "http://repo.codahale.com"
 
-libraryDependencies += 	"io.netty" % "netty" % "3.5.8.Final"
+libraryDependencies += 	"io.netty" % "netty" % "3.6.0.Final"
 
 libraryDependencies += "com.typesafe.akka" % "akka-actor" % "2.0.3"
  
@@ -26,4 +26,4 @@ libraryDependencies += "com.fasterxml.jackson.module" % "jackson-module-scala" %
 
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.1.2"
 
-libraryDependencies += "org.apache.servicemix.bundles" % "org.apache.servicemix.bundles.aws-java-sdk" % "1.3.27"
+// libraryDependencies += "org.apache.servicemix.bundles" % "org.apache.servicemix.bundles.aws-java-sdk" % "1.3.27"
