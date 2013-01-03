@@ -182,7 +182,11 @@ function onFormSubmit(form) {
 	
 	if(messages.length == 0) {
 		$.post('http://' + urlBase + '/domains/', {data: JSON.stringify(json)}, function(data) {
-			drawDomainForm({domain: [0, json]});
+			if(data.code == 0) {
+				drawDomainForm({domain: [0, data.data]});
+			} else {
+				drawDomainForm({domain: [0, json]});
+			}
 		}, 'json');
 	} else {
 		message_tpl = $('[data-type="message-tpl"]').clone().attr('data-type', 'messages');

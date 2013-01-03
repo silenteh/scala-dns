@@ -33,6 +33,11 @@ case class NullHost(
   
   def getRData = new NULL(valueByteArray)
   
+  override def equals(other: Any) = other match {
+    case h: NullHost => h.cls == cls && h.name == name && h.value.equals(value)
+    case _ => false
+  }  
+  
   lazy val valueByteArray = value match {
     case v: String => v.getBytes
     case v: Int => RRData.intToBytes(v)

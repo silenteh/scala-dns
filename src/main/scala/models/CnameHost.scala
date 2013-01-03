@@ -26,6 +26,13 @@ case class CnameHost(
   @JsonProperty("value") hostname: String
 ) extends Host("CNAME") {
   protected def getRData = new CNAME((hostname.split("""\.""").map(_.getBytes) :+ Array[Byte]()).toList)
+  
   def setName(newname: String) = CnameHost(cls, newname, hostname)
+  
   def changeHostname(hostname: String) = CnameHost(cls, name, hostname)
+  
+  override def equals(other: Any) = other match {
+    case h: CnameHost => h.cls == cls && h.name == name && h.hostname == hostname
+    case _ => false
+  }
 }

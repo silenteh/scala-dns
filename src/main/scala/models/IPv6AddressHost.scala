@@ -27,6 +27,11 @@ case class IPv6AddressHost(
 ) extends Host("AAAA") {
   def setName(newname: String) = IPv6AddressHost(cls, newname, ips)
   
+  override def equals(other: Any) = other match {
+    case h: IPv6AddressHost => h.cls == cls && h.name == name && h.ips.forall(wip => ips.exists(_.ip == wip.ip))
+    case _ => false
+  }
+  
   protected def getRData = 
     if(ips.size == 1) ips(0).weightIP.map(ip => new AAAA(ipToBytes(ip))) 
     else ips.map(wip => wip.weightIP.map(ip => new AAAA(ipToBytes(ip)))).flatten

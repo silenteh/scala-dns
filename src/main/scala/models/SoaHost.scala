@@ -37,6 +37,14 @@ case class SoaHost(
   
   def setName(newname: String) = SoaHost(cls, newname, mname, rname, ttl, serial, refresh, retry, expire, minimum)
   
+  def updateSerial(serial: String) = SoaHost(cls, name, mname, rname, ttl, serial, refresh, retry, expire, minimum)
+  
+  override def equals(other: Any) = other match {
+    case h: SoaHost => h.cls == cls && h.name == name && h.mname == mname && h.rname == rname && h.ttl == ttl && 
+      h.serial == serial && h.refresh == refresh && h.retry == retry && h.expire == expire && h.minimum == minimum
+    case _ => false
+  }
+  
   @JsonIgnore
   private lazy val timeStrs = Map("S" -> 1L, "M" -> 60L, "H" -> 3600L, "D" -> 86400L).withDefaultValue(0L)
   

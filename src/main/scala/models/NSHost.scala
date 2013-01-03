@@ -27,5 +27,11 @@ case class NSHost(
   @JsonProperty("value") hostname: String = null
 ) extends Host("NS") {
   def setName(newname: String) = NSHost(cls, newname, weight, hostname)
+  
+  override def equals(other: Any) = other match {
+    case h: NSHost => h.cls == cls && h.name == name && h.hostname == hostname
+    case _ => false
+  }
+  
   protected def getRData = new NS((hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList)
 }

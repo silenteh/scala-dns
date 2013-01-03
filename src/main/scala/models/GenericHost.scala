@@ -26,5 +26,11 @@ case class GenericHost(
   @JsonProperty("value") value: String = ""
 ) extends Host(typ) {
   def setName(newname: String) = GenericHost(typ, cls, newname, value)
+  
+  override def equals(other: Any) = other match {
+    case h: GenericHost => h.cls == cls && h.name == name && h.value == value
+    case _ => false
+  }
+  
   protected def getRData = Unit
 }

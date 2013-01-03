@@ -38,10 +38,6 @@ object DomainValidationService {
     
   }
   
-  def generateSerial = {
-    
-  }
-  
   def reorganize(srcdomain: ExtendedDomain) = {
     val name = srcdomain.nameParts.toList
     

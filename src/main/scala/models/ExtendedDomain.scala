@@ -113,7 +113,7 @@ case class ExtendedDomain(
   }
   
   def removeHost(host: Host) = {
-    def remove[T <: Host](array: Array[T], host: T) = if(array == null) array else array.filterNot(_ == host)
+    def remove[T <: Host](array: Array[T], host: T) = if(array == null) array else array.filterNot(_.equals(host))
     host match {
       case h: NSHost => 
         new ExtendedDomain(fullName, ttl, remove(nameservers, h), settings, cname, address, ipv6address, pointer, text, mailx, otherhosts)

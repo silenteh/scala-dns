@@ -27,6 +27,12 @@ case class AddressHost(
   @JsonProperty("value") ips: Array[WeightedIP] = null
 ) extends Host("A") {
   def setName(newname: String) = AddressHost(cls, newname, ips)
+  
+  override def equals(other: Any) = other match {
+    case h: AddressHost => cls == h.cls && name == h.name && h.ips.forall(wip => ips.exists(_.ip == wip.ip))
+    case _ => false
+  }
+  
   private def ipToLong(ip: String) = ip.split("""\.""").reverse.foldRight(0L){case(part, total) => (total << 8) + part.toLong}
   protected def getRData = 
     if(ips.size == 1) ips(0).weightIP.map(ip => new A(ipToLong(ip))) 

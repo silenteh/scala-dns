@@ -27,6 +27,12 @@ case class PointerHost(
 ) extends Host("PTR") {
 
   def setName(newname: String) = PointerHost(cls, newname, ptrdname)
+  
+  override def equals(other: Any) = other match {
+    case h: PointerHost => h.cls == cls && h.name == name && h.ptrdname == ptrdname
+    case _ => false
+  }
+  
   protected def getRData = new PTR((ptrdname.split("""\.""").map(_.getBytes) :+ Array[Byte]()).toList)
 
 }

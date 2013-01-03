@@ -58,6 +58,8 @@ import org.jboss.netty.channel.Channel
 import scala.annotation.tailrec
 import models.ExtendedDomain
 import domainio.DomainValidationService
+import models.SoaHost
+import utils.SerialParser
 
 class HttpHandler extends SimpleChannelUpstreamHandler {
 
@@ -128,12 +130,21 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
     val content = 
       if (path.length == 1 && path(0) == "domains") {
         val data = UriParser.postParams(request)
-        val domainCandidate = DomainIO.Json.readValue(data("data"), classOf[ExtendedDomain])
+        val domainCandidate = {
+          val domain = DomainIO.Json.readValue(data("data"), classOf[ExtendedDomain])
+          domain.settings.foldRight(domain) { case(soa, domain) =>
+            val newSoa = soa.updateSerial(
+              if(soa.serial == null || soa.serial == "") SerialParser.generateNewSerial.toString
+              else SerialParser.updateSerial(soa.serial).toString
+            )
+            domain.removeHost(soa).addHost(newSoa)
+          }
+        }
         if(DomainValidationService.validate(domainCandidate, DNSCache.getDomainNames)) {
           val domain = DomainValidationService.reorganize(domainCandidate)
           DNSCache.setDomain(domain)
           DomainIO.storeDomain(domain)
-          "{\"code\":0,\"message\":\"Now look what you've done: " + domain.toString + "\"}"
+          "{\"code\":0,\"message\":\"Now look what you've done\",\"data\":" + DomainIO.Json.writeValueAsString(domain) + "}"
         } else {
           "{\"code\":1,\"message\":\"Error\"}"
         }

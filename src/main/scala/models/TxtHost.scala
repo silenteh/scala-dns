@@ -27,6 +27,12 @@ case class TxtHost(
 ) extends Host("TXT") {
 
   def setName(newname: String) = TxtHost(cls, newname, strings)
+  
+  override def equals(other: Any) = other match {
+    case h: TxtHost => h.cls == cls && h.name == name && h.strings.forall(str => strings.exists(_ == str))
+    case _ => false
+  }
+  
   def getRData = new TXT(strings.map(_.getBytes))
 
 }

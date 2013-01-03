@@ -27,5 +27,11 @@ case class MXHost(
   @JsonProperty("priority") priority: Int = -1
 ) extends Host("MX") {
   def setName(newname: String) = MXHost(cls, newname, hostname, priority)
+  
+  override def equals(other: Any) = other match {
+    case h: MXHost => h.cls == cls && h.name == name && h.hostname == hostname && h.priority == priority
+    case _ => false
+  }
+  
   protected def getRData = new MX(priority, (hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList)
 }
