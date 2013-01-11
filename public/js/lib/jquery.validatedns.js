@@ -105,7 +105,7 @@
 				that.applyCallback(item, 'ipv4', valid);
 				return valid;
 			},
-			ipv6 : function(item) {
+			ipv6 : function(item, params) {
 				var valid = true, validate;
 				
 				validate = function(ip) {
@@ -268,8 +268,9 @@
 				}
 				if(params.index == params.length - 1) {
 					valid = that.group_uniques[name] === undefined;
-					that.applyCallback(item, 'requiredGroup', valid);
+					that.applyCallback(that.group_uniques[name], 'requiredGroup', valid);
 				}
+				//console.log()
 				return valid;
 			}
 		};

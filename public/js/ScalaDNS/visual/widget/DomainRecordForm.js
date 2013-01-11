@@ -66,14 +66,14 @@ var ScalaDNS = ScalaDNS || {};
 				
 				switch(typ) {
 					case 'A':
-						if($('[data-id="ipv4_routing_simple"]').is(':checked')) {
+						if($('[data-id="ipv4_routing_simple"]').prop('checked')) {
 							validateBody = that._validator[typ + 'Simple'].validate();
 						} else {
 							validateBody = that._validator[typ + 'Weighted'].validate();
 						}
 						break;
 					case 'AAAA':
-						if($('[data-id="ipv6_routing_simple"]').is(':checked')) {
+						if($('[data-id="ipv6_routing_simple"]').prop('checked')) {
 							validateBody = that._validator[typ + 'Simple'].validate();
 						} else {
 							validateBody = that._validator[typ + 'Weighted'].validate();
@@ -83,6 +83,8 @@ var ScalaDNS = ScalaDNS || {};
 						validateBody = that._validator[typ].validate();
 						break;
 				}
+				
+				console.log(validateBody);
 				
 				if(validateHead.valid && validateBody.valid) {
 					record = that.form[typ].parse(formPart);
@@ -145,7 +147,7 @@ var ScalaDNS = ScalaDNS || {};
 				that.ipWeightSwitch(this, 'a', 'ipv4', that._weighted_ipv4_tpl.clone());
 			} else {
 				evt.preventDefault();
-				$('[data-id="' + that._status.ipv4_policy + '"]').attr('checked', true);
+				$('[data-id="' + that._status.ipv4_policy + '"]').prop('checked', true);
 			}
 		});
 		
@@ -155,7 +157,7 @@ var ScalaDNS = ScalaDNS || {};
 				that.ipWeightSwitch(this, 'aaaa', 'ipv6', that._weighted_ipv6_tpl.clone());
 			} else {
 				evt.preventDefault();
-				$('[data-id="' + that._status.ipv6_policy + '"]').attr('checked', true);
+				$('[data-id="' + that._status.ipv6_policy + '"]').prop('checked', true);
 			}
 		});
 		
@@ -236,10 +238,10 @@ var ScalaDNS = ScalaDNS || {};
 		$('input[type="hidden"]', form).val('');
 		$('textarea', form).val('');
 		
-		$('[name="ipv4_routing"]', form).removeAttr('checked');
-		$('[name="ipv4_routing"]:first', form).attr('checked', 'checked');
-		$('[name="ipv6_routing"]', form).removeAttr('checked');
-		$('[name="ipv6_routing"]:first', form).attr('checked', 'checked');
+		$('[name="ipv4_routing"]', form).prop('checked', false);
+		$('[name="ipv4_routing"]:first', form).prop('checked', true);
+		$('[name="ipv6_routing"]', form).prop('checked', false);
+		$('[name="ipv6_routing"]:first', form).prop('checked', true);
 		
 		$('[data-name="a"] [data-type="rout-weighted .control-group"]', form).remove();
 		$('[data-name="a"] [data-type="rout-weighted"]', form).append(this._weighted_ipv4_tpl);
@@ -316,11 +318,11 @@ var ScalaDNS = ScalaDNS || {};
 				$(':dtype(ip-value)', container).val($(':dtype(ip-value)', container).val() + item.ip);
 			});
 			if(that.isWeighted(data.value)) {
-				$(':dname(routing-weighted)', container).attr('checked', 'checked');
+				$(':dname(routing-weighted)', container).prop('checked', true);
 				$(':dtype(rout-simple)', container).hide();
 				$(':dtype(rout-weight)', container).show();
 			} else {
-				$(':dname(routing-simple)', container).attr('checked', 'checked');
+				$(':dname(routing-simple)', container).prop('checked', true);
 				$(':dtype(rout-weight)', container).hide();
 				$(':dtype(rout-simple)', container).show();
 			}
@@ -499,8 +501,8 @@ var ScalaDNS = ScalaDNS || {};
 			textarea = $('[name="' + prefix + '_value"]', parent),
 			that = this,
 			tpl;
-
-		if($(target).attr('data-id') === prefix + '_routing_weighted') {
+		
+		if($(target).val() === 'weighted') {
 			if(!$('[data-type="rout-weight"]', parent).is(':visible')) {
 				var data = textarea.val().split('\n');
 				$('.control-group', cont_weight).remove();
@@ -717,8 +719,7 @@ var ScalaDNS = ScalaDNS || {};
 			messages: {
 				'ipv4_address[]': {
 					requiredGroup: 'No IP address specified',
-					ipv4: 'Not a valid IP address',
-					uniqueInGroup: 'Duplicate IP address'
+					ipv4: 'Not a valid IP address'
 				}
 			},
 			callback: callback
@@ -745,7 +746,7 @@ var ScalaDNS = ScalaDNS || {};
 		return form.validateDNS({
 			rules: {
 				'ipv6_address[]': {
-					uniqueInGroup: true
+					requiredInGroup: true
 				}
 			},
 			messages: {
@@ -761,6 +762,7 @@ var ScalaDNS = ScalaDNS || {};
 		return form.validateDNS({
 			rules: {
 				'ipv6_value': {
+					required: true,
 					ipv6: {
 						delimiter: '\n',
 						uniqueInGroup: true
@@ -769,6 +771,7 @@ var ScalaDNS = ScalaDNS || {};
 			},
 			messages: {
 				'ipv6_value': {
+					required: 'No IP address specified',
 					ipv6: 'Not a valid IPv6 address',
 					uniqueInGroup: 'Duplicate IPv6 address'
 				}
@@ -781,14 +784,14 @@ var ScalaDNS = ScalaDNS || {};
 		return form.validateDNS({
 			rules: {
 				'ipv6_address[]': {
-					ipv6: true,
-					uniqueInGroup: true
+					requiredGroup: true,
+					ipv6: true
 				}
 			},
 			messages: {
 				'ipv6_address[]': {
-					ipv6: 'Not a valid IPv6 address',
-					uniqueInGroup: 'Duplicate IPv6 address'
+					requiredGroup: 'No IP address specified',
+					ipv6: 'Not a valid IPv6 address'
 				}
 			},
 			callback: callback
