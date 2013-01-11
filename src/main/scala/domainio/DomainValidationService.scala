@@ -4,6 +4,7 @@ import models.ExtendedDomain
 import scala.annotation.tailrec
 import datastructures.DNSCache
 import enums.RecordType
+import models.Host
 
 object DomainValidationService {
 
@@ -49,18 +50,22 @@ object DomainValidationService {
         case None => ancestorDomains(parts.tail, domains)
       }
     
-    val hosts = ancestorDomains(name.tail).map { case(residue, domain) => 
-      val hosts = domain.hosts.filter{host => 
-        (host.name == residue && srcdomain.hasRootEntry(RecordType.values.find(_.toString == host.typ).get.id)) || 
-        (host.name != residue && host.name.endsWith(residue))
+    val (hosts, domains) = ancestorDomains(name.tail)
+      .foldRight((List[Host](), List[ExtendedDomain]())) { case((residue, domain), (allhosts, domains)) => 
+        val hosts = domain.hosts.filter{host => 
+          (host.name == residue && srcdomain.hasRootEntry(RecordType.values.find(_.toString == host.typ).get.id)) || 
+          (host.name != residue && host.name.endsWith(residue))
+        }
+        val newdomains = 
+          if(hosts.isEmpty) domains
+          else{
+            val newdomain = hosts.foldRight(domain) { case(host, domain) => domain.removeHost(host) }
+            DNSCache.setDomain(newdomain)
+            DomainIO.storeDomain(newdomain)
+            domain :: domains
+          }
+        (allhosts ++ hosts, domains)
       }
-      if(!hosts.isEmpty) {
-        val newdomain = hosts.foldRight(domain) { case(host, domain) => domain.removeHost(host) }
-        DNSCache.setDomain(newdomain)
-        DomainIO.storeDomain(newdomain)
-      }
-      hosts
-    }.flatten
     
     hosts.foldRight(srcdomain) { case(host, domain) =>
       if(host.name.startsWith(domain.nameParts.head)) domain
@@ -71,14 +76,14 @@ object DomainValidationService {
           case Some(host) => domain.removeHost(host).addHost(newhost)
         }
       } 
-    }
+    } :: domains
   }
   
   def reorganizeAll = 
     DNSCache.getDomains.foreach { case(extension, domains) =>
       domains.foreach { case(name, (timestamp, domain)) =>
         val newdomain = reorganize(domain)
-        if(newdomain.hosts.length != domain.hosts.length) DomainIO.storeDomain(domain)
+        if(newdomain.head.hosts.length != domain.hosts.length) DomainIO.storeDomain(domain)
       }
     }
 }

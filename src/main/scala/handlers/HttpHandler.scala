@@ -141,15 +141,15 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
           }
         }
         if(DomainValidationService.validate(domainCandidate, DNSCache.getDomainNames)) {
-          val domain = DomainValidationService.reorganize(domainCandidate)
-          DNSCache.setDomain(domain)
-          DomainIO.storeDomain(domain)
-          "{\"code\":0,\"message\":\"Now look what you've done\",\"data\":" + DomainIO.Json.writeValueAsString(domain) + "}"
+          val domains = DomainValidationService.reorganize(domainCandidate)
+          DNSCache.setDomain(domains.head)
+          DomainIO.storeDomain(domains.head)
+          "{\"code\":0,\"message\":\"Now look what you've done\",\"data\":" + DomainIO.Json.writeValueAsString(domains) + "}"
         } else {
-          "{\"code\":1,\"message\":\"Error\"}"
+          "{\"code\":1,\"message\":\"Error: Invalid domain\"}"
         }
       } else {
-        "{\"code\":1,\"message\":\"Error\"}"
+        "{\"code\":1,\"message\":\"Error: Unknown request\"}"
       }
     
     val contentBuffer = ChannelBuffers.copiedBuffer(content.getBytes)
