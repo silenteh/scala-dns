@@ -16,8 +16,10 @@ var ScalaDNS = ScalaDNS || {};
 		var that = this;
 		$('[data-menu]').click(function(evt) {
 			evt.preventDefault();
-			ScalaDNS.Dispatcher.execute($(this).attr('data-menu'))
-			that.switchTab();
+			if($(this).hasClass('disabled') === false) {
+				ScalaDNS.Dispatcher.execute($(this).attr('data-menu'))
+				that.switchTab();
+			}
 		});
 		
 		ScalaDNS.onDomainSelect.bind(this, this.domainSelected);
@@ -37,8 +39,10 @@ var ScalaDNS = ScalaDNS || {};
 		
 		if(domain === null || domain.origin === '') {
 			link.attr('data-menu', 'sets');
+			link.addClass('disabled');
 		} else {
 			link.attr('data-menu', 'sets/' + domain.origin);
+			link.removeClass('disabled');
 		}
 	};
 	

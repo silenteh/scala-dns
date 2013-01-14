@@ -51,6 +51,12 @@ var ScalaDNS = ScalaDNS || {};
 			}
 		});
 		
+		$(':fname(domain_name)', this._tpl).bind('keyup', function() {
+			if($(this).closest('.control-group').hasClass('error')) {
+				that._validator.validate();
+			}
+		});
+		
 		$(this._tpl).bind('click', function(evt) {
 			evt.stopPropagation();
 		});
