@@ -23,6 +23,7 @@ var ScalaDNS = ScalaDNS || {};
 		var that = this;
 		this._tpl = $('#setsTemplate').clone().removeAttr('id').removeClass('hidden');
 		this._row_tpl = $('tbody tr:first', this._tpl).clone();
+		this._alert_tpl = $('#alertTemplate').clone().removeAttr('id').removeClass('hidden');
 		this._ctrlKeyDown = false;
 		
 		$(this._tpl).delegate('tbody tr', 'click', function(evt) {
@@ -69,7 +70,35 @@ var ScalaDNS = ScalaDNS || {};
 		});
 		
 		$('[data-id="delete-rs"]', this._tpl).bind('click', function(evt) {
+			var typ, name, updated, alert = that._alert_tpl.clone();;
 			evt.stopPropagation();
+			$('.alert', that.container).remove();
+			$('tbody tr.row_selected', this._tpl).each(function() {
+				name = $(':dtype(record-name)', this).text();
+				typ = $(':dtype(record-type)', this).text();
+				$(this).remove();
+				updated = [];
+				$.each(that.domain[typ], function() {
+					if(this.name !== name) {
+						updated.push(this);
+					}
+				});
+				if(updated.length === 0) {
+					delete that.domain[typ];
+				} else {
+					that.domain[typ] = updated;
+				}
+			});
+			if(that.domain.SOA && that.domain.NS && that.domain.NS.length > 1) {
+				ScalaDNS.DomainService.saveDomain(that.domain);
+			} else {
+				alert.append('The domain could not be updated at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
+				$('button', alert).click(function() {
+					$(this).closest('div').remove();
+				});
+				that.container.prepend(alert);
+			}
+			$(this).attr('disabled', 'disabled');
 		});
 		
 		$('html').bind('click', function(evt) {

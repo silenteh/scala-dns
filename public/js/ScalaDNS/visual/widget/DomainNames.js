@@ -31,6 +31,18 @@ var ScalaDNS = ScalaDNS || {};
 			}
 		});
 		
+		$('[data-id="delete-hz"]', this._tpl).bind('click', function(evt) {
+			var rowsToRemove = $('tbody tr.row_selected'), row, name;
+			evt.stopPropagation();
+			rowsToRemove.each(function() {
+				row = this;
+				name = $(':dtype(domain-name)', row).text();
+				ScalaDNS.DomainService.removeDomain(name, function() {
+					row.remove();
+				});
+			});
+		});
+		
 		$('html').bind('click', function() {
 			$('tbody tr', this._tpl).removeClass('row_selected');
 			that._raiseSelectDomain();

@@ -127,31 +127,39 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
 
   private def handlePostRequest(request: HttpRequest, channel: Channel) = {
     val path = UriParser.uriPath(request.getUri)
-    val content = 
+    val content =
       if (path.length == 1 && path(0) == "domains") {
         val data = UriParser.postParams(request)
-        val domainCandidate = {
-          val domain = DomainIO.Json.readValue(data("data"), classOf[ExtendedDomain])
-          domain.settings.foldRight(domain) { case(soa, domain) =>
-            val newSoa = soa.updateSerial(
-              if(soa.serial == null || soa.serial == "") SerialParser.generateNewSerial.toString
-              else SerialParser.updateSerial(soa.serial).toString
-            )
-            domain.removeHost(soa).addHost(newSoa)
+        if (data.get("delete") != None) {
+          DNSCache.removeDomain(data("delete").split("""\.""").toList)
+          DomainIO.removeDomain(data("delete"))
+          "{\"code\":0,\"message\":\"Domain removed\"}"
+        } else if (data.get("data") != None) {
+          val domainCandidate = {
+            val domain = DomainIO.Json.readValue(data("data"), classOf[ExtendedDomain])
+            domain.settings.foldRight(domain) {
+              case (soa, domain) =>
+                val newSoa = soa.updateSerial(
+                  if (soa.serial == null || soa.serial == "") SerialParser.generateNewSerial.toString
+                  else SerialParser.updateSerial(soa.serial).toString)
+                domain.removeHost(soa).addHost(newSoa)
+            }
           }
-        }
-        if(DomainValidationService.validate(domainCandidate, DNSCache.getDomainNames)) {
-          val domains = DomainValidationService.reorganize(domainCandidate)
-          DNSCache.setDomain(domains.head)
-          DomainIO.storeDomain(domains.head)
-          "{\"code\":0,\"message\":\"Now look what you've done\",\"data\":" + DomainIO.Json.writeValueAsString(domains) + "}"
+          if (DomainValidationService.validate(domainCandidate, DNSCache.getDomainNames)) {
+            val domains = DomainValidationService.reorganize(domainCandidate)
+            DNSCache.setDomain(domains.head)
+            DomainIO.storeDomain(domains.head)
+            "{\"code\":0,\"message\":\"Now look what you've done\",\"data\":" + DomainIO.Json.writeValueAsString(domains) + "}"
+          } else {
+            "{\"code\":1,\"message\":\"Error: Invalid domain\"}"
+          }
         } else {
-          "{\"code\":1,\"message\":\"Error: Invalid domain\"}"
+          "{\"code\":1,\"message\":\"Error: Unknown request\"}"
         }
       } else {
         "{\"code\":1,\"message\":\"Error: Unknown request\"}"
       }
-    
+
     val contentBuffer = ChannelBuffers.copiedBuffer(content.getBytes)
     val response = new DefaultHttpResponse(HTTP_1_1, OK)
     response.setHeader(CONTENT_TYPE, "application/json")

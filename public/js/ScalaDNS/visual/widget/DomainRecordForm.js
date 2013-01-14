@@ -34,7 +34,7 @@ var ScalaDNS = ScalaDNS || {};
 		this._tpl = $('#setsFormTemplate').clone().removeAttr('id').removeClass('hidden');
 		this._weighted_ipv4_tpl = $('[data-name="a"] [data-type="rout-weight"] .control-group', this._tpl).clone();
 		this._weighted_ipv6_tpl = $('[data-name="aaaa"] [data-type="rout-weight"] .control-group', this._tpl).clone();
-		this._error_tpl = $('[data-type="error-msg"]', this._tpl).detach();
+		this._alert_tpl = $('#alertTemplate').clone().removeAttr('id').removeClass('hidden');
 		this._validator = this.initValidator();
 		
 		this.updateFormStatus();
@@ -56,10 +56,11 @@ var ScalaDNS = ScalaDNS || {};
 		});
 		
 		$('[data-id="add-record"]', this._tpl).bind('click', function(evt) {
+			$('.alert', that.container).remove();
 			if(that._status.blocked === false) {
 				var typ = $('[name="typ"]', this._tpl).val(),
 					formPart = $('[data-type="rr-content"]:visible'),
-					validateHead, validateBody, records, record;
+					validateHead, validateBody, records, record, alert;
 				evt.preventDefault();
 				
 				validateHead = that._validator.name.validate();
@@ -84,9 +85,8 @@ var ScalaDNS = ScalaDNS || {};
 						break;
 				}
 				
-				console.log(validateBody);
-				
 				if(validateHead.valid && validateBody.valid) {
+					alert = that._alert_tpl.clone();
 					record = that.form[typ].parse(formPart);
 					
 					if(that.record !== null) {
@@ -107,11 +107,20 @@ var ScalaDNS = ScalaDNS || {};
 					
 					that.domain[typ] = records;
 					
-					ScalaDNS.DomainService.saveDomain(that.domain, function() {
-						console.log(ScalaDNS.fullDomains);
-						//that.record = null;
-						//that.clearForm();
-					});
+					if(that.domain.SOA && that.domain.NS && that.domain.NS.length > 1) {
+						ScalaDNS.DomainService.saveDomain(that.domain, function() {
+							ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
+							that.record = null;
+							that.clearForm();
+						});
+					} else {
+						alert.append('The domain could not be saved at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
+						$('button', alert).click(function() {
+							$(this).closest('div').remove();
+						});
+						that.container.prepend(alert);
+						ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
+					}
 				}
 			}
 		});

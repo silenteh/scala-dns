@@ -62,4 +62,9 @@ object DomainIO {
     logger.debug(applicationRoot + path + "/" + domain.fullName + "json")
     Json.writeValue(new File(applicationRoot + path + "/" + domain.fullName + "json"), domain)
   }
+  
+  def removeDomain(domainName: String, path: String = dataPathStr) = {
+    val domainFile = new File(applicationRoot + path + "/" + domainName + "json");
+    domainFile.delete
+  }
 }

@@ -94,6 +94,13 @@ object DNSCache {
       case _ => Unit
     }
   
+  def removeDomain(parts: List[String]): Unit = {
+    val trimmedParts = if(parts.reverse.head == "") parts.take(parts.size - 1) else parts
+    val extension = trimmedParts.reverse.head
+    val name = trimmedParts.take(parts.size - 1).mkString(".")
+    removeDomain(extension, name)
+  }
+  
   def logDomains = logger.debug(domains.toString)
   
   def getDomains = domains
