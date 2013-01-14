@@ -26,6 +26,8 @@ abstract class Host(@JsonIgnore val typ: String) {
   val cls: String
   val name: String
   
+  override def equals(obj: Any): Boolean
+  
   protected def getRData: Any
   
   def setName(newname: String): Host

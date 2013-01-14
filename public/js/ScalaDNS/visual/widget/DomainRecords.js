@@ -92,7 +92,7 @@ var ScalaDNS = ScalaDNS || {};
 			if(that.domain.SOA && that.domain.NS && that.domain.NS.length > 1) {
 				ScalaDNS.DomainService.saveDomain(that.domain);
 			} else {
-				alert.append('The domain could not be updated at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
+				alert.append('<strong>Warning!</strong> The domain could not be updated at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
 				$('button', alert).click(function() {
 					$(this).closest('div').remove();
 				});

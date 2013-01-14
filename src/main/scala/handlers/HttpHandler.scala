@@ -145,13 +145,14 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
                 domain.removeHost(soa).addHost(newSoa)
             }
           }
-          if (DomainValidationService.validate(domainCandidate, DNSCache.getDomainNames)) {
+          val (valid, messages) = DomainValidationService.validate(domainCandidate)
+          if (valid) {
             val domains = DomainValidationService.reorganize(domainCandidate)
             DNSCache.setDomain(domains.head)
             DomainIO.storeDomain(domains.head)
             "{\"code\":0,\"message\":\"Now look what you've done\",\"data\":" + DomainIO.Json.writeValueAsString(domains) + "}"
           } else {
-            "{\"code\":1,\"message\":\"Error: Invalid domain\"}"
+            "{\"code\":1,\"messages\":" + messages.mkString("[\"", "\",\"", "\"]") + "}"
           }
         } else {
           "{\"code\":1,\"message\":\"Error: Unknown request\"}"

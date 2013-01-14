@@ -108,13 +108,17 @@ var ScalaDNS = ScalaDNS || {};
 					that.domain[typ] = records;
 					
 					if(that.domain.SOA && that.domain.NS && that.domain.NS.length > 1) {
-						ScalaDNS.DomainService.saveDomain(that.domain, function() {
-							ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
-							that.record = null;
-							that.clearForm();
+						ScalaDNS.DomainService.saveDomain(that.domain, function(result) {
+							if(result.code === 0) {
+								ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
+								that.record = null;
+								that.clearForm();
+							} else {
+								console.log(result.messages);
+							}
 						});
 					} else {
-						alert.append('The domain could not be saved at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
+						alert.append('<strong>Warning!</strong> The domain could not be saved at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
 						$('button', alert).click(function() {
 							$(this).closest('div').remove();
 						});
@@ -229,6 +233,7 @@ var ScalaDNS = ScalaDNS || {};
 			$('[data-name="a"]', this._tpl).show();
 		} else {
 			$('[data-type="form-title"]', this._tpl).text('Edit Record Set');
+			$('[data-id="add-record"]', this._tpl).text('Update Record Set');
 			this.drawFormPart(this.record.typ, this.record.data);
 		}
 		this.updateFormStatus();
@@ -240,6 +245,7 @@ var ScalaDNS = ScalaDNS || {};
 		if(!typ) {
 			form = this._tpl;
 			$('[data-type="form-title"]', this._tpl).text('Create Record Set');
+			$('[data-id="add-record"]', this._tpl).text('Create Record Set');
 		} else {
 			form = $('[data-name="' + typ.toLowerCase() + '"]', this._tpl);
 		}

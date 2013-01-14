@@ -80,7 +80,7 @@ ScalaDNS.DomainService = (function() {
 			}
 			//ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this));
 			if(callback) {
-				callback();
+				callback(result);
 			}
 		}, 'json');
 		/*ScalaDNS.fullDomains.set(domain.origin, domain);
