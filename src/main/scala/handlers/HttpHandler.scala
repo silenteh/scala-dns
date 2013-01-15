@@ -135,7 +135,7 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
           DomainIO.removeDomain(data("delete"))
           "{\"code\":0,\"message\":\"Domain removed\"}"
         } else if (data.get("data") != None) {
-          val domainCandidate = {
+          val domainCandidate = try {
             val domain = DomainIO.Json.readValue(data("data"), classOf[ExtendedDomain])
             domain.settings.foldRight(domain) {
               case (soa, domain) =>
@@ -144,6 +144,8 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
                   else SerialParser.updateSerial(soa.serial).toString)
                 domain.removeHost(soa).addHost(newSoa)
             }
+          } catch {
+            case ex: Exception => null
           }
           val (valid, messages) = DomainValidationService.validate(domainCandidate)
           if (valid) {

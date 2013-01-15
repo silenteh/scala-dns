@@ -60,7 +60,8 @@ var ScalaDNS = ScalaDNS || {};
 			if(that._status.blocked === false) {
 				var typ = $('[name="typ"]', this._tpl).val(),
 					formPart = $('[data-type="rr-content"]:visible'),
-					validateHead, validateBody, records, record, alert;
+					domain = jQuery.extend(true, {},  that.domain),
+					validateHead, validateBody, record;
 				evt.preventDefault();
 				
 				validateHead = that._validator.name.validate();
@@ -86,43 +87,43 @@ var ScalaDNS = ScalaDNS || {};
 				}
 				
 				if(validateHead.valid && validateBody.valid) {
-					alert = that._alert_tpl.clone();
 					record = that.form[typ].parse(formPart);
 					
 					if(that.record !== null) {
-						foreach(that.domain[that.record.typ], function(orig_record, index) {
+						foreach(domain[that.record.typ], function(orig_record, index) {
 							if(that.record.data.name === orig_record.name) {
 								if(that.record.typ === typ) {
-									that.domain[that.record.typ].splice(index, 1, record);
+									domain[that.record.typ].splice(index, 1, record);
 								} else {
-									that.domain[that.record.typ].splice(index, 1);
+									domain[that.record.typ].splice(index, 1);
 								}
 							}
 						});
 					}
-					records = that.domain[typ] || [];
+					domain[typ] = domain[typ] || [];
 					if(that.record === null || that.record.typ !== typ) {
-						records.push(record);
+						domain[typ].push(record);
 					}
 					
-					that.domain[typ] = records;
-					
-					if(that.domain.SOA && that.domain.NS && that.domain.NS.length > 1) {
-						ScalaDNS.DomainService.saveDomain(that.domain, function(result) {
+					if(domain.SOA && domain.NS && domain.NS.length > 1) {
+						ScalaDNS.DomainService.saveDomain(domain, function(result) {
+							var i;
 							if(result.code === 0) {
 								ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
 								that.record = null;
+								that.domain = result.data[0];
 								that.clearForm();
+								if(result.data.length > 1) {
+									that._showAlert('<strong>Warning!</strong> The domains have been reorganized.');
+								}
 							} else {
-								console.log(result.messages);
+								that._showAlert(result.messages.join('<br/>'), 'error');
 							}
 						});
 					} else {
-						alert.append('<strong>Warning!</strong> The domain could not be saved at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
-						$('button', alert).click(function() {
-							$(this).closest('div').remove();
-						});
-						that.container.prepend(alert);
+						that.domain = domain;
+						that._showAlert('<strong>Warning!</strong> The domain could not be saved at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
+						that.clearForm();
 						ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
 					}
 				}
@@ -207,6 +208,7 @@ var ScalaDNS = ScalaDNS || {};
 		});
 		
 		ScalaDNS.onRecordSelect.bind(this, this.recordSelected);
+		ScalaDNS.onDomainUpdate.bind(this, this.domainUpdated);
 	}
 	
 	ScalaDNS.DomainRecordForm.prototype.draw = function() {
@@ -222,6 +224,7 @@ var ScalaDNS = ScalaDNS || {};
 		this._tpl.unbind();
 		this._tpl.undelegate();
 		ScalaDNS.onRecordSelect.unbind(this, this.recordSelected);
+		ScalaDNS.onDomainUpdate.unbind(this, this.domainUpdated);
 	}
 	
 	ScalaDNS.DomainRecordForm.prototype.drawForm = function() {
@@ -268,7 +271,7 @@ var ScalaDNS = ScalaDNS || {};
 		
 		$('.control-group', form).removeClass('error');
 		$('.help-inline', form).remove();
-		
+		$('.alert', this.container).remove();
 		this.refreshNameValidator();
 	}
 	
@@ -978,9 +981,16 @@ var ScalaDNS = ScalaDNS || {};
 	}
 	
 	ScalaDNS.DomainRecordForm.prototype._getRecordNames = function() {
-		var typ = $(':fname(typ)', this._tpl).val(), 
-			records = ScalaDNS.currentRecords[typ],
-			array = [], i;
+		var typ, records, array = [], i;
+		
+		if(this.record !== null) {
+			typ = this.record.typ;
+		} else {
+			typ = $(':fname(typ)', this._tpl).val();
+		}
+		
+		records = this.domain[typ]
+		
 		if(records) {
 			for(i = 0; i < records.length; i++) {
 				array.push(records[i].name);
@@ -988,6 +998,22 @@ var ScalaDNS = ScalaDNS || {};
 		}
 		return array;
 		
+	}
+	
+	ScalaDNS.DomainRecordForm.prototype._showAlert = function(message, typ) {
+		var alert = this._alert_tpl.clone();
+		if(typ) {
+			alert.addClass('alert-' + typ);
+		}
+		alert.append(message);
+		$('button', alert).click(function() {
+			$(this).closest('div').remove();
+		});
+		this.container.prepend(alert);
+	}
+	
+	ScalaDNS.DomainRecordForm.prototype.domainUpdated = function(e) {
+		this.domain = e.obj;
 	}
 	
 }());

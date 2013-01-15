@@ -99,6 +99,7 @@ var ScalaDNS = ScalaDNS || {};
 				that.container.prepend(alert);
 			}
 			$(this).attr('disabled', 'disabled');
+			that._raiseDomainUpdate();
 		});
 		
 		$('html').bind('click', function(evt) {
@@ -226,6 +227,10 @@ var ScalaDNS = ScalaDNS || {};
 				origin: this.domain.origin
 			})
 		);
+	}
+	
+	ScalaDNS.DomainRecords.prototype._raiseDomainUpdate = function() {
+		ScalaDNS.onDomainUpdate.raise(new ScalaDNS.UpdatedEvent(this, this.domain));
 	}
 	
 	ScalaDNS.DomainRecords.prototype._getRecordNames = function(typ) {
