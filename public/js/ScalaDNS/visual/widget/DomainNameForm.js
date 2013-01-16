@@ -31,10 +31,8 @@ var ScalaDNS = ScalaDNS || {};
 					that.domain.origin = name;
 					ScalaDNS.fullDomains.replace(orig_name, name, that.domain);
 					if(that.domain.SOA && that.domain.NS && that.domain.NS.length > 1) {
-						ScalaDNS.DomainService.removeDomain(orig_name, function() {
-							ScalaDNS.DomainService.saveDomain(that.domain, function() {
-								that._raiseDomainUpdate();
-							});
+						ScalaDNS.DomainService.replaceDomain(that.domain, orig_name, function() {
+							that._raiseDomainUpdate();
 						});
 					} else {
 						ScalaDNS.fullDomains.set(name, that.domain);

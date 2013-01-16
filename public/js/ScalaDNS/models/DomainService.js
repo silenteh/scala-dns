@@ -78,16 +78,26 @@ ScalaDNS.DomainService = (function() {
 					ScalaDNS.fullDomains.set(this.origin, this);
 				});
 			}
-			//ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this));
 			if(callback) {
 				callback(result);
 			}
 		}, 'json');
-		/*ScalaDNS.fullDomains.set(domain.origin, domain);
-		ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
-		if(callback) {
-			callback();
-		}*/
+	}
+	
+	function replaceDomain(domain, replaceFilename, callback) {
+		$.post('http://' + ScalaDNS.config.urlBase + '/domains/', {
+			data: JSON.stringify(domain), 
+			replace_filename: replaceFilename
+		}, function(result) {
+			if(result.code == 0) {
+				jQuery.each(result.data, function() {
+					ScalaDNS.fullDomains.set(this.origin, this);
+				});
+			}
+			if(callback) {
+				callback(result);
+			}
+		}, 'json');
 	}
 	
 	function removeDomain(domainName, callback) {
@@ -103,6 +113,7 @@ ScalaDNS.DomainService = (function() {
 		loadNames: loadNames,
 		loadRecords: loadRecords,
 		saveDomain: saveDomain,
+		replaceDomain: replaceDomain,
 		updateRecords: updateRecords,
 		removeDomain: removeDomain
 	};
