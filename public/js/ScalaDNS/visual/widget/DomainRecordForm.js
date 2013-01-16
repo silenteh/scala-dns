@@ -87,22 +87,15 @@ var ScalaDNS = ScalaDNS || {};
 				}
 				
 				if(validateHead.valid && validateBody.valid) {
-					record = that.form[typ].parse(formPart);
-					
+					newRecord = that.form[typ].parse(formPart);
 					if(that.record !== null) {
-						foreach(domain[that.record.typ], function(orig_record, index) {
-							if(that.record.data.name === orig_record.name) {
-								if(that.record.typ === typ) {
-									domain[that.record.typ].splice(index, 1, record);
-								} else {
-									domain[that.record.typ].splice(index, 1);
-								}
-							}
-						});
-					}
-					domain[typ] = domain[typ] || [];
-					if(that.record === null || that.record.typ !== typ) {
-						domain[typ].push(record);
+						if(that.record.typ === typ) {
+							domain[that.record.typ].splice(that.record.id, 1, newRecord);
+						} else {
+							domain[that.record.typ].splice(that.record.id, 1);
+							domain[typ] = domain[typ] || [];
+							domain[typ].push(newRecord);
+						}
 					}
 					
 					if(domain.SOA && domain.NS && domain.NS.length > 1) {

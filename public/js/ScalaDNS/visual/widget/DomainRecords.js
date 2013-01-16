@@ -221,6 +221,7 @@ var ScalaDNS = ScalaDNS || {};
 		recordNames = this._getRecordNames(typ);
 		ScalaDNS.onRecordSelect.raise(
 			new ScalaDNS.SelectedEvent(this, {
+				id: id,
 				typ: typ, 
 				data: this.domain[typ][id], 
 				names: recordNames, 
