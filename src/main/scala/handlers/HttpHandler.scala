@@ -147,8 +147,13 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
           } catch {
             case ex: Exception => null
           }
-          val (valid, messages) = DomainValidationService.validate(domainCandidate)
+          val replaceFilename = data.get("replace_filename").getOrElse(null)
+          val (valid, messages) = DomainValidationService.validate(domainCandidate, replaceFilename)
           if (valid) {
+            if(replaceFilename != null) {
+              DNSCache.removeDomain(replaceFilename.split("""\.""").toList)
+              DomainIO.removeDomain(replaceFilename)
+            }
             val domains = DomainValidationService.reorganize(domainCandidate)
             DNSCache.setDomain(domains.head)
             DomainIO.storeDomain(domains.head)
