@@ -32,8 +32,6 @@ ScalaDNS.start = function() {
 	ScalaDNS.onDomainUpdate = new ScalaDNS.EventHandler();
 	ScalaDNS.onRecordsUpdate = new ScalaDNS.EventHandler();
 	ScalaDNS.View = null;
-	ScalaDNS.domains = [];
-	ScalaDNS.currentRecords = {};
 	ScalaDNS.fullDomains = null;
 	$.address.change(function() {
 		try {
