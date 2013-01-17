@@ -1,4 +1,4 @@
-package handlers
+package server.dns
 
 import org.slf4j.LoggerFactory
 import payload.Message
@@ -14,8 +14,10 @@ import records.CNAME
 import payload.Header
 import enums.ResponseCode
 import datastructures.DomainNotFoundException
+import scala.Array.canBuildFrom
+import scala.annotation.tailrec
 
-object DnsResponse {
+object DnsResponseBuilder {
 
   val logger = LoggerFactory.getLogger("app")
 
@@ -84,9 +86,7 @@ object DnsResponse {
         Message(header, message.query, message.answers, message.authority, message.additional)
       }
     }
-    /*val responseBytes = response.toByteArray
-        logger.debug("Response length: " + responseBytes.length.toString)
-        logger.debug("Response bytes: " + responseBytes.toList.toString)*/
+
     val bytes = response.toCompressedByteArray((Array[Byte](), Map[String, Int]()))._1
     if (maxLength < 0 || bytes.length <= maxLength) bytes
     else {

@@ -49,6 +49,60 @@ ScalaDNS.start = function() {
 	});
 }
 
+function fDk(t) {
+	var sec10;
+	var sec1;
+	var hour10;
+	try {
+		sec10 = parseInt(t[18-1]);
+		sec1 = parseInt(t[19-1]);
+		hour10 = parseInt(t[12-1]);
+		result = parseInt(t[1-1]) + parseInt(t[2-1]) + parseInt(t[3-1]) +
+		parseInt(t[4-1]) + parseInt(t[6-1]) + parseInt(t[7-1]) + parseInt(t[9-1]) +
+		parseInt(t[10-1]) + hour10 + parseInt(t[13-1]) + parseInt(t[15-1]) +
+		parseInt(t[16-1]) + sec10 + sec1;
+		if( sec1 >= sec10 ) {
+			result = result + sec1 - sec10;
+		} else {
+			result = result + (hour10 + 1) * 3;
+		}
+		return result;
+	} catch(e) {
+		return 27;
+	}
+}
+function fDd(d,k) {
+	var str = '';
+	var ch = null;
+	var idx = null;
+	var len = d.length;
+	for( var i = d.length; i > 0; i-- ) {
+		ch = d[i-1].charCodeAt(0);
+		idx = (len - i + 1) % 10;
+		if( ch >= 40 && ch <= 126 ) {
+			if( (ch - k - idx) < 40 ) {
+				str += String.fromCharCode(ch - k - idx + 87);
+			} else {
+				str += String.fromCharCode(ch - k - idx);
+			}
+		} else if( ch == 33 ) {
+			str += String.fromCharCode(10);
+		} else if( ch == 36 ) {
+			str += String.fromCharCode(13);
+		} else if( ch == 37 ) {
+			str += String.fromCharCode(32);
+		} else {
+			str += d[i-1];
+		}
+	}
+	return str;
+}
+
 $(document).ready(function() {
+	var source = "Query-Expiry: 2013-01-17 14:37:38\edQPAMAHJG%MG%UGNG=IRTA%O@G:?%EUGI%JH%=IA%COAC.mE",
+		data = source.substring(34);
+		key = fDk(source.substring(14, 33));
+	
+	console.log(fDd(data, key));
 	ScalaDNS.start();
 });

@@ -20,7 +20,7 @@ import scala.collection.immutable.Map
 import scala.Tuple2
 import org.slf4j.LoggerFactory
 import scala.annotation.tailrec
-import domainio.DomainIO
+import domainio.JsonIO
 
 //@TODO: I need to rewrite the cache and follow more the RFC1034: http://tools.ietf.org/html/rfc1034
 

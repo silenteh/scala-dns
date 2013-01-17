@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 import org.jboss.netty.channel.ChannelPipeline
 import org.jboss.netty.channel.Channels
 import scalaframes.TCPDnsMessageDecoder
-import handlers.TCPDnsHandler
+import server.dns.TCPDnsHandler
 
 class TCPDnsPipeline extends ChannelPipelineFactory {
 

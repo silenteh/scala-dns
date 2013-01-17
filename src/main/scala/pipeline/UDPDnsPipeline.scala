@@ -22,7 +22,7 @@ import org.jboss.netty.handler.codec.string.StringDecoder
 import scalaframes.UDPDnsMessageDecoder
 import org.slf4j.LoggerFactory
 import org.jboss.netty.channel.ChannelPipeline
-import handlers.UDPDnsHandler
+import server.dns.UDPDnsHandler
 
 class UDPDnsPipeline extends ChannelPipelineFactory {
 

@@ -15,31 +15,14 @@
  * limitations under the License.
  * ****************************************************************************
  */
-package handlers
+package server.dns
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler
 import org.jboss.netty.channel.ChannelHandlerContext
 import org.jboss.netty.channel.MessageEvent
 import org.slf4j.LoggerFactory
 import payload.Message
-import payload.Name
-import payload.Header
-import payload.RRData
-import datastructures.DNSCache
-import datastructures.DomainNotFoundException
-import enums.RecordType
-import enums.ResponseCode
-import models.Host
-import models.AddressHost
-import models.ExtendedDomain
-import models.HostNotFoundException
-import models.CnameHost
 import records._
 import org.jboss.netty.buffer.ChannelBuffers
-import org.jboss.netty.channel.ChannelFutureListener
-
-import scala.collection.mutable
-
-import scala.annotation.tailrec
 import configs.ConfigService
 
 class UDPDnsHandler extends SimpleChannelUpstreamHandler {
@@ -53,7 +36,7 @@ class UDPDnsHandler extends SimpleChannelUpstreamHandler {
       case message: Message => {
         logger.info(message.toString)
         logger.info("Request bytes: " + message.toByteArray.toList.toString)
-        val response = DnsResponse(message, UdpResponseMaxSize)
+        val response = DnsResponseBuilder(message, UdpResponseMaxSize)
         
         logger.debug("Compressed response length: " + response.length.toString)
         logger.debug("Compressed response bytes: " + response.toList.toString)

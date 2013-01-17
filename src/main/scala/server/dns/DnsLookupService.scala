@@ -15,7 +15,7 @@
  * limitations under the License.
  * ****************************************************************************
  */
-package handlers
+package server.dns
 
 import datastructures.DNSCache
 import models.ExtendedDomain
@@ -24,9 +24,10 @@ import models.CnameHost
 import enums.RecordType
 import datastructures.DomainNotFoundException
 import scala.annotation.tailrec
-import payload.RRData
 import records._
 import org.slf4j.LoggerFactory
+import scala.Array.canBuildFrom
+import scala.annotation.tailrec
 
 object DnsLookupService {
   val logger = LoggerFactory.getLogger("app")

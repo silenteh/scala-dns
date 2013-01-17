@@ -21,11 +21,15 @@ import org.jboss.netty.channel.ChannelPipeline
 import org.jboss.netty.channel.Channels
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder
-import handlers.HttpHandler
+import server.http.HttpHandler
+import server.http.DefaultAuthHttpHandler
+import tools.PipelineModifier
+import server.http.HttpModifiers
 
 class HttpPipeline extends ChannelPipelineFactory {
   
   val logger = LoggerFactory.getLogger("app")
+  val modifiers = HttpModifiers()
   
   def getPipeline(): ChannelPipeline = {
     logger.info("PIPELINING.........")
@@ -33,7 +37,7 @@ class HttpPipeline extends ChannelPipelineFactory {
     pipeline.addLast("decoder", new HttpRequestDecoder)
     //pipeline.addLast("aggregator", new HttpChunkAggregator(ServerPipelineFactory.MaxFrameSize))
     pipeline.addLast("encoder", new HttpResponseEncoder)
-    pipeline.addLast("http_handler",new HttpHandler)
+    pipeline.addLast("http_handler",new DefaultAuthHttpHandler(modifiers))
     pipeline
   }
   
