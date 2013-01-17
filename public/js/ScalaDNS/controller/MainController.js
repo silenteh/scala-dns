@@ -25,7 +25,7 @@ var ScalaDNS = ScalaDNS || {};
 		users: function() {
 			var settings = {};
 			viewManager.setView('UserView', settings);
-		},
+		}
 		//index: domainNames
 	}
 }());
