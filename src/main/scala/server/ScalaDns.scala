@@ -17,7 +17,7 @@ package server
 
 import scala.collection.immutable.BitSet
 import org.slf4j.LoggerFactory
-import domainio.DomainIO
+import domainio.JsonIO
 
 object ScalaDns {
   
@@ -25,7 +25,8 @@ object ScalaDns {
   
   def main(args: Array[String]) = {
 
-    DomainIO.loadDomains()
+    JsonIO.loadDomains()
+    JsonIO.loadUsers()
     
     //val domains = DNSCache.getDomains.map {case(key, value) => (key, value.filterNot(_._1 == "mail.livescore"))}
     

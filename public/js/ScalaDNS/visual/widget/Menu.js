@@ -14,7 +14,8 @@ var ScalaDNS = ScalaDNS || {};
 	
 	ScalaDNS.Menu.prototype.init = function() {
 		var that = this;
-		$('[data-menu]').click(function(evt) {
+		this._tpl = $('#tabsTemplate').clone().removeAttr('id').removeClass('hidden');
+		$('[data-menu]', this._tpl).click(function(evt) {
 			evt.preventDefault();
 			if($(this).hasClass('disabled') === false) {
 				ScalaDNS.Dispatcher.execute($(this).attr('data-menu'))
@@ -26,6 +27,7 @@ var ScalaDNS = ScalaDNS || {};
 	};
 	
 	ScalaDNS.Menu.prototype.draw = function() {
+		this.container.append(this._tpl);
 		this.switchTab();
 	};
 	
@@ -35,7 +37,7 @@ var ScalaDNS = ScalaDNS || {};
 	
 	ScalaDNS.Menu.prototype.domainSelected = function(e) {
 		var domain = e.obj,
-			link = $('[data-menu^="sets"]', this.container);
+			link = $('[data-menu^="sets"]', this._tpl);
 		
 		if(domain === null || domain.origin === '') {
 			link.attr('data-menu', 'sets');

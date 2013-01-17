@@ -3,7 +3,8 @@ var ScalaDNS = ScalaDNS || {};
 (function() {
 	var _viewsClasses = {
 		'DomainNamesView': ScalaDNS.DomainNamesView,
-		'DomainRecordsView': ScalaDNS.DomainRecordsView
+		'DomainRecordsView': ScalaDNS.DomainRecordsView,
+		'UserView': ScalaDNS.UserView
 	},
 	_currentView = null,
 	_currentQueryString = null,

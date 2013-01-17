@@ -13,10 +13,10 @@ var ScalaDNS = ScalaDNS || {};
 		this.widgets = new ScalaDNS.List();
 		this._stopLoad = false;
 		
-		if(baseWidgetsInitialized === false) {
+		/*if(baseWidgetsInitialized === false) {
 			baseContainers.set('menu', $('#myTab'));
 			baseWidgets.set('Menu', new ScalaDNS.Menu(baseContainers.get('menu')));
-		}
+		}*/
 	}
 	
 	ScalaDNS.BaseView.prototype = {

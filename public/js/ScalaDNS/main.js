@@ -29,10 +29,13 @@ ScalaDNS.extend = (function() {
 ScalaDNS.start = function() {
 	ScalaDNS.onDomainSelect = new ScalaDNS.EventHandler();
 	ScalaDNS.onRecordSelect = new ScalaDNS.EventHandler();
+	ScalaDNS.onUserSelect = new ScalaDNS.EventHandler();
 	ScalaDNS.onDomainUpdate = new ScalaDNS.EventHandler();
 	ScalaDNS.onRecordsUpdate = new ScalaDNS.EventHandler();
+	ScalaDNS.onUsersUpdate = new ScalaDNS.EventHandler();
 	ScalaDNS.View = null;
 	ScalaDNS.fullDomains = null;
+	ScalaDNS.users = null;
 	$.address.change(function() {
 		try {
 			ScalaDNS.Dispatcher.parseAction();

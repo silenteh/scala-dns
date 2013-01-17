@@ -19,14 +19,18 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.annotation.JsonInclude
 import enums.RecordType
 import scala.annotation.tailrec
+import models.User
+import datastructures.UserCache
 
-object DomainIO {
+object JsonIO {
 
   val logger = LoggerFactory.getLogger("app")
   val applicationRoot = new File("").getAbsolutePath()
   val dataPathStr = ConfigService.config.getString("zoneFilesLocation")
+  val userPathStr = ConfigService.config.getString("userFileLocation")
   
   val dataPath = new File(applicationRoot + dataPathStr)
+  val userPath = new File(applicationRoot + userPathStr)
   if(!dataPath.exists) dataPath.mkdirs
   
   val Json = {
@@ -46,6 +50,10 @@ object DomainIO {
     domainFiles.foreach(loadDomain(_, domainNames))
     DNSCache.logDomains
   }
+  
+  def loadUsers(userFile: File = userPath) = 
+    if(userFile.exists) 
+      Json.readValue(userFile, classOf[Array[User]]).foreach(user => UserCache.addUser(user))
   
   def loadDomain(domainfile: File, domainNames: Array[String]) = {
     try {
@@ -67,4 +75,8 @@ object DomainIO {
     val domainFile = new File(applicationRoot + path + "/" + domainName + "json");
     domainFile.delete
   }
+  
+  def updateUsers(userFile: File = userPath) = 
+    Json.writeValue(userFile, UserCache.users.toArray)
+  
 }

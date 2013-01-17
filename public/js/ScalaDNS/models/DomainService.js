@@ -102,6 +102,7 @@ ScalaDNS.DomainService = (function() {
 	
 	function removeDomain(domainName, callback) {
 		$.post('http://' + ScalaDNS.config.urlBase + '/domains/', {'delete': domainName}, function(result) {
+			ScalaDNS.fullDomains.remove(userName);
 			if(callback) {
 				callback();
 			}

@@ -4,8 +4,10 @@ var ScalaDNS = ScalaDNS || {};
 	ScalaDNS.DomainRecordsView = function(name) {
 		ScalaDNS.DomainRecordsView.parent.constructor.call(this, name);
 		
+		this.containers.set('tabs', $('#tabs'));
 		this.containers.set('sets', $('#sets'));
 		
+		this.widgets.set('tabs', new ScalaDNS.Tabs(this.containers.get('tabs')));
 		this.widgets.set('sets', new ScalaDNS.DomainRecords(this.containers.get('sets')));
 		this.widgets.set('setform', new ScalaDNS.DomainRecordForm(this.containers.get('sets')));
 	}

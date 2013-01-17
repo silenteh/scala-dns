@@ -10,14 +10,13 @@ import org.scalatest.BeforeAndAfter
 import java.io.File
 import java.io.BufferedOutputStream
 import java.io.FileOutputStream
-import domainio.DomainIO
+import domainio.JsonIO
 import datastructures.DNSCache
 import models.SoaHost
 import models.NSHost
 import models.AddressHost
 import models.ExtendedDomain
 import models.WeightedIP
-import domainio.DomainIO
 
 class IOTest extends FunSpec with BeforeAndAfter with ShouldMatchers {
   
@@ -40,7 +39,7 @@ class IOTest extends FunSpec with BeforeAndAfter with ShouldMatchers {
   
   describe("JSON writer") {
 	it("should read all json files from a specified folder into ExtendedDomain objects") {
-	  val domains = DomainIO.loadDomains(pathFile)
+	  val domains = JsonIO.loadDomains(pathFile)
 	  
 	  val examplecom = DNSCache.findDomain(1, "com", "example")
 	  //val example2com = DNSCache.getDomain("com", "example2")
@@ -88,7 +87,7 @@ class IOTest extends FunSpec with BeforeAndAfter with ShouldMatchers {
 	  
 	  pathFile.listFiles.find(file => file.getName == domain.fullName + "json") should be(None)
 	  
-	  DomainIO.storeDomain(domain, path)
+	  JsonIO.storeDomain(domain, path)
 	  
 	  val domainFile = pathFile.listFiles.find(file => file.getName == domain.fullName + "json")
 	  domainFile should not be(None)

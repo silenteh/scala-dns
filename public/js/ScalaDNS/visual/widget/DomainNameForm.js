@@ -3,7 +3,7 @@ var ScalaDNS = ScalaDNS || {};
 (function() {
 	
 	ScalaDNS.DomainNameForm = function(container) {
-		ScalaDNS.DomainNames.parent.constructor.call(this, 'DomainNameForm', container);
+		ScalaDNS.DomainNameForm.parent.constructor.call(this, 'DomainNameForm', container);
 		
 		this.domain = null;
 		this._validator;

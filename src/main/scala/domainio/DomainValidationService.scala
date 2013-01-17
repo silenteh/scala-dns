@@ -244,7 +244,7 @@ object DomainValidationService {
             else {
               val newdomain = hosts.foldRight(domain) { case ((name, host), domain) => domain.removeHost(host) }
               DNSCache.setDomain(newdomain)
-              DomainIO.storeDomain(newdomain)
+              JsonIO.storeDomain(newdomain)
               newdomain :: domains
             }
           (allhosts ++ hosts, newdomains)
@@ -270,7 +270,7 @@ object DomainValidationService {
         domains.foreach {
           case (name, (timestamp, domain)) =>
             val newdomain = reorganize(domain)
-            if (newdomain.head.hosts.length != domain.hosts.length) DomainIO.storeDomain(domain)
+            if (newdomain.head.hosts.length != domain.hosts.length) JsonIO.storeDomain(domain)
         }
     }
   

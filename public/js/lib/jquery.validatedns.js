@@ -270,7 +270,24 @@
 					valid = that.group_uniques[name] === undefined;
 					that.applyCallback(that.group_uniques[name], 'requiredGroup', valid);
 				}
-				//console.log()
+				return valid;
+			},
+			text : function(item, params) {
+				var minlength = 1, maxlength, text = $(item).val(), valid = true;
+				if(params && params.minlength && params.minlength >= 0) {
+					minlength = params.minlength;
+				}
+				if(params && params.maxlength && params.maxlength >= 0) {
+					maxlength = params.maxlength;
+				}
+				if(text.length < minlength) {
+					valid = false;
+					that.applyCallback(item, 'text', valid);
+				}
+				if(maxlength && text.length > maxlength) {
+					valid = false;
+					that.applyCallback(item, 'text', valid);
+				}
 				return valid;
 			}
 		};

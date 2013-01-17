@@ -9,6 +9,10 @@ ScalaDNS.Dispatcher = (function() {
 		'sets': {
 			title: 'Record Sets',
 			fn: ScalaDNS.MainController.domainRecords
+		},
+		'users': {
+			title: 'Users',
+			fn: ScalaDNS.MainController.users
 		}
 	}, currentAction = null;
 	

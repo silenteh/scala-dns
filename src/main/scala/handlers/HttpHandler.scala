@@ -33,7 +33,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus._
 import org.jboss.netty.handler.codec.http.HttpVersion._
 import utils.UriParser
 import datastructures.DNSCache
-import domainio.DomainIO
+import domainio.JsonIO
 import enums.RecordType
 import javax.activation.MimetypesFileTypeMap
 import java.net.URLDecoder
@@ -60,6 +60,11 @@ import models.ExtendedDomain
 import domainio.DomainValidationService
 import models.SoaHost
 import utils.SerialParser
+import datastructures.UserCache
+import models.User
+import utils.Sha256Digest
+import domainio.UserValidationService
+import sun.misc.BASE64Decoder
 
 class HttpHandler extends SimpleChannelUpstreamHandler {
 
@@ -69,14 +74,24 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
     val channel = event.getChannel
     event.getMessage match {
       case request: HttpRequest => {
-        val content = request.getMethod match {
-          case GET => try {
-            handleGetRequest(request, channel)
-          } catch {
-            case ex: Error => serveFile(request, context, channel)
+        val authHeader = request.getHeader("Authorization")
+        if (authHeader == null) {
+          requestAuthentication(channel)
+        } else {
+          val authParts = authHeader.split(""" """)
+          val credentials = new String(new BASE64Decoder().decodeBuffer(authParts(1))).split("""\:""")
+          if (UserCache.findUser(credentials(0), credentials(1)) == null) requestAuthentication(channel)
+          else {
+            request.getMethod match {
+              case GET => try {
+                handleGetRequest(request, channel)
+              } catch {
+                case ex: Error => serveFile(request, context, channel)
+              }
+              case POST => handlePostRequest(request, channel)
+              case _ => throw new Error("Unsupported HTTP method")
+            }
           }
-          case POST => handlePostRequest(request, channel)
-          case _ => throw new Error("Unsupported HTTP method")
         }
       }
       case _ => Unit
@@ -101,19 +116,22 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
         val domains = DNSCache.getDomains.map {
           case (extension, value) => value.map { case (name, value) => (name + "." + extension) }
         }.flatten.toList
-        DomainIO.Json.writeValueAsString(domains)
+        JsonIO.Json.writeValueAsString(domains)
 
       } else if (path.length == 1 && path(0) == "domains") {
         val domains = DNSCache.getDomains.map {
-          case (extension, value) => value.map { case (name, (timestamp, domain)) => DomainIO.Json.writeValueAsString(domain) }
+          case (extension, value) => value.map { case (name, (timestamp, domain)) => JsonIO.Json.writeValueAsString(domain) }
         }.flatten.toList
         "{\"domains\":[" + domains.mkString(",") + "]}"
 
+      } else if (path.length == 1 && path(0) == "users") {
+        val users = JsonIO.Json.writeValueAsString(UserCache.users.toArray)
+        "{\"users\":" + users + "}"
       } else if (path.length == 2 && path(0) == "domains") {
         val extension = path(1).substring(path(1).lastIndexOf(".") + 1)
         val name = path(1).substring(0, path(1).lastIndexOf("."))
         val domain = DNSCache.getDomains(extension)(name)
-        "{\"domain\":" + DomainIO.Json.writeValueAsString(domain) + "}"
+        "{\"domain\":" + JsonIO.Json.writeValueAsString(domain) + "}"
 
       } else throw new Error("Unknown request")
 
@@ -129,41 +147,9 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
     val path = UriParser.uriPath(request.getUri)
     val content =
       if (path.length == 1 && path(0) == "domains") {
-        val data = UriParser.postParams(request)
-        if (data.get("delete") != None) {
-          DNSCache.removeDomain(data("delete").split("""\.""").toList)
-          DomainIO.removeDomain(data("delete"))
-          "{\"code\":0,\"message\":\"Domain removed\"}"
-        } else if (data.get("data") != None) {
-          val domainCandidate = try {
-            val domain = DomainIO.Json.readValue(data("data"), classOf[ExtendedDomain])
-            domain.settings.foldRight(domain) {
-              case (soa, domain) =>
-                val newSoa = soa.updateSerial(
-                  if (soa.serial == null || soa.serial == "") SerialParser.generateNewSerial.toString
-                  else SerialParser.updateSerial(soa.serial).toString)
-                domain.removeHost(soa).addHost(newSoa)
-            }
-          } catch {
-            case ex: Exception => null
-          }
-          val replaceFilename = data.get("replace_filename").getOrElse(null)
-          val (valid, messages) = DomainValidationService.validate(domainCandidate, replaceFilename)
-          if (valid) {
-            if(replaceFilename != null) {
-              DNSCache.removeDomain(replaceFilename.split("""\.""").toList)
-              DomainIO.removeDomain(replaceFilename)
-            }
-            val domains = DomainValidationService.reorganize(domainCandidate)
-            DNSCache.setDomain(domains.head)
-            DomainIO.storeDomain(domains.head)
-            "{\"code\":0,\"message\":\"Now look what you've done\",\"data\":" + DomainIO.Json.writeValueAsString(domains) + "}"
-          } else {
-            "{\"code\":1,\"messages\":" + messages.mkString("[\"", "\",\"", "\"]") + "}"
-          }
-        } else {
-          "{\"code\":1,\"message\":\"Error: Unknown request\"}"
-        }
+        handleDomainPost(request)
+      } else if (path.length == 1 && path(0) == "users") {
+        handleUserPost(request)
       } else {
         "{\"code\":1,\"message\":\"Error: Unknown request\"}"
       }
@@ -174,6 +160,75 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
     response.setContent(contentBuffer)
     setContentLength(response, contentBuffer.readableBytes)
     channel.write(response).addListener(ChannelFutureListener.CLOSE)
+  }
+
+  private def handleDomainPost(request: HttpRequest) = {
+    val data = UriParser.postParams(request)
+    if (data.get("delete") != None) {
+      DNSCache.removeDomain(data("delete").split("""\.""").toList)
+      JsonIO.removeDomain(data("delete"))
+      "{\"code\":0,\"message\":\"Domain removed\"}"
+    } else if (data.get("data") != None) {
+      val domainCandidate = try {
+        val domain = JsonIO.Json.readValue(data("data"), classOf[ExtendedDomain])
+        domain.settings.foldRight(domain) {
+          case (soa, domain) =>
+            val newSoa = soa.updateSerial(
+              if (soa.serial == null || soa.serial == "") SerialParser.generateNewSerial.toString
+              else SerialParser.updateSerial(soa.serial).toString)
+            domain.removeHost(soa).addHost(newSoa)
+        }
+      } catch {
+        case ex: Exception => null
+      }
+      val replaceFilename = data.get("replace_filename").getOrElse(null)
+      val (valid, messages) = DomainValidationService.validate(domainCandidate, replaceFilename)
+      if (valid) {
+        if (replaceFilename != null) {
+          DNSCache.removeDomain(replaceFilename.split("""\.""").toList)
+          JsonIO.removeDomain(replaceFilename)
+        }
+        val domains = DomainValidationService.reorganize(domainCandidate)
+        DNSCache.setDomain(domains.head)
+        JsonIO.storeDomain(domains.head)
+        "{\"code\":0,\"message\":\"Now look what you've done\",\"data\":" + JsonIO.Json.writeValueAsString(domains) + "}"
+      } else {
+        "{\"code\":1,\"messages\":" + messages.mkString("[\"", "\",\"", "\"]") + "}"
+      }
+    } else {
+      "{\"code\":1,\"message\":\"Error: Unknown request\"}"
+    }
+  }
+
+  private def handleUserPost(request: HttpRequest) = {
+    val data = UriParser.postParams(request)
+    if (data.get("delete") != None) {
+      UserCache.removeUser(data("delete"))
+      JsonIO.updateUsers()
+      "{\"code\":0,\"message\":\"User removed\"}"
+    } else if (data.get("name") != None && data.get("digest") != None) {
+      val replaceUsername = data.get("replace_filename").getOrElse(null)
+      val user = try {
+        val oldUser = if (replaceUsername == null) null else UserCache.findUser(data("name")) 
+        if ((oldUser != null && oldUser.passwordDigest == data("digest")) || data("digest").isEmpty) new User(data("name"), data("digest"))
+        else new User(data("name"), Sha256Digest(data("digest")))
+      } catch {
+        case ex: Exception => null
+      }
+      val (valid, messages) = UserValidationService.validate(user, replaceUsername)
+      if (valid) {
+        if (replaceUsername != null) {
+          UserCache.removeUser(replaceUsername)
+        }
+        UserCache.addUser(user)
+        JsonIO.updateUsers()
+        "{\"code\":0,\"message\":\"Now look what you've done\",\"data\":" + JsonIO.Json.writeValueAsString(user) + "}"
+      } else {
+        "{\"code\":1,\"messages\":" + messages.mkString("[\"", "\",\"", "\"]") + "}"
+      }
+    } else {
+      "{\"code\":1,\"message\":\"Error: Unknown request\"}"
+    }
   }
 
   private def serveFile(request: HttpRequest, context: ChannelHandlerContext, channel: Channel) = {
@@ -243,6 +298,13 @@ class HttpHandler extends SimpleChannelUpstreamHandler {
         }
       }
     }
+  }
+
+  private def requestAuthentication(channel: Channel) = {
+    val response = new DefaultHttpResponse(HTTP_1_1, UNAUTHORIZED)
+    response.setHeader("WWW-Authenticate", "Basic realm=\"127.0.0.1\"")
+    setContentLength(response, 0)
+    channel.write(response).addListener(ChannelFutureListener.CLOSE)
   }
 }
 

@@ -21,7 +21,11 @@ var ScalaDNS = ScalaDNS || {};
 				};
 			}
 			viewManager.setView('DomainRecordsView', settings);
-		}
+		},
+		users: function() {
+			var settings = {};
+			viewManager.setView('UserView', settings);
+		},
 		//index: domainNames
 	}
 }());
