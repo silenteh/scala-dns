@@ -150,7 +150,7 @@ object DomainValidationService {
     else {
       val uniqueCheck = isUnique(host.name, names)
       if(!uniqueCheck._1) uniqueCheck
-      else if (host.name == "@" || host.name.matches("""([a-zA-Z0-9]{1}([a-zA-Z0-9\-]*[a-zA-Z0-9]{1})*\.{0,1})*""")) (true, null)
+      else if (host.name == "@" || host.name.matches("""([a-zA-Z0-9\*]{1}([a-zA-Z0-9\-\*]*[a-zA-Z0-9\*]{1})*\.{0,1})*""")) (true, null)
       else (false, validationMessages("name_not_hostname").format(host.name))
     }
   }

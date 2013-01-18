@@ -88,15 +88,19 @@ var ScalaDNS = ScalaDNS || {};
 				
 				if(validateHead.valid && validateBody.valid) {
 					newRecord = that.form[typ].parse(formPart);
-					if(that.record !== null) {
-						if(that.record.typ === typ) {
+					//if(that.record !== null) {
+						if(that.record !== null && that.record.typ === typ) {
 							domain[that.record.typ].splice(that.record.id, 1, newRecord);
 						} else {
-							domain[that.record.typ].splice(that.record.id, 1);
+							if(that.record !== null) {
+								domain[that.record.typ].splice(that.record.id, 1);
+							}
 							domain[typ] = domain[typ] || [];
 							domain[typ].push(newRecord);
 						}
-					}
+					//}
+					
+					console.log(newRecord);
 					
 					if(domain.SOA && domain.NS && domain.NS.length > 1) {
 						ScalaDNS.DomainService.saveDomain(domain, function(result) {

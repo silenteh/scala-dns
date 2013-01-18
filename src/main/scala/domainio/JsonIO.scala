@@ -67,8 +67,11 @@ object JsonIO {
   }
   
   def storeDomain(domain: ExtendedDomain, path: String = dataPathStr) = {
-    logger.debug(applicationRoot + path + "/" + domain.fullName + "json")
-    Json.writeValue(new File(applicationRoot + path + "/" + domain.fullName + "json"), domain)
+    val filename = 
+      if(domain.fullName.startsWith("*")) "-wildcard" + domain.fullName.substring(1) + "json"
+      else domain.fullName + "json"
+    logger.debug(applicationRoot + path + "/" + filename)
+    Json.writeValue(new File(applicationRoot + path + "/" + filename), domain)
   }
   
   def removeDomain(domainName: String, path: String = dataPathStr) = {

@@ -68,7 +68,7 @@
 				valid = this.domainName(item, params);
 				if(valid === true) {
 					name = $(item).val();
-					valid = name === '@' || name.match(/([a-zA-Z0-9]{1}([a-zA-Z0-9\-]*[a-zA-Z0-9]{1})*\.{0,1})*/g)[0] === name;
+					valid = name === '@' || name.match(/([a-zA-Z0-9\*]{1}([a-zA-Z0-9\*\-]*[a-zA-Z0-9\*]{1})*\.{0,1})*/g)[0] === name;
 				}
 				
 				that.applyCallback(item, 'hostName', valid);

@@ -8,7 +8,6 @@ import org.jboss.netty.channel.ChannelFutureListener
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse
 import org.jboss.netty.handler.codec.http.HttpHeaders._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
-import org.jboss.netty.handler.codec.http.HttpMethod._
 import org.jboss.netty.handler.codec.http.HttpResponseStatus._
 import org.jboss.netty.handler.codec.http.HttpVersion._
 import java.io.File
@@ -21,7 +20,6 @@ import org.jboss.netty.channel.DefaultFileRegion
 import org.jboss.netty.channel.ChannelFutureProgressListener
 import org.jboss.netty.channel.ChannelFuture
 import java.io.FileNotFoundException
-import org.jboss.netty.handler.ssl.SslHandler
 import scala.annotation.tailrec
 import server.http.HttpHandler
 import org.slf4j.LoggerFactory

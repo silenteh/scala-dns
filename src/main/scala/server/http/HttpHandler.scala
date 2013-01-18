@@ -17,7 +17,6 @@ import java.net.URLDecoder
 import java.io.UnsupportedEncodingException
 import java.io.File
 import javax.activation.MimetypesFileTypeMap
-import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
 import java.util.GregorianCalendar
 import java.util.Locale

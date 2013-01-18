@@ -50,7 +50,7 @@ object DnsLookupService {
 	names.foldRight(List[(String, AbstractRecord)]()) { case(name, records) =>
 	  if(!records.isEmpty) records
 	  else records ++ hostToRecords(name, qtype, qclass).map{ case (n, r) =>
-	    (n.replace("""*""", qname.take(qname.indexOfSlice(n.split("""\.""").filterNot(_ == "*"))).mkString(".")), r)
+	    (n.replace("""*""", qname.take(qname.lastIndexOfSlice(n.split("""\.""").filterNot(_ == "*"))).mkString(".")), r)
 	  }
 	}
   }
@@ -150,7 +150,7 @@ object DnsLookupService {
     }
   
   private def findAncestors(domain: ExtendedDomain, qname: List[String], qclass: Int, wildcards: Boolean) = {
-    val name = qname.take(qname.indexOfSlice(domain.nameParts))
+    val name = qname.take(qname.lastIndexOfSlice(domain.nameParts))
 
     if (name.size + domain.nameParts.size <= 1) List()
     else {
@@ -166,7 +166,7 @@ object DnsLookupService {
   }
   
   private def relativeHostName(qname: List[String], domain: ExtendedDomain) = {
-    val hnm = qname.take(qname.indexOfSlice(domain.nameParts)).mkString(".")
+    val hnm = qname.take(qname.lastIndexOfSlice(domain.nameParts)).mkString(".")
     if (hnm.length == 0 || hnm == "@") domain.fullName else hnm
   }
 
