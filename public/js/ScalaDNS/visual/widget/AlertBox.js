@@ -7,21 +7,12 @@ var ScalaDNS = ScalaDNS || {};
 	
 	ScalaDNS.extend(ScalaDNS.AlertBox, ScalaDNS.BaseWidget);
 	
-	/*ScalaDNS.AlertBox.prototype.load = function(settings, callback) {
-		callback();
-	}*/
-	
 	ScalaDNS.AlertBox.prototype.init = function() {
 		this._tpl = $('#alertTemplate').clone().removeAttr('id').removeClass('hidden');
-		console.log(this.container)
 		$(this.container).delegate('button', 'click', function() {
 			$(this).closest('div').remove();
 		});
 	}
-	
-	/*ScalaDNS.AlertBox.prototype.draw = function() {
-		
-	}*/
 	
 	ScalaDNS.AlertBox.prototype.dispose = function() {
 		this.container.undelegate();

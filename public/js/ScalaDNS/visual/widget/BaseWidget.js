@@ -14,7 +14,7 @@ var ScalaDNS = ScalaDNS || {};
 			
 		},
 		draw: function() {
-			console.log('Drawn.');
+			
 		},
 		dispose: function() {
 			

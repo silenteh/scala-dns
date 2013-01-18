@@ -200,6 +200,24 @@ var ScalaDNS = ScalaDNS || {};
 			$(this).closest('[data-type="error-msg"]').remove();
 		});
 		
+		this._tpl.delegate('[data-toggle="buttons-radio"] button', 'click', function(evt) {
+			var buttonGroup = $(this).closest('[data-toggle="buttons-radio"]'),
+				parent = $(this).closest('.control-group');
+			
+			$('button', buttonGroup).removeClass('active');
+			$(this).addClass('active');
+			$('input[type="text"]', parent).val($(this).text());
+		});
+
+		$('input[type="text"]', $('[data-toggle="buttons-radio"]', this._tpl).closest('.control-group')).bind('keyup', function() {
+			var parent = $(this).closest('.control-group'),
+				value = $(this).val();
+			$('[data-toggle="buttons-radio"] button').removeClass('active');
+			if(value !== '') {
+				$('[data-toggle="buttons-radio"] button', parent).filter(function() { return $(this).text() === value; }).addClass('active');
+			}
+		});
+		
 		ScalaDNS.onRecordSelect.bind(this, this.recordSelected);
 		ScalaDNS.onDomainUpdate.bind(this, this.domainUpdated);
 	}
@@ -268,6 +286,8 @@ var ScalaDNS = ScalaDNS || {};
 		
 		$('.control-group', form).removeClass('error');
 		$('.help-inline', form).remove();
+		
+		$('[data-toggle="buttons-radio"] button', form).removeClass('active');
 		
 		ScalaDNS.AlertBox.clear();
 		
@@ -366,6 +386,13 @@ var ScalaDNS = ScalaDNS || {};
 			$(':fname(soa_retry)', container).val(data.retry);
 			$(':fname(soa_expire)', container).val(data.expire);
 			$(':fname(soa_minimum)', container).val(data.minimum);
+			
+			$('input[type="text"]', $('[data-toggle="buttons-radio"]', that._tpl).closest('.control-group')).each(function() {
+				var parent = $(this).closest('.control-group'),
+					value = $(this).val().toLowerCase();
+				$('[data-toggle="buttons-radio"] button', parent).removeClass('active');
+				$('[data-toggle="buttons-radio"] button', parent).filter(function() { return $(this).text() === value }).addClass('active');
+			});
 		},
 		
 		populateMText = function(data, container) {
