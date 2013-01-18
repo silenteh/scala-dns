@@ -75,6 +75,9 @@ object JsonIO {
   }
   
   def removeDomain(domainName: String, path: String = dataPathStr) = {
+    val filename = 
+      if(domainName.startsWith("*")) "-wildcard" + domainName.substring(1) + "json"
+      else domainName + "json"
     val domainFile = new File(applicationRoot + path + "/" + domainName + "json");
     domainFile.delete
   }

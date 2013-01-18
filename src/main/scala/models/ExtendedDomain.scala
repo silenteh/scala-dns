@@ -58,6 +58,7 @@ case class ExtendedDomain(
         val mx = mailx.filter(compareHostName(name)(_))
         if(mx.isEmpty) None else Some(mx.minBy(_.priority))
       } else None
+      case "ALL" => findInArrayWithNull(hosts.toArray, compareHostName(name))
       case _ => None
     }
   

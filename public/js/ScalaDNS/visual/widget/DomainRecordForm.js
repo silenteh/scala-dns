@@ -119,8 +119,9 @@ var ScalaDNS = ScalaDNS || {};
 						});
 					} else {
 						that.domain = domain;
-						that._showAlert('<strong>Warning!</strong> The domain could not be saved at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
+						ScalaDNS.fullDomains.set(that.domain.origin, that.domain);
 						that.clearForm();
+						that._showAlert('<strong>Warning!</strong> The domain could not be saved at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
 						ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
 					}
 				}
@@ -268,7 +269,9 @@ var ScalaDNS = ScalaDNS || {};
 		
 		$('.control-group', form).removeClass('error');
 		$('.help-inline', form).remove();
+		
 		$('.alert', this.container).remove();
+		
 		this.refreshNameValidator();
 	}
 	

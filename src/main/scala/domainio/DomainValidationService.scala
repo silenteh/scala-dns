@@ -186,17 +186,21 @@ object DomainValidationService {
     val duplicities = domain.hosts.map { host =>
       RecordType.values.find(_.toString == host.typ) match {
         case None => null
-        case Some(typ) => {
+        case Some(hostTyp) => {
           val qname =
             if (host.name == domain.fullName || host.name == "@") domain.fullName
             else host.name + "." + domain.fullName
 
+          val typ = if(hostTyp == RecordType.CNAME) RecordType.ALL else hostTyp
+            
           DNSCache.findDomain(typ.id, qname.split("""\.""").toList) match {
             case None => null
             case Some(existingDomain) => {
               if (existingDomain.fullName == domain.fullName) null
               else {
-                val hostname = qname.substring(0, qname.lastIndexOf(existingDomain.fullName) - 1)
+                val hostname = 
+                  if(qname == existingDomain.fullName) "@"
+                  else qname.substring(0, qname.lastIndexOf(existingDomain.fullName) - 1)
                 existingDomain.findHost(hostname, typ.id) match {
                   case None => null
                   case Some(host) => (qname, typ.toString, existingDomain)
