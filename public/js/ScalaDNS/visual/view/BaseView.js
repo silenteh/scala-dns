@@ -13,10 +13,11 @@ var ScalaDNS = ScalaDNS || {};
 		this.widgets = new ScalaDNS.List();
 		this._stopLoad = false;
 		
-		/*if(baseWidgetsInitialized === false) {
-			baseContainers.set('menu', $('#myTab'));
-			baseWidgets.set('Menu', new ScalaDNS.Menu(baseContainers.get('menu')));
-		}*/
+		if(baseWidgetsInitialized === false) {
+			baseContainers.set('confirm_box', $('#confirmBox'));
+			ScalaDNS.ConfirmBox = new ScalaDNS.ConfirmBox(baseContainers.get('confirm_box'))
+			baseWidgets.set('ConfirmBox', ScalaDNS.ConfirmBox);
+		}
 	}
 	
 	ScalaDNS.BaseView.prototype = {

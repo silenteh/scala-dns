@@ -48,6 +48,21 @@
             <div id="users"></div>
         </div>
 
+		<div id="modal-from-dom" class="modal hide fade">
+		    <div class="modal-header">
+		      <a href="#" class="close">&times;</a>
+		      <h3>Are you sure?</h3>
+		    </div>
+		    <div class="modal-body">
+		    	<p>This procedure is irreversible.</p>
+      			<p>Do you want to proceed?</p>
+		    </div>
+		    <div class="modal-footer">
+		      <a href="#" data-type="confirm" class="btn danger">Yes</a>
+		      <a href="#" data-type="cancel" class="btn secondary">No</a>
+		    </div>
+		</div>
+
 		<div class="hidden" id="tabsTemplate">
 			<ul class="nav nav-tabs">
 	            <li data-menu="zones"><a href="#/zones">Hosted Zones</a></li>
@@ -537,6 +552,7 @@
         <script src="js/ScalaDNS/models/DomainService.js"></script>
         <script src="js/ScalaDNS/models/UserService.js"></script>
         <script src="js/ScalaDNS/visual/widget/BaseWidget.js"></script>
+        <script src="js/ScalaDNS/visual/widget/ConfirmBox.js"></script>
         <script src="js/ScalaDNS/visual/widget/Menu.js"></script>
         <script src="js/ScalaDNS/visual/widget/Tabs.js"></script>
         <script src="js/ScalaDNS/visual/widget/DomainNameForm.js"></script>

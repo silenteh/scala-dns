@@ -160,7 +160,7 @@ object DomainValidationService {
     else (false, validationMessages("duplicate").format(item))
 
   def checkTimeValue(time: String) =
-    if (time.matches("""^([0-9]+[hdmswHDMSW]{0,1})+$""")) (true, null)
+    if (time != null && time.matches("""^([0-9]+[hdmswHDMSW]{0,1})+$""")) (true, null)
     else (false, validationMessages("ttl_not_valid").format(time))
 
   def checkUnreachable(domain: ExtendedDomain) = {

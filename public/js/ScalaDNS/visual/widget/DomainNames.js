@@ -32,13 +32,15 @@ var ScalaDNS = ScalaDNS || {};
 		});
 		
 		$('[data-id="delete-hz"]', this._tpl).bind('click', function(evt) {
-			var rowsToRemove = $('tbody tr.row_selected'), row, name;
 			evt.stopPropagation();
-			rowsToRemove.each(function() {
-				row = this;
-				name = $(':dtype(domain-name)', row).text();
-				ScalaDNS.DomainService.removeDomain(name, function() {
-					row.remove();
+			ScalaDNS.ConfirmBox.show(function() {
+				var rowsToRemove = $('tbody tr.row_selected', that._tpl), row, name;
+				rowsToRemove.each(function() {
+					row = this;
+					name = $(':dtype(domain-name)', row).text();
+					ScalaDNS.DomainService.removeDomain(name, function() {
+						row.remove();
+					});
 				});
 			});
 		});
@@ -54,6 +56,7 @@ var ScalaDNS = ScalaDNS || {};
 	ScalaDNS.DomainNames.prototype.draw = function() {
 		var i, domain, row, count;
 		$('tbody', this._tpl).empty();
+		ScalaDNS.ConfirmBox.setMessage('Delete zone', '<p>You are about to delete the selected zone. This action is irreversible.</p><p>Do you want to proceed?</p>', 'btn-danger');
 		if(ScalaDNS.fullDomains !== null) {
 			ScalaDNS.fullDomains.reset();
 			while(domain = ScalaDNS.fullDomains.next()) {

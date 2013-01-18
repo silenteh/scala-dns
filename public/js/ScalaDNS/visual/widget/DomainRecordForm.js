@@ -29,6 +29,7 @@ var ScalaDNS = ScalaDNS || {};
 	}
 	
 	ScalaDNS.DomainRecordForm.prototype.init = function() {
+		if(this.domain === null) return;
 		var that = this, ipWeightSwitch;
 		this.form = this.initFormFunctions();
 		this._tpl = $('#setsFormTemplate').clone().removeAttr('id').removeClass('hidden');
@@ -88,23 +89,18 @@ var ScalaDNS = ScalaDNS || {};
 				
 				if(validateHead.valid && validateBody.valid) {
 					newRecord = that.form[typ].parse(formPart);
-					//if(that.record !== null) {
-						if(that.record !== null && that.record.typ === typ) {
-							domain[that.record.typ].splice(that.record.id, 1, newRecord);
-						} else {
-							if(that.record !== null) {
-								domain[that.record.typ].splice(that.record.id, 1);
-							}
-							domain[typ] = domain[typ] || [];
-							domain[typ].push(newRecord);
+					if(that.record !== null && that.record.typ === typ) {
+						domain[that.record.typ].splice(that.record.id, 1, newRecord);
+					} else {
+						if(that.record !== null) {
+							domain[that.record.typ].splice(that.record.id, 1);
 						}
-					//}
-					
-					console.log(newRecord);
+						domain[typ] = domain[typ] || [];
+						domain[typ].push(newRecord);
+					}
 					
 					if(domain.SOA && domain.NS && domain.NS.length > 1) {
 						ScalaDNS.DomainService.saveDomain(domain, function(result) {
-							var i;
 							if(result.code === 0) {
 								ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
 								that.record = null;
@@ -210,8 +206,10 @@ var ScalaDNS = ScalaDNS || {};
 	}
 	
 	ScalaDNS.DomainRecordForm.prototype.draw = function() {
-		this.drawForm();
-		$('.row-fluid', this.container).append(this._tpl);
+		if(this.domain !== null) {
+			this.drawForm();
+			$('.row-fluid', this.container).append(this._tpl);
+		}
 	}
 	
 	ScalaDNS.DomainRecordForm.prototype.dispose = function() {
@@ -219,8 +217,10 @@ var ScalaDNS = ScalaDNS || {};
 		$('[name="typ"]', this._tpl).unbind();
 		$('[data-id="add-record"]', this._tpl).unbind();
 		$('[data-id="cancel"]', this._tpl).unbind();
-		this._tpl.unbind();
-		this._tpl.undelegate();
+		if(this._tpl) {
+			this._tpl.unbind();
+			this._tpl.undelegate();
+		}
 		ScalaDNS.onRecordSelect.unbind(this, this.recordSelected);
 		ScalaDNS.onDomainUpdate.unbind(this, this.domainUpdated);
 	}
