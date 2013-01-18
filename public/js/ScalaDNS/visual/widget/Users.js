@@ -32,13 +32,15 @@ var ScalaDNS = ScalaDNS || {};
 		});
 		
 		$('[data-id="delete-us"]', this._tpl).bind('click', function(evt) {
-			var rowsToRemove = $('tbody tr.row_selected'), row, name;
 			evt.stopPropagation();
-			rowsToRemove.each(function() {
-				row = this;
-				name = $(':dtype(user-name)', row).text();
-				ScalaDNS.UserService.removeUser(name, function() {
-					row.remove();
+			ScalaDNS.ConfirmBox.show(function() {
+				var rowsToRemove = $('tbody tr.row_selected'), row, name;
+				rowsToRemove.each(function() {
+					row = this;
+					name = $(':dtype(user-name)', row).text();
+					ScalaDNS.UserService.removeUser(name, function() {
+						row.remove();
+					});
 				});
 			});
 		});

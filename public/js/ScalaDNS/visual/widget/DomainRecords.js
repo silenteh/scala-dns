@@ -23,7 +23,6 @@ var ScalaDNS = ScalaDNS || {};
 		var that = this;
 		this._tpl = $('#setsTemplate').clone().removeAttr('id').removeClass('hidden');
 		this._row_tpl = $('tbody tr:first', this._tpl).clone();
-		this._alert_tpl = $('#alertTemplate').clone().removeAttr('id').removeClass('hidden');
 		this._ctrlKeyDown = false;
 		
 		$(this._tpl).delegate('tbody tr', 'click', function(evt) {
@@ -72,8 +71,7 @@ var ScalaDNS = ScalaDNS || {};
 		$('[data-id="delete-rs"]', this._tpl).bind('click', function(evt) {
 			evt.stopPropagation();
 			ScalaDNS.ConfirmBox.show(function() {
-				var typ, name, updated, id, alert = that._alert_tpl.clone();;
-				$('.alert', that.container).remove();
+				var typ, name, updated, id;
 				$('tbody tr.row_selected', that._tpl).each(function() {
 					id = $(this).data('id');
 					name = $(':dtype(record-name)', this).text();
@@ -89,18 +87,14 @@ var ScalaDNS = ScalaDNS || {};
 							ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
 							that.domain = result.data[0];
 							if(result.data.length > 1) {
-								that._showAlert('<strong>Warning!</strong> The domains have been reorganized.');
+								ScalaDNS.AlertBox.showClear('<strong>Warning!</strong> The domains have been reorganized.');
 							}
 						} else {
-							that._showAlert(result.messages.join('<br/>'), 'error');
+							ScalaDNS.AlertBox.showClear(result.messages.join('<br/>'), 'error');
 						}
 					});
 				} else {
-					alert.append('<strong>Warning!</strong> The domain could not be updated at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
-					$('button', alert).click(function() {
-						$(this).closest('div').remove();
-					});
-					that.container.prepend(alert);
+					ScalaDNS.AlertBox.showClear('<strong>Warning!</strong> The domain could not be updated at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
 				}
 				$(this).attr('disabled', 'disabled');
 				that._raiseDomainUpdate();
@@ -250,18 +244,6 @@ var ScalaDNS = ScalaDNS || {};
 			}
 		}
 		return array;
-	}
-	
-	ScalaDNS.DomainRecords.prototype._showAlert = function(message, typ) {
-		var alert = this._alert_tpl.clone();
-		if(typ) {
-			alert.addClass('alert-' + typ);
-		}
-		alert.append(message);
-		$('button', alert).click(function() {
-			$(this).closest('div').remove();
-		});
-		this.container.prepend(alert);
 	}
 	
 	ScalaDNS.DomainRecords.prototype._recordsUpdated = function() {

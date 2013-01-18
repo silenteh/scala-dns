@@ -35,7 +35,6 @@ var ScalaDNS = ScalaDNS || {};
 		this._tpl = $('#setsFormTemplate').clone().removeAttr('id').removeClass('hidden');
 		this._weighted_ipv4_tpl = $('[data-name="a"] [data-type="rout-weight"] .control-group', this._tpl).clone();
 		this._weighted_ipv6_tpl = $('[data-name="aaaa"] [data-type="rout-weight"] .control-group', this._tpl).clone();
-		this._alert_tpl = $('#alertTemplate').clone().removeAttr('id').removeClass('hidden');
 		this._validator = this.initValidator();
 		
 		this.updateFormStatus();
@@ -57,7 +56,7 @@ var ScalaDNS = ScalaDNS || {};
 		});
 		
 		$('[data-id="add-record"]', this._tpl).bind('click', function(evt) {
-			$('.alert', that.container).remove();
+			ScalaDNS.AlertBox.clear();
 			if(that._status.blocked === false) {
 				var typ = $('[name="typ"]', this._tpl).val(),
 					formPart = $('[data-type="rr-content"]:visible'),
@@ -107,17 +106,17 @@ var ScalaDNS = ScalaDNS || {};
 								that.domain = result.data[0];
 								that.clearForm();
 								if(result.data.length > 1) {
-									that._showAlert('<strong>Warning!</strong> The domains have been reorganized.');
+									ScalaDNS.AlertBox.showClear('<strong>Warning!</strong> The domains have been reorganized.');
 								}
 							} else {
-								that._showAlert(result.messages.join('<br/>'), 'error');
+								ScalaDNS.AlertBox.showClear(result.messages.join('<br/>'), 'error');
 							}
 						});
 					} else {
 						that.domain = domain;
 						ScalaDNS.fullDomains.set(that.domain.origin, that.domain);
 						that.clearForm();
-						that._showAlert('<strong>Warning!</strong> The domain could not be saved at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
+						ScalaDNS.AlertBox.showClear('<strong>Warning!</strong> The domain could not be saved at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
 						ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
 					}
 				}
@@ -270,7 +269,7 @@ var ScalaDNS = ScalaDNS || {};
 		$('.control-group', form).removeClass('error');
 		$('.help-inline', form).remove();
 		
-		$('.alert', this.container).remove();
+		ScalaDNS.AlertBox.clear();
 		
 		this.refreshNameValidator();
 	}
@@ -280,9 +279,7 @@ var ScalaDNS = ScalaDNS || {};
 		$('[name="name"]', this._tpl).val(data.name);
 		$('[name="typ"] option', this._tpl).removeAttr('selected');
 		$('[name="typ"] option[value="' + typ + '"]', this._tpl).attr('selected', 'selected');
-		
 		this.form[typ].populate(data, formPart);
-		
 		formPart.show();
 	}
 	
@@ -982,38 +979,21 @@ var ScalaDNS = ScalaDNS || {};
 	
 	ScalaDNS.DomainRecordForm.prototype._getRecordNames = function() {
 		var typ, records, array = [], i;
-		
 		if(this.record !== null) {
 			typ = this.record.typ;
 		} else {
 			typ = $(':fname(typ)', this._tpl).val();
 		}
-		
 		records = this.domain[typ]
-		
 		if(records) {
 			for(i = 0; i < records.length; i++) {
 				array.push(records[i].name);
 			}
 		}
 		return array;
-		
 	}
-	
-	ScalaDNS.DomainRecordForm.prototype._showAlert = function(message, typ) {
-		var alert = this._alert_tpl.clone();
-		if(typ) {
-			alert.addClass('alert-' + typ);
-		}
-		alert.append(message);
-		$('button', alert).click(function() {
-			$(this).closest('div').remove();
-		});
-		this.container.prepend(alert);
-	}
-	
+
 	ScalaDNS.DomainRecordForm.prototype.domainUpdated = function(e) {
 		this.domain = e.obj;
 	}
-	
 }());

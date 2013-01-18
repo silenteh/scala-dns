@@ -15,8 +15,13 @@ var ScalaDNS = ScalaDNS || {};
 		
 		if(baseWidgetsInitialized === false) {
 			baseContainers.set('confirm_box', $('#confirmBox'));
-			ScalaDNS.ConfirmBox = new ScalaDNS.ConfirmBox(baseContainers.get('confirm_box'))
+			baseContainers.set('alerts', $('#alerts'));
+			
+			ScalaDNS.ConfirmBox = new ScalaDNS.ConfirmBox(baseContainers.get('confirm_box'));
+			ScalaDNS.AlertBox = new ScalaDNS.AlertBox(baseContainers.get('alerts'));
+			
 			baseWidgets.set('ConfirmBox', ScalaDNS.ConfirmBox);
+			baseWidgets.set('AlertBox', ScalaDNS.AlertBox);
 		}
 	}
 	
