@@ -27,8 +27,10 @@ var ScalaDNS = ScalaDNS || {};
 			$('tbody tr', this._tpl).removeClass('row_selected');
 			if(selected === false) {
 				$(this).addClass('row_selected');
+				$('[data-id="delete-us"]', this._tpl).prop('disabled', false);
 				that._raiseSelectUser(that.datatable.fnGetData(this)[0]);
 			} else {
+				$('[data-id="delete-us"]', this._tpl).prop('disabled', true);
 				that._raiseSelectUser();
 			}
 		});
@@ -50,6 +52,7 @@ var ScalaDNS = ScalaDNS || {};
 		
 		$('html').bind('click', function() {
 			$('tbody tr', this._tpl).removeClass('row_selected');
+			$('[data-id="delete-us"]', this._tpl).prop('disabled', true);
 			that._raiseSelectUser();
 		});
 		
@@ -61,6 +64,7 @@ var ScalaDNS = ScalaDNS || {};
 		if(this.datatable === undefined) {
 			this.datatable = $('table', this._tpl).dataTable();
 		}
+		$('[data-id="delete-us"]', this._tpl).prop('disabled', true);
 		//$('tbody', this._tpl).empty();
 		this.datatable.fnClearTable();
 		ScalaDNS.ConfirmBox.setMessage('Delete users', '<p>You are about to delete the selected user(s). This action is irreversible.</p><p>Do you want to proceed?</p>', 'btn-danger');

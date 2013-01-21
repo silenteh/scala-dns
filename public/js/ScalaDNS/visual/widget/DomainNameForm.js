@@ -42,7 +42,6 @@ var ScalaDNS = ScalaDNS || {};
 				} else {
 					that.domain = {origin: name, ttl: 86400};
 					ScalaDNS.fullDomains.set(name, that.domain);
-					console.log(ScalaDNS.fullDomains);
 					that._raiseDomainUpdate();
 					console.log('move to records');
 				}

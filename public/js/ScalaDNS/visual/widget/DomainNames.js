@@ -27,9 +27,11 @@ var ScalaDNS = ScalaDNS || {};
 			$('tbody tr', this._tpl).removeClass('row_selected');
 			if(selected === false) {
 				$(this).addClass('row_selected');
+				$('[data-id="delete-hz"]', this._tpl).prop('disabled', false);
 				data = that.datatable.fnGetData(this)
 				that._raiseSelectDomain(data[0]);
 			} else {
+				$('[data-id="delete-hz"]', this._tpl).prop('disabled', true);
 				that._raiseSelectDomain();
 			}
 		});
@@ -51,6 +53,7 @@ var ScalaDNS = ScalaDNS || {};
 		
 		$('html').bind('click', function() {
 			$('tbody tr', this._tpl).removeClass('row_selected');
+			$('[data-id="delete-hz"]', this._tpl).prop('disabled', true);
 			that._raiseSelectDomain();
 		});
 		
@@ -59,6 +62,7 @@ var ScalaDNS = ScalaDNS || {};
 	
 	ScalaDNS.DomainNames.prototype.draw = function() {
 		var i, domain, row, count;
+		$('[data-id="delete-hz"]', this._tpl).prop('disabled', true);
 		if(this.datatable === undefined) {
 			this.datatable = $('table', this._tpl).dataTable();
 		}
