@@ -22,16 +22,18 @@ var ScalaDNS = ScalaDNS || {};
 		this._raiseSelectUser();
 		
 		$(this._tpl).delegate('tbody tr', 'click', function(evt) {
-			var selected = $(this).hasClass('row_selected');
-			evt.stopPropagation();
-			$('tbody tr', this._tpl).removeClass('row_selected');
-			if(selected === false) {
-				$(this).addClass('row_selected');
-				$('[data-id="delete-us"]', this._tpl).prop('disabled', false);
-				that._raiseSelectUser(that.datatable.fnGetData(this)[0]);
-			} else {
-				$('[data-id="delete-us"]', this._tpl).prop('disabled', true);
-				that._raiseSelectUser();
+			if($('td.dataTables_empty', this).length == 0) {
+				var selected = $(this).hasClass('row_selected');
+				evt.stopPropagation();
+				$('tbody tr', this._tpl).removeClass('row_selected');
+				if(selected === false) {
+					$(this).addClass('row_selected');
+					$('[data-id="delete-us"]', this._tpl).prop('disabled', false);
+					that._raiseSelectUser(that.datatable.fnGetData(this)[0]);
+				} else {
+					$('[data-id="delete-us"]', this._tpl).prop('disabled', true);
+					that._raiseSelectUser();
+				}
 			}
 		});
 		

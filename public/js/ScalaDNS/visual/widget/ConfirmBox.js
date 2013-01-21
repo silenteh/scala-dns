@@ -45,6 +45,12 @@ var ScalaDNS = ScalaDNS || {};
 			that.onCancel = null;
 			that._tpl.modal('hide');
 		});
+		$('html').delegate('.modal-backdrop', 'click', function(evt) {
+			evt.stopPropagation();
+		});
+		$(this._tpl).click(function(evt) {
+			evt.stopPropagation();
+		});
 	}
 	
 	ScalaDNS.ConfirmBox.prototype.draw = function() {

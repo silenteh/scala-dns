@@ -27,36 +27,38 @@ var ScalaDNS = ScalaDNS || {};
 		this._ctrlKeyDown = false;
 		
 		$(this._tpl).delegate('tbody tr', 'click', function(evt) {
-			var selected = $(this).hasClass('row_selected'),
-				count_selected = $('tr.row_selected', $(this).parent()).length;
-			
-			evt.stopPropagation();
-			if(that._ctrlKeyDown === true) {
-				if($(this).hasClass('row_selected')) {
-					$(this).removeClass('row_selected');
-					count_selected--;
-				} else {
-					$(this).addClass('row_selected');
-					count_selected++;
-				}
+			if($('td.dataTables_empty', this).length == 0) {
+				var selected = $(this).hasClass('row_selected'),
+					count_selected = $('tr.row_selected', $(this).parent()).length;
 				
-				if(count_selected === 1) {
-					$('[data-type="button-bar"] button').removeAttr('disabled');
-				} else if(count_selected === 0) {
-					$('[data-type="button-bar"] button', that._tpl).attr('disabled', 'disabled');
-				} else {
-					$('[data-id="edit-rs"]').attr('disabled', 'disabled');
-				}
-			} else {
-				$('tbody tr', that.container).removeClass('row_selected');
-				if(selected === false || count_selected > 1) {
-					$(this).addClass('row_selected');
-					that.selectedRecord = this;
+				evt.stopPropagation();
+				if(that._ctrlKeyDown === true) {
+					if($(this).hasClass('row_selected')) {
+						$(this).removeClass('row_selected');
+						count_selected--;
+					} else {
+						$(this).addClass('row_selected');
+						count_selected++;
+					}
 					
-					$('[data-type="button-bar"] button', that._tpl).removeAttr('disabled');
+					if(count_selected === 1) {
+						$('[data-type="button-bar"] button').removeAttr('disabled');
+					} else if(count_selected === 0) {
+						$('[data-type="button-bar"] button', that._tpl).attr('disabled', 'disabled');
+					} else {
+						$('[data-id="edit-rs"]').attr('disabled', 'disabled');
+					}
 				} else {
-					$('[data-type="button-bar"] button', that._tpl).attr('disabled', 'disabled');
-					that.selectedRecord = null;
+					$('tbody tr', that.container).removeClass('row_selected');
+					if(selected === false || count_selected > 1) {
+						$(this).addClass('row_selected');
+						that.selectedRecord = this;
+						
+						$('[data-type="button-bar"] button', that._tpl).removeAttr('disabled');
+					} else {
+						$('[data-type="button-bar"] button', that._tpl).attr('disabled', 'disabled');
+						that.selectedRecord = null;
+					}
 				}
 			}
 		});
