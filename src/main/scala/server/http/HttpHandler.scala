@@ -28,6 +28,7 @@ abstract class HttpHandler extends SimpleChannelUpstreamHandler {
     val contentBuffer = ChannelBuffers.copiedBuffer(content.getBytes)
     val response = new DefaultHttpResponse(HTTP_1_1, OK)
     response.setHeader(CONTENT_TYPE, "application/json")
+    response.setHeader("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate")
     response.setContent(contentBuffer)
     setContentLength(response, contentBuffer.readableBytes)
     channel.write(response).addListener(ChannelFutureListener.CLOSE)

@@ -5,16 +5,20 @@ ScalaDNS.UserService = (function() {
 	
 	function loadUsers(callback) {
 		if(ScalaDNS.users === null) {
-			$.get('http://' + ScalaDNS.config.urlBase + '/users/', {}, function(data) {
-				if(data && data.users) {
-					ScalaDNS.users = new ScalaDNS.List();
-					jQuery.each(data.users, function() {
-						ScalaDNS.users.set(this.name, this);
-					});
-				}
-				if(callback) {
-					console.log(ScalaDNS.users);
-					callback();
+			$.ajax('http://' + ScalaDNS.config.urlBase + '/users/', {
+				cache: false, 
+				success: function(data) {
+					if(data && data.users) {
+						ScalaDNS.users = new ScalaDNS.List();
+						jQuery.each(data.users, function() {
+							ScalaDNS.users.set(this.name, this);
+						});
+					}
+				},
+				complete: function() {
+					if(callback) {
+						callback();
+					}
 				}
 			}, 'json');
 		} else {

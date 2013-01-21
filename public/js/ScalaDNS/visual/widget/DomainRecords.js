@@ -7,6 +7,7 @@ var ScalaDNS = ScalaDNS || {};
 		this.domain = null;
 		this.records = null;
 		this.selectedRecord = null;
+		this.datatable;
 	}
 	
 	ScalaDNS.extend(ScalaDNS.DomainRecords, ScalaDNS.BaseWidget);
@@ -71,11 +72,12 @@ var ScalaDNS = ScalaDNS || {};
 		$('[data-id="delete-rs"]', this._tpl).bind('click', function(evt) {
 			evt.stopPropagation();
 			ScalaDNS.ConfirmBox.show(function() {
-				var typ, name, updated, id;
+				var data, typ, name, updated, id;
 				$('tbody tr.row_selected', that._tpl).each(function() {
 					id = $(this).data('id');
-					name = $(':dtype(record-name)', this).text();
-					typ = $(':dtype(record-type)', this).text();
+					data = that.datatable.fnGetData(this);
+					name = data[0];
+					typ = data[1];
 					that.domain[typ].splice(id, 1);
 					if(that.domain[typ].length === 0) {
 						delete that.domain.typ;
@@ -84,7 +86,6 @@ var ScalaDNS = ScalaDNS || {};
 				if(that.domain.SOA && that.domain.NS && that.domain.NS.length > 1) {
 					ScalaDNS.DomainService.saveDomain(that.domain, function(result) {
 						if(result.code === 0) {
-							ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
 							that.domain = result.data[0];
 							if(result.data.length > 1) {
 								ScalaDNS.AlertBox.showClear('<strong>Warning!</strong> The domains have been reorganized.');
@@ -94,9 +95,11 @@ var ScalaDNS = ScalaDNS || {};
 						}
 					});
 				} else {
+					ScalaDNS.fullDomains.set(that.domain.origin, that.domain);
 					ScalaDNS.AlertBox.showClear('<strong>Warning!</strong> The domain could not be updated at this point because it does not contain all the required records. Make sure you add a SOA record and at least 2 NS records.');
 				}
 				$(this).attr('disabled', 'disabled');
+				ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
 				that._raiseDomainUpdate();
 			});
 		});
@@ -122,8 +125,12 @@ var ScalaDNS = ScalaDNS || {};
 	};
 	
 	ScalaDNS.DomainRecords.prototype.draw = function() {
-		var i, recordSet, record, data, row, that = this;
-		$('tbody', this._tpl).empty();
+		var i, recordSet, record, data, row, that = this, addedData, addedRow;
+		if(this.datatable === undefined) {
+			this.datatable = $('table', this._tpl).dataTable();
+		}
+		this.datatable.fnClearTable();
+		//$('tbody', this._tpl).empty();
 		
 		ScalaDNS.ConfirmBox.setMessage('Delete records', '<p>You are about to delete the selected record(s). This action is irreversible.</p><p>Do you want to proceed?</p>', 'btn-danger');
 		if(this.domain !== null) {
@@ -131,11 +138,36 @@ var ScalaDNS = ScalaDNS || {};
 				if(that.domain[typ]) {
 					recordSet = that.domain[typ];
 					for(i = 0; i < recordSet.length; i++) {
-						row = that._row_tpl.clone();
+						//row = that._row_tpl.clone();
+						row = [];
 						record = recordSet[i];
 						data = that.buildValue(typ, record);
 						
-						row.attr('data-id', i);
+						row.push(record.name);
+						row.push(typ);
+						
+						if(data.value) {
+							row.push(data.value);
+						} else {
+							row.push(data);
+						}
+						if(data.ttl) {
+							row.push(data.ttl);
+						} else {
+							row.push('');
+						}
+						if(data.weight) {
+							row.push(data.weight);
+						} else {
+							row.push('');
+						}
+						row.push('');
+						addedData = that.datatable.fnAddData(row);
+						addedRow = that.datatable.fnSettings().aoData[addedData[0]].nTr;
+						$(addedRow).attr('data-id', i);
+						$(addedRow).attr('data-typ', typ);
+						//$('table tr:last', that._tpl).attr('data-id', i);
+						/*row.attr('data-id', i);
 						row.attr('data-typ', typ);
 						row.addClass('even');
 						$('[data-type="record-name"]', row).html(record.name);
@@ -153,7 +185,7 @@ var ScalaDNS = ScalaDNS || {};
 							$('[data-type="record-weight"]', row).html(data.weight);
 						}
 						
-						$('tbody', that._tpl).append(row);
+						$('tbody', that._tpl).append(row);*/
 					}
 				}
 			});
@@ -247,6 +279,7 @@ var ScalaDNS = ScalaDNS || {};
 	}
 	
 	ScalaDNS.DomainRecords.prototype._recordsUpdated = function() {
+		console.log(ScalaDNS.fullDomains.get(this.domain.origin));
 		this.domain = ScalaDNS.fullDomains.get(this.domain.origin);
 		this.draw();
 	}

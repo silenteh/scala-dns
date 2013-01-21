@@ -1022,5 +1022,6 @@ var ScalaDNS = ScalaDNS || {};
 
 	ScalaDNS.DomainRecordForm.prototype.domainUpdated = function(e) {
 		this.domain = e.obj;
+		this.refreshNameValidator();
 	}
 }());

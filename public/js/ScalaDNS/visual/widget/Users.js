@@ -4,6 +4,8 @@ var ScalaDNS = ScalaDNS || {};
 	
 	ScalaDNS.Users = function(container) {
 		ScalaDNS.Users.parent.constructor.call(this, 'Users', container);
+		
+		this.datatable;
 	}
 	
 	ScalaDNS.extend(ScalaDNS.Users, ScalaDNS.BaseWidget);
@@ -25,7 +27,7 @@ var ScalaDNS = ScalaDNS || {};
 			$('tbody tr', this._tpl).removeClass('row_selected');
 			if(selected === false) {
 				$(this).addClass('row_selected');
-				that._raiseSelectUser($('[data-type="user-name"]', this).text());
+				that._raiseSelectUser(that.datatable.fnGetData(this)[0]);
 			} else {
 				that._raiseSelectUser();
 			}
@@ -37,9 +39,10 @@ var ScalaDNS = ScalaDNS || {};
 				var rowsToRemove = $('tbody tr.row_selected'), row, name;
 				rowsToRemove.each(function() {
 					row = this;
-					name = $(':dtype(user-name)', row).text();
+					name = that.datatable.fnGetData(this)[0];
 					ScalaDNS.UserService.removeUser(name, function() {
-						row.remove();
+						//row.remove();
+						that.draw();
 					});
 				});
 			});
@@ -55,11 +58,19 @@ var ScalaDNS = ScalaDNS || {};
 	
 	ScalaDNS.Users.prototype.draw = function() {
 		var i, user, row;
-		$('tbody', this._tpl).empty();
+		if(this.datatable === undefined) {
+			this.datatable = $('table', this._tpl).dataTable();
+		}
+		//$('tbody', this._tpl).empty();
+		this.datatable.fnClearTable();
+		ScalaDNS.ConfirmBox.setMessage('Delete users', '<p>You are about to delete the selected user(s). This action is irreversible.</p><p>Do you want to proceed?</p>', 'btn-danger');
 		if(ScalaDNS.users !== null) {
 			ScalaDNS.users.reset();
 			while(user = ScalaDNS.users.next()) {
-				row = this._row_tpl.clone();
+				row = [];
+				row.push(user.name);
+				this.datatable.fnAddData(row);
+				/*row = this._row_tpl.clone();
 				row.attr('data-id', i);
 				$('[data-type="user-name"]', row).text(user.name);
 				if(i % 2 == 0) {
@@ -67,7 +78,7 @@ var ScalaDNS = ScalaDNS || {};
 				} else {
 					row.addClass('odd');
 				}
-				$('tbody', this._tpl).append(row);
+				$('tbody', this._tpl).append(row);*/
 			}
 		} else {
 			

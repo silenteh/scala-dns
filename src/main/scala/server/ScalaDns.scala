@@ -18,6 +18,7 @@ package server
 import scala.collection.immutable.BitSet
 import org.slf4j.LoggerFactory
 import domainio.JsonIO
+import utils.UserCreator
 
 object ScalaDns {
   
@@ -26,7 +27,17 @@ object ScalaDns {
   def main(args: Array[String]) = {
 
     JsonIO.loadDomains()
-    JsonIO.loadUsers()
+	JsonIO.loadUsers()
+    
+    if(args.exists(_.startsWith("-user="))) {
+      val userParts = args.find(_.startsWith("-user=")).get.substring(6).split(""",""")
+      if(userParts.length != 2) println("Invalid arguments. Usage: -user=<username>,<password>")
+      else println(UserCreator(userParts(0), userParts(1)))
+    }
+    
+    if(args.isEmpty || args.contains("-start")) {
+	  Bootstrap.start
+    }
     
     //val domains = DNSCache.getDomains.map {case(key, value) => (key, value.filterNot(_._1 == "mail.livescore"))}
     
@@ -38,8 +49,6 @@ object ScalaDns {
     /*val addressHost = new AddressHost("IN", "www", Array(new WeightedIP(1, "192.168.1.12"), new WeightedIP(1, "192.168.0.1")))
     val domain = new ExtendedDomain("example.com.", 86400L, null, null, null, Array(addressHost), null, null, null, null, null)
     logger.debug(Json.generate(domain))*/
-    
-    Bootstrap.start
 
 //    var b = 166
 //    val bits = new Array[Short](8)
