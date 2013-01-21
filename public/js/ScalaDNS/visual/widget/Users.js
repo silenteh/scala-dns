@@ -92,7 +92,7 @@ var ScalaDNS = ScalaDNS || {};
 	
 	ScalaDNS.Users.prototype.dispose = function() {
 		$('html').unbind();
-		ScalaDNS.onDomainUpdate.unbind(this, this._domainUpdated);
+		ScalaDNS.onUsersUpdate.unbind(this, this._userUpdated);
 	}
 	
 	ScalaDNS.Users.prototype._raiseSelectUser = function(name) {
