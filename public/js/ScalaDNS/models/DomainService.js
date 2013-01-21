@@ -4,26 +4,30 @@ ScalaDNS.DomainService = (function() {
 	var i;
 	
 	function loadDomains(callback) {
-		if(ScalaDNS.fullDomains === null) {
-			$.ajax('http://' + ScalaDNS.config.urlBase + '/domains/', {
-				cache: false, 
-				success: function(data) {
-					if(data && data.domains) {
-						ScalaDNS.fullDomains = new ScalaDNS.List();
-						jQuery.each(data.domains, function() {
-							ScalaDNS.fullDomains.set(this.origin, this);
-						});
+		ScalaDNS.loadQueue.add(function() {
+			if(ScalaDNS.fullDomains === null) {
+				$.ajax('http://' + ScalaDNS.config.urlBase + '/domains/', {
+					cache: false, 
+					success: function(data) {
+						if(data && data.domains) {
+							ScalaDNS.fullDomains = new ScalaDNS.List();
+							jQuery.each(data.domains, function() {
+								ScalaDNS.fullDomains.set(this.origin, this);
+							});
+						}
+					}, 
+					complete: function() {
+						if(callback) {
+							callback();
+						}
+						ScalaDNS.loadQueue.next();
 					}
-				}, 
-				complete: function() {
-					if(callback) {
-						callback();
-					}
-				}
-			}, 'json');
-		} else {
-			callback();
-		}
+				}, 'json');
+			} else {
+				callback();
+				ScalaDNS.loadQueue.next();
+			}
+		});
 	}
 	
 	function loadNames(callback) {
