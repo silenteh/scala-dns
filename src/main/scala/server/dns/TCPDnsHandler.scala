@@ -33,10 +33,11 @@ class TCPDnsHandler extends SimpleChannelUpstreamHandler {
 
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
     logger.info("This request is brought to you by TCP")
+    val sourceIP = e.getRemoteAddress.toString
     e.getMessage match {
       case message: Message => {
-        val response = DnsResponseBuilder(message)
-        
+        val response = DnsResponseBuilder(message, sourceIP)
+
         logger.debug("Compressed response length: " + response.length.toString)
         logger.debug("Compressed response bytes: " + response.toList.toString)
         e.getChannel.write(ChannelBuffers.copiedBuffer(RRData.shortToBytes(response.length.toShort) ++ response))

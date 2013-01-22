@@ -31,27 +31,35 @@ import enums.ResponseCode
 import datastructures.DomainNotFoundException
 import scala.Array.canBuildFrom
 import scala.annotation.tailrec
+import configs.ConfigService
+import scala.collection.JavaConversions._
 
 object DnsResponseBuilder {
 
   val logger = LoggerFactory.getLogger("app")
 
-  def apply(message: Message, maxLength: Int = -1, compress: Boolean = true) = {
+  def apply(message: Message, sourceIP: String, maxLength: Int = -1, compress: Boolean = true) = {
     val response = try {
       val responseParts = message.query.map { query =>
         val qname = query.qname.filter(_.length > 0).map(new String(_, "UTF-8"))
         val domain = DNSCache.getDomain(query.qtype, qname)
-
-        val records = {
-          val rdata = DnsLookupService.hostToRecords(qname, query.qtype, query.qclass)
-          if (!rdata.isEmpty) rdata
-          else DnsLookupService.ancestorToRecords(domain, qname, query.qtype, query.qclass, true)
-        }
-
+        
+        val records =
+          if(query.qtype == RecordType.AXFR.id) {
+            val allowedIps = ConfigService.config.getStringList("zoneTransferAllowedIps").toList
+            if(maxLength < 0) throw new DomainNotFoundException
+            else if(!allowedIps.contains(sourceIP.substring(0, sourceIP.lastIndexOf(":")))) throw new DomainNotFoundException
+            else DnsLookupService.zoneToRecords(qname, query.qclass)
+          } else {
+            val rdata = DnsLookupService.hostToRecords(qname, query.qtype, query.qclass)
+            if (!rdata.isEmpty) rdata
+            else DnsLookupService.ancestorToRecords(domain, qname, query.qtype, query.qclass, true)
+          }
+        
         // @TODO: Return NS when host not found
 
         val authority =
-          if (!records.isEmpty) List[(String, AbstractRecord)]()
+          if (!records.isEmpty || query.qtype == RecordType.AXFR.id) List[(String, AbstractRecord)]()
           else DnsLookupService.ancestorToRecords(domain, qname, RecordType.NS.id, query.qclass, false)
 
         // @TODO: Implement additional where appropriate

@@ -32,11 +32,12 @@ class UDPDnsHandler extends SimpleChannelUpstreamHandler {
 
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
     logger.info("This is UDP.")
+    val sourceIP = e.getRemoteAddress.toString
     e.getMessage match {
       case message: Message => {
         logger.info(message.toString)
         logger.info("Request bytes: " + message.toByteArray.toList.toString)
-        val response = DnsResponseBuilder(message, UdpResponseMaxSize)
+        val response = DnsResponseBuilder(message, sourceIP, UdpResponseMaxSize)
         
         logger.debug("Compressed response length: " + response.length.toString)
         logger.debug("Compressed response bytes: " + response.toList.toString)
