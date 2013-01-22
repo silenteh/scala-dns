@@ -37,7 +37,8 @@ object DomainValidationService {
       val unreachable = checkUnreachable(domain)
       val duplicate = checkRecordDuplicities(domain)
       val incomplete = 
-        if(domain.settings == null || domain.settings.isEmpty || domain.nameservers == null || domain.nameservers.length < 2) 
+        if(domain.settings == null || domain.settings.isEmpty || domain.nameservers == null || 
+            (domain.nameservers.length < 2 && domain.nameservers.head.hostnames.length < 2)) 
           (false, validationMessages("incomplete") :: Nil)
         else
           (true, Nil)
@@ -86,12 +87,23 @@ object DomainValidationService {
     (name._1 && mx._1 && unique._1, name._2 :: mx._2 :: unique._2 :: Nil)
   }
   
-  def checkNSHost(host: NSHost, domain: ExtendedDomain) = {
+  /*def checkNSHost2(host: NSHost, domain: ExtendedDomain) = {
     val names = domain.nameservers.map(_.name).toList
     val name = checkHostName(host, names)
     val ns = checkDomainName(host.hostname)
     val unique = isUnique(host.hostname, names)
     (name._1 && ns._1 && unique._1, name._2 :: ns._2 :: unique._2 :: Nil)
+  }*/
+  
+  def checkNSHost(host: NSHost, domain: ExtendedDomain) = {
+    val names = domain.nameservers.map(_.name).toList
+    val name = checkHostName(host, names)
+    if(host.hostnames == null || host.hostnames.isEmpty) (false, validationMessages("empty").format("IP address") :: Nil)
+    else host.hostnames.foldRight(name._1, List(name._2)) {case (hostname, (valid, messages)) =>
+      val ns = checkDomainName(hostname.hostname)
+      val unique = isUnique(hostname.hostname, names)
+      (valid && ns._1 && unique._1, ns._2 :: unique._2 :: messages)
+    }
   }
   
   def checkPointerHost(host: PointerHost, domain: ExtendedDomain) = {

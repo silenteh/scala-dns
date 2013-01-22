@@ -17,6 +17,7 @@ import models.NSHost
 import models.AddressHost
 import models.ExtendedDomain
 import models.WeightedIP
+import models.WeightedNS
 
 class IOTest extends FunSpec with BeforeAndAfter with ShouldMatchers {
   
@@ -81,7 +82,7 @@ class IOTest extends FunSpec with BeforeAndAfter with ShouldMatchers {
 	
 	it("should write a json file from an ExtendedDomain object") {
 	  val soa = Array(new SoaHost("in", "1", "@", "ns1.testexample.com", "ns2.testexample.com", "123456789", "1", "1", "1", "1"))
-	  val nsHosts = Array(new NSHost("in", "@", 10, "ns1.testexample.com"), new NSHost("in", "@", 5, "ns2.testexample.com"))
+	  val nsHosts = Array(new NSHost("in", "@", Array(new WeightedNS(10, "ns1.testexample.com"))), new NSHost("in", "@", Array(new WeightedNS(5, "ns2.testexample.com"))))
 	  val addressHosts = Array(new AddressHost("in", "host1.testexample.com", Array(new WeightedIP(1, "10.0.0.1"))), new AddressHost("in", "host2.testexample.com", Array(new WeightedIP(1, "10.0.0.2"), new WeightedIP(1, "10.0.0.3"))))
 	  val domain = new ExtendedDomain("testexample.com.", 500, nsHosts, soa, null, addressHosts, null, null)
 	  

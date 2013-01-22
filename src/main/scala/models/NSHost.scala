@@ -23,15 +23,26 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 case class NSHost(
   @JsonProperty("class") cls: String = null,
   @JsonProperty("name") name: String = null,
-  @JsonProperty("weight") weight: Int = 0,
-  @JsonProperty("value") hostname: String = null
+  @JsonProperty("value") hostnames: Array[WeightedNS] = null
 ) extends Host("NS") {
-  def setName(newname: String) = NSHost(cls, newname, weight, hostname)
+  def setName(newname: String) = NSHost(cls, newname, hostnames)
   
   override def equals(other: Any) = other match {
-    case h: NSHost => h.cls == cls && h.name == name && h.hostname == hostname
+    case h: NSHost => cls == h.cls && name == h.name && h.hostnames.forall(wns => hostnames.exists(_.hostname == wns.hostname))
     case _ => false
   }
   
-  protected def getRData = new NS((hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList)
+  //protected def getRData2 = new NS((hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList)
+  
+  protected def getRData = 
+    if(hostnames.size == 1) hostnames(0).weightNS.map(hostname => new NS((hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList))
+    else hostnames.map(hostname => hostname.weightNS.map(wns =>  new NS((wns.split(".").map(_.getBytes) :+ Array(0.toByte)).toList))).flatten
+}
+
+case class WeightedNS(
+  @JsonProperty("weight") weight: Int = 1,
+  @JsonProperty("ns") hostname: String = null
+) {
+  def weightNS = 
+    if(weight < 1) Array[String]() else Array.tabulate(weight) {i => hostname}
 }

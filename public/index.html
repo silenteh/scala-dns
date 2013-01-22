@@ -204,15 +204,15 @@
 										<div data-type="rout-simple">
 											<label class="span4" for="ipv4_value_id"><strong>Value:</strong></label>
 											<div class="span8 control-group">
-												<textarea id="ipv4_value_id" name="ipv4_value" data-type="ip-value" placeholder="See example below"></textarea><br/>
+												<textarea id="ipv4_value_id" name="ipv4_value" data-type="single-value" placeholder="See example below"></textarea><br/>
 												<small>IPv4 address. Enter multiple addresses on separate lines. Example:<br/>192.0.2.235<br/>198.51.100.234</small>
 											</div>
 										</div>
 										<div data-type="rout-weight">
 											<div class="span4"><strong>Value:</strong></div>
 											<div class="span8 pull-right control-group">
-												<input class="input-mini mr" name="ipv4_weight[]" data-type="ip-weight" style="height: 14px; width: 50px;" placeholder="weight" type="text"/>
-												<input class="input-mini mr" name="ipv4_address[]" data-type="ip-address" style="height: 14px; width: 110px;" placeholder="ip address" type="text"/>
+												<input class="input-mini mr" name="ipv4_weight[]" data-type="wv-weight" style="height: 14px; width: 50px;" placeholder="weight" type="text"/>
+												<input class="input-mini mr" name="ipv4_address[]" data-type="wv-value" style="height: 14px; width: 110px;" placeholder="ip address" type="text"/>
 												<button type="button" class="btn btn-small"><i class="icon-plus"></i></button>
 											</div>
 										</div>
@@ -243,15 +243,15 @@
 										<div data-type="rout-simple">
 											<label class="span4" for="ipv6_value_id"><strong>Value:</strong></label>
 											<div class="span8 control-group">
-												<textarea id="ipv6_value_id" name="ipv6_value" data-type="ip-value" placeholder="See example below"></textarea><br/>
+												<textarea id="ipv6_value_id" name="ipv6_value" data-type="single-value" placeholder="See example below"></textarea><br/>
 												<small>IPv6 address. Enter multiple addresses on separate lines. Example:<br/>1ff:2dcb::1<br/>::1</small>
 											</div>
 										</div>
 										<div data-type="rout-weight">
 											<div class="span4"><strong>Value:</strong></div>
 											<div class="span8 pull-right control-group">
-												<input class="input-mini mr" name="ipv6_weight[]" data-type="ip-weight" style="height: 14px; width: 50px;" placeholder="weight" type="text"/>
-												<input class="input-mini mr" name="ipv6_address[]" data-type="ip-address" style="height: 14px; width: 110px;" placeholder="ip address" type="text"/>
+												<input class="input-mini mr" name="ipv6_weight[]" data-type="wv-weight" style="height: 14px; width: 50px;" placeholder="weight" type="text"/>
+												<input class="input-mini mr" name="ipv6_address[]" data-type="wv-value" style="height: 14px; width: 110px;" placeholder="ip address" type="text"/>
 												<button type="button" class="btn btn-small"><i class="icon-plus"></i></button>
 											</div>
 										</div>
@@ -314,21 +314,33 @@
 							<div class="header">
 								<div class="row-fluid">
 									<div class="span4"><strong>NS record:</strong></div>
+									<div class="span8">
+										<div class="pull-left mr">
+											<label class="radio"><input type="radio" name="ns_routing" data-type="routing-policy" data-name="routing-simple" data-id="ns_routing_simple" checked value="simple">Simple</label>
+										</div>
+										<div class="pull-left mr">
+											<label class="radio"><input type="radio" name="ns_routing" data-type="routing-policy" data-name="routing-weighted" data-id="ns_routing_weighted" value="weighted">Weighted</label>
+										</div>
+									</div>
 								</div>
 							</div>
 							<div class="main">
 								<div class="row-fluid mb">
 									<div class="row-fluid mb">
-										<label class="span4" for="ns_weight_id"><strong>Weight:</strong></label>
-										<div class="span8 control-group">
-											<input class="input-mini mr" id="ns_weight_id" name="ns_weight" data-type="text-param" style="height: 14px" value="0" type="text"/>
+										<div data-type="rout-simple">
+											<label class="span4" for="ns_value_id"><strong>Value:</strong></label>
+											<div class="span8 control-group">
+												<textarea id="ns_value_id" name="ns_value" data-type="single-value" placeholder="See example below"></textarea><br/>
+												<small>NS domain names. Enter multiple names on separate lines. Example:<br/>ns1.example.com<br/>ns2.example.com</small>
+											</div>
 										</div>
-									</div>
-									<div class="row-fluid mb">
-										<label class="span4" for="ns_value_id"><strong>Value:</strong></label>
-										<div class="span8 control-group">
-											<input class="input mr" id="ns_value_id" name="ns_value" data-type="text-value" style="height: 14px" type="text"/><br/>
-											<small>Enter an absolute domain name. Example:<br/>www.example.com<br/>@</small>
+										<div data-type="rout-weight">
+											<div class="span4"><strong>Value:</strong></div>
+											<div class="span8 pull-right control-group">
+												<input class="input-mini mr" name="ns_weight[]" data-type="wv-weight" style="height: 14px; width: 50px;" placeholder="weight" type="text"/>
+												<input class="input-mini mr" name="ns_hostname[]" data-type="wv-value" style="height: 14px; width: 110px;" placeholder="hostname" type="text"/>
+												<button type="button" class="btn btn-small"><i class="icon-plus"></i></button>
+											</div>
 										</div>
 									</div>
 								</div>

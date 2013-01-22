@@ -218,10 +218,15 @@ var ScalaDNS = ScalaDNS || {};
 				});
 				break;
 			case 'NS':
-				value = {
-					weight: data.weight, 
-					value: data.value
-				};
+				value = {weight: '', value: ''};
+				foreach(data.value, function(item, index) {
+					if(index > 0) {
+						value.value += '<br/>';
+						value.weight += '<br/>';
+					}
+					value.weight += item.weight;
+					value.value += item.ns;
+				});
 				break;
 			case 'CNAME':
 			case 'PTR':
@@ -281,7 +286,6 @@ var ScalaDNS = ScalaDNS || {};
 	}
 	
 	ScalaDNS.DomainRecords.prototype._recordsUpdated = function() {
-		console.log(ScalaDNS.fullDomains.get(this.domain.origin));
 		this.domain = ScalaDNS.fullDomains.get(this.domain.origin);
 		this.draw();
 	}

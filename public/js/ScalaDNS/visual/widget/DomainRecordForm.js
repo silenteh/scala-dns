@@ -14,6 +14,7 @@ var ScalaDNS = ScalaDNS || {};
 			type: null,
 			ipv4_policy: null,
 			ipv6_policy: null,
+			ns_policy: null,
 			selected_ips: {}
 		}
 	}
@@ -31,11 +32,12 @@ var ScalaDNS = ScalaDNS || {};
 	ScalaDNS.DomainRecordForm.prototype.init = function() {
 		if(this.domain === null) return;
 		var that = this, ipWeightSwitch;
-		this.form = this.initFormFunctions();
 		this._tpl = $('#setsFormTemplate').clone().removeAttr('id').removeClass('hidden');
 		this._weighted_ipv4_tpl = $('[data-name="a"] [data-type="rout-weight"] .control-group', this._tpl).clone();
 		this._weighted_ipv6_tpl = $('[data-name="aaaa"] [data-type="rout-weight"] .control-group', this._tpl).clone();
+		this._weighted_ns_tpl = $('[data-name="ns"] [data-type="rout-weight"] .control-group', this._tpl).clone();
 		this._validator = this.initValidator();
+		this.form = this.initFormFunctions();
 		
 		this.updateFormStatus();
 		
@@ -81,6 +83,13 @@ var ScalaDNS = ScalaDNS || {};
 							validateBody = that._validator[typ + 'Weighted'].validate();
 						}
 						break;
+					case 'NS':
+						if($('[data-id="ns_routing_simple"]').prop('checked')) {
+							validateBody = that._validator[typ + 'Simple'].validate();
+						} else {
+							validateBody = that._validator[typ + 'Weighted'].validate();
+						}
+						break;
 					default:
 						validateBody = that._validator[typ].validate();
 						break;
@@ -98,7 +107,7 @@ var ScalaDNS = ScalaDNS || {};
 						domain[typ].push(newRecord);
 					}
 					
-					if(domain.SOA && domain.NS && domain.NS.length > 1) {
+					if(domain.SOA && domain.NS && (domain.NS.length > 1 || domain.NS[0].value.length > 1)) {
 						ScalaDNS.DomainService.saveDomain(domain, function(result) {
 							if(result.code === 0) {
 								ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
@@ -141,6 +150,12 @@ var ScalaDNS = ScalaDNS || {};
 			}
 		});
 		
+		this._tpl.delegate('[data-name="ns"] [data-type="add"]', 'click', function() {
+			if(that._status.blocked === false) {
+				that.ipAddRow(this, that._weighted_ns_tpl.clone());
+			}
+		});
+		
 		this._tpl.delegate('[data-type="remove"]', 'click', function() {
 			var typ = $(':fname(typ)', that._tpl).val();
 			$(this).closest('.control-group').remove();
@@ -168,6 +183,16 @@ var ScalaDNS = ScalaDNS || {};
 			}
 		});
 		
+		this._tpl.delegate('[name="ns_routing"]', 'click', function(evt) {
+			if(that._status.blocked === false) {
+				that._status.ns_policy = $(this).attr('data-id');
+				that.ipWeightSwitch(this, 'ns', 'ns', that._weighted_ns_tpl.clone());
+			} else {
+				evt.preventDefault();
+				$('[data-id="' + that._status.ns_policy + '"]').prop('checked', true);
+			}
+		});
+		
 		this._tpl.delegate('.control-group input[type="text"], .control-group textarea', 'keyup', function() {
 			that._onValidate(this);
 		});
@@ -190,6 +215,16 @@ var ScalaDNS = ScalaDNS || {};
 		this._tpl.delegate('[name="ipv6_value"]', 'keyup', function() {
 			that._status.blocked = false;
 			that._validator.AAAASimpleDuplicity.validate();
+		});
+		
+		this._tpl.delegate('[name="ns_hostname[]"]', 'keyup', function() {
+			that._status.blocked = false;
+			that._validator.NSWeightedDuplicity.validate();
+		});
+		
+		this._tpl.delegate('[name="ns_value"]', 'keyup', function() {
+			that._status.blocked = false;
+			that._validator.NSSimpleDuplicity.validate();
 		});
 		
 		this._tpl.bind('click', function(evt) {
@@ -327,39 +362,35 @@ var ScalaDNS = ScalaDNS || {};
 	ScalaDNS.DomainRecordForm.prototype.initFormFunctions = function() {
 		var that = this,
 		
-		populateAddress = function(data, container) {
-			var row_tpl;
-			if(container.attr('data-name') === 'aaaa') {
-				row_tpl = that._weighted_ipv6_tpl;
-			} else {
-				row_tpl = that._weighted_ipv4_tpl;
-			}
-			$(':dtype(rout-weight) .control-group', container).remove();
-			$(':dtype(ip-value)', container).empty();
-			$(':dtype(routing-policy)', container).removeAttr('checked');
-			foreach(data.value, function(item, index) {
-				row = row_tpl.clone();
-				if(index === 0) {
-					$('button', row).attr('data-type', 'add');
+		populateWeighted = function(row_tpl, id) {
+			return function(data, container) {
+				$(':dtype(rout-weight) .control-group', container).remove();
+				$(':dtype(single-value)', container).empty();
+				$(':dtype(routing-policy)', container).removeAttr('checked');
+				foreach(data.value, function(item, index) {
+					row = row_tpl.clone();
+					if(index === 0) {
+						$('button', row).attr('data-type', 'add');
+					} else {
+						$('button', row).attr('data-type', 'remove');
+						$('button i', row).removeClass('icon-plus');
+						$('button i', row).addClass('icon-minus');
+						$(':dtype(single-value)', container).val($(':dtype(single-value)', container).val() + '\n');
+					}
+					$(':dtype(wv-weight)', row).val(item.weight);
+					$(':dtype(wv-value)', row).val(item[id]);
+					$(':dtype(rout-weight)', container).append(row);
+					$(':dtype(single-value)', container).val($(':dtype(single-value)', container).val() + item[id]);
+				});
+				if(that.isWeighted(data.value)) {
+					$(':dname(routing-weighted)', container).prop('checked', true);
+					$(':dtype(rout-simple)', container).hide();
+					$(':dtype(rout-weight)', container).show();
 				} else {
-					$('button', row).attr('data-type', 'remove');
-					$('button i', row).removeClass('icon-plus');
-					$('button i', row).addClass('icon-minus');
-					$(':dtype(ip-value)', container).val($(':dtype(ip-value)', container).val() + '\n');
+					$(':dname(routing-simple)', container).prop('checked', true);
+					$(':dtype(rout-weight)', container).hide();
+					$(':dtype(rout-simple)', container).show();
 				}
-				$(':dtype(ip-weight)', row).val(item.weight);
-				$(':dtype(ip-address)', row).val(item.ip);
-				$(':dtype(rout-weight)', container).append(row);
-				$(':dtype(ip-value)', container).val($(':dtype(ip-value)', container).val() + item.ip);
-			});
-			if(that.isWeighted(data.value)) {
-				$(':dname(routing-weighted)', container).prop('checked', true);
-				$(':dtype(rout-simple)', container).hide();
-				$(':dtype(rout-weight)', container).show();
-			} else {
-				$(':dname(routing-simple)', container).prop('checked', true);
-				$(':dtype(rout-weight)', container).hide();
-				$(':dtype(rout-simple)', container).show();
 			}
 		},
 		
@@ -369,11 +400,6 @@ var ScalaDNS = ScalaDNS || {};
 		
 		populateMx = function(data, container) {
 			$(':dtype(text-param)', container).val(data.priority);
-			$(':dtype(text-value)', container).val(data.value);
-		},
-		
-		populateNs = function(data, container) {
-			$(':dtype(text-param)', container).val(data.weight);
 			$(':dtype(text-value)', container).val(data.value);
 		},
 		
@@ -404,33 +430,32 @@ var ScalaDNS = ScalaDNS || {};
 			});
 		},
 		
-		parseAddress = function(container) {
-			var json, value = [], weight = 1;
-			json = {
-				name: $(':fname(name)', that._tpl).val(),
-				'class': 'in'
-			};
-			if($(':dname(routing-simple)', container).is(':checked')) {
-				foreach($(':dtype(ip-value)', container).val().split('\n'), function(item) {
-					if(item !== '') {
-						value.push({weight: weight, ip: item});
-					}
-				});
-			} else {
-				$(':dtype(rout-weight) .control-group', container).each(function() {
-					if($(':dtype(ip-address)', this).val() !== '') {
-						if($(':dtype(ip-weight)', this).val() != '') {
-							weight = $(':dtype(ip-weight)', this).val();
+		parseWeighted = function(callback) {
+			return function(container) {
+				var json, value = [], weight = 1, typ = container.attr('data-name');
+				json = {
+					name: $(':fname(name)', that._tpl).val(),
+					'class': 'in'
+				};
+				if($(':dname(routing-simple)', container).is(':checked')) {
+					foreach($(':dtype(single-value)', container).val().split('\n'), function(item) {
+						if(item !== '') {
+							value.push(callback(weight, item));
 						}
-						value.push({
-							weight: weight,
-							ip: $(':dtype(ip-address)', this).val()
-						});
-					}
-				});
+					});
+				} else {
+					$(':dtype(rout-weight) .control-group', container).each(function() {
+						if($(':dtype(wv-value)', this).val() !== '') {
+							if($(':dtype(wv-weight)', this).val() != '') {
+								weight = $(':dtype(wv-weight)', this).val();
+							}
+							value.push(callback(weight, $(':dtype(wv-value)', this).val()));
+						}
+					});
+				}
+				json.value = value;
+				return json;
 			}
-			json.value = value;
-			return json;
 		},
 		
 		parseText = function(container) {
@@ -446,15 +471,6 @@ var ScalaDNS = ScalaDNS || {};
 				name: $(':fname(name)', that._tpl).val(),
 				'class': 'in',
 				priority: $(':dtype(text-param)', container).val(),
-				value: $(':dtype(text-value)', container).val()	
-			}
-		},
-		
-		parseNs = function(container) {
-			return {
-				name: $(':fname(name)', that._tpl).val(),
-				'class': 'in',
-				weight: $(':dtype(text-param)', container).val(),
 				value: $(':dtype(text-value)', container).val()	
 			}
 		},
@@ -489,12 +505,12 @@ var ScalaDNS = ScalaDNS || {};
 		
 		return {
 			'A': {
-				populate: populateAddress,
-				parse: parseAddress
+				populate: populateWeighted(that._weighted_ipv4_tpl, 'ip'),
+				parse: parseWeighted(function(weight, address) {return {weight: weight, ip: address};})
 			},
 			'AAAA': {
-				populate: populateAddress,
-				parse: parseAddress
+				populate: populateWeighted(that._weighted_ipv6_tpl, 'ip'),
+				parse: parseWeighted(function(weight, address) {return {weight: weight, ip: address};})
 			},
 			'CNAME': {
 				populate: populateText,
@@ -505,8 +521,8 @@ var ScalaDNS = ScalaDNS || {};
 				parse: parseMx
 			},
 			'NS': {
-				populate: populateNs,
-				parse: parseNs
+				populate: populateWeighted(that._weighted_ns_tpl, 'ns'),
+				parse: parseWeighted(function(weight, hostname) {return {weight: weight, ns: hostname};})
 			},
 			'PTR': {
 				populate: populateText,
@@ -540,7 +556,8 @@ var ScalaDNS = ScalaDNS || {};
 		var parent = $(target).parent().closest('[data-name]'),
 			cont_simple = $('[data-type="rout-simple"]', parent),
 			cont_weight = $('[data-type="rout-weight"]', parent),
-			textarea = $('[name="' + prefix + '_value"]', parent),
+			//textarea = $('[name="' + prefix + '_value"]', parent),
+			textarea = $(':dtype(single-value)', parent),
 			that = this,
 			tpl;
 		
@@ -557,11 +574,11 @@ var ScalaDNS = ScalaDNS || {};
 							unique_ips[item] = item;
 							tpl = template.clone();
 							if(that._status.selected_ips[item]) {
-								$('[name="' + prefix + '_weight[]"]', tpl).val(that._status.selected_ips[item]);
+								$(':dtype(wv-weight)', tpl).val(that._status.selected_ips[item]);
 							} else {
-								$('[name="' + prefix + '_weight[]"]', tpl).val('');
+								$(':dtype(wv-weight)', tpl).val('');
 							}
-							$('[name="' + prefix + '_address[]"]', tpl).val(item);
+							$(':dtype(wv-value)', tpl).val(item);
 							if(index == 0) {
 								$('button', tpl).attr('data-type', 'add');
 							} else {
@@ -582,9 +599,9 @@ var ScalaDNS = ScalaDNS || {};
 				this._status.selected_ips = {};
 				textarea.val('');
 				$('[data-type="rout-weight"] .control-group', parent).each(function() {
-					value = $('[name="' + prefix + '_address[]"]', this).val();
+					value = $(':dtype(wv-value)', this).val();
 					if(value != '' && that._status.selected_ips[value] === undefined) {
-						that._status.selected_ips[value] = $('[name="' + prefix + '_weight[]"]', this).val();
+						that._status.selected_ips[value] = $(':dtype(wv-weight)', this).val();
 						if(textarea.val().indexOf(value) < 0) {
 							if(textarea.val() != '') {
 								textarea.val(textarea.val() + '\n');
@@ -636,7 +653,10 @@ var ScalaDNS = ScalaDNS || {};
 			AAAAWeighted: that._initAAAAWeightedValidation(form, callback),
 			CNAME: that._initCNAMEValidation(form, callback),
 			MX: that._initMXValidation(form, callback),
-			NS: that._initNSValidation(form, callback),
+			NSSimpleDuplicity: that._initNSSimpleDuplicityValidation(form, duplicityCallback),
+			NSWeightedDuplicity: that._initNSWeightedDuplicityValidation(form, duplicityCallback),
+			NSSimple: that._initNSSimpleValidation(form, callback),
+			NSWeighted: that._initNSWeightedValidation(form, callback),
 			PTR: that._initPTRValidation(form, callback),
 			SOA: that._initSOAValidation(form, callback),
 			TXT: that._initTXTValidation(form, callback)
@@ -788,7 +808,7 @@ var ScalaDNS = ScalaDNS || {};
 		return form.validateDNS({
 			rules: {
 				'ipv6_address[]': {
-					requiredInGroup: true
+					uniqueInGroup: true
 				}
 			},
 			messages: {
@@ -886,13 +906,43 @@ var ScalaDNS = ScalaDNS || {};
 		});
 	}
 	
-	ScalaDNS.DomainRecordForm.prototype._initNSValidation = function(form, callback) {
+	ScalaDNS.DomainRecordForm.prototype._initNSSimpleDuplicityValidation = function(form, callback) {
 		return form.validateDNS({
 			rules: {
-				ns_weight: {
-					number: true
-				},
-				ns_value: {
+				'ns_value': {
+					uniqueInText: '\n'
+				}
+			},
+			messages: {
+				'ns_value': {
+					uniqueInText: 'Duplicate NS hostname'
+				}
+			},
+			callback: callback
+		});
+	}
+	
+	ScalaDNS.DomainRecordForm.prototype._initNSWeightedDuplicityValidation = function(form, callback) {
+		return form.validateDNS({
+			rules: {
+				'ns_hostname[]': {
+					uniqueInGroup: true
+				}
+			},
+			messages: {
+				'ns_hostname[]': {
+					uniqueInGroup: 'Duplicate NS hostname'
+				}
+			},
+			callback: callback
+		});
+	}
+	
+	ScalaDNS.DomainRecordForm.prototype._initNSSimpleValidation = function(form, callback) {
+		return form.validateDNS({
+			rules: {
+				'ns_value': {
+					required: true,
 					domainName: {
 						absolute: true,
 						relative: true
@@ -900,10 +950,29 @@ var ScalaDNS = ScalaDNS || {};
 				}
 			},
 			messages: {
-				ns_value: {
-					number: 'Not a valid number'
-				},
-				ns_value: {
+				'ns_value': {
+					required: 'No NS hostname specified',
+					domainName: 'Not a valid domain name'
+				}
+			},
+			callback: callback
+		});
+	}
+	
+	ScalaDNS.DomainRecordForm.prototype._initNSWeightedValidation = function(form, callback) {
+		return form.validateDNS({
+			rules: {
+				'ns_hostname[]': {
+					requiredGroup: true,
+					domainName: {
+						absolute: true,
+						relative: true
+					}
+				}
+			},
+			messages: {
+				'ns_hostname[]': {
+					requiredGroup: 'No IP address specified',
 					domainName: 'Not a valid domain name'
 				}
 			},
