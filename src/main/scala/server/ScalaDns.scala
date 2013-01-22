@@ -36,13 +36,13 @@ object ScalaDns {
 	logger.debug(domain.nameservers.map(_.hostnames.toList.toString).toList.toString)
 	
 	val records = DnsLookupService.hostToRecords(List("blah", "blah"), RecordType.NS.id, 1)
-	logger.debug(records.toString)
+	logger.debug(records.toString)*/
 	
     if(args.exists(_.startsWith("-user="))) {
       val userParts = args.find(_.startsWith("-user=")).get.substring(6).split(""",""")
       if(userParts.length != 2) println("Invalid arguments. Usage: -user=<username>,<password>")
       else println(UserCreator(userParts(0), userParts(1)))
-    }*/
+    }
     
     if(args.isEmpty || args.contains("-start")) {
 	  Bootstrap.start

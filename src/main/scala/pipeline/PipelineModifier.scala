@@ -1,4 +1,4 @@
-package tools
+package pipeline
 
 import org.jboss.netty.channel.ChannelPipeline
 import org.jboss.netty.channel.ChannelHandler

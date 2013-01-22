@@ -23,7 +23,6 @@ import org.jboss.netty.handler.codec.http.HttpRequestDecoder
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder
 import server.http.HttpHandler
 import server.http.DefaultAuthHttpHandler
-import tools.PipelineModifier
 import server.http.HttpModifiers
 
 class HttpPipeline extends ChannelPipelineFactory {

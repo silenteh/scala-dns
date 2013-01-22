@@ -66,7 +66,11 @@ var ScalaDNS = ScalaDNS || {};
 		var i, domain, row, count;
 		$('[data-id="delete-hz"]', this._tpl).prop('disabled', true);
 		if(this.datatable === undefined) {
-			this.datatable = $('table', this._tpl).dataTable();
+			this.datatable = $('table', this._tpl).dataTable({
+				'fnDrawCallback': function(item) {
+					$('tr', item.nTBody).addClass('gradeU');
+				}
+			});
 		}
 		this.datatable.fnClearTable();
 		//$('tbody', this._tpl).empty();

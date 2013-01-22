@@ -34,7 +34,7 @@ import datastructures.UserCache
 import models.User
 import sun.misc.BASE64Decoder
 import org.jboss.netty.channel.ChannelPipeline
-import tools.PipelineModifier
+import pipeline.PipelineModifier
 
 class DefaultAuthHttpHandler(modifiers: Map[String, PipelineModifier]) extends SimpleChannelUpstreamHandler {
 

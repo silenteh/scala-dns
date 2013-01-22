@@ -1,6 +1,6 @@
 package server.http.file
 
-import tools.PipelineModifier
+import pipeline.PipelineModifier
 import org.jboss.netty.channel.ChannelPipeline
 
 class FileHttpModifier extends PipelineModifier {

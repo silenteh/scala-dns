@@ -129,7 +129,11 @@ var ScalaDNS = ScalaDNS || {};
 	ScalaDNS.DomainRecords.prototype.draw = function() {
 		var i, recordSet, record, data, row, that = this, addedData, addedRow;
 		if(this.datatable === undefined) {
-			this.datatable = $('table', this._tpl).dataTable();
+			this.datatable = $('table', this._tpl).dataTable({
+				'fnDrawCallback': function(item) {
+					$('tr', item.nTBody).addClass('gradeU');
+				}
+			});
 		}
 		this.datatable.fnClearTable();
 		//$('tbody', this._tpl).empty();

@@ -1,6 +1,6 @@
 package server.http.json
 
-import tools.PipelineModifier
+import pipeline.PipelineModifier
 import org.jboss.netty.channel.ChannelPipeline
 
 class JsonHttpModifier extends PipelineModifier {

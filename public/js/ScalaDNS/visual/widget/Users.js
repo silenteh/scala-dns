@@ -64,7 +64,11 @@ var ScalaDNS = ScalaDNS || {};
 	ScalaDNS.Users.prototype.draw = function() {
 		var i, user, row;
 		if(this.datatable === undefined) {
-			this.datatable = $('table', this._tpl).dataTable();
+			this.datatable = $('table', this._tpl).dataTable({
+				'fnDrawCallback': function(item) {
+					$('tr', item.nTBody).addClass('gradeU');
+				}
+			});
 		}
 		$('[data-id="delete-us"]', this._tpl).prop('disabled', true);
 		//$('tbody', this._tpl).empty();

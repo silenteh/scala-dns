@@ -1,6 +1,6 @@
 package server.http
 
-import tools.PipelineModifier
+import pipeline.PipelineModifier
 import server.http.file.FileHttpModifier
 import server.http.json.JsonHttpModifier
 
