@@ -352,11 +352,11 @@ td.details {
 	background-color: #99B3FF;
 }
 
-table.display tr.even.row_selected td {
+table.display tr.odd.row_selected td {
 	background-color: #D6E9F1;
 }
 
-table.display tr.odd.row_selected td {
+table.display tr.even.row_selected td {
 	background-color: #B4D2E0;
 }
 

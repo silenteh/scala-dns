@@ -85,7 +85,7 @@ var ScalaDNS = ScalaDNS || {};
 						delete that.domain.typ;
 					}
 				});
-				if(that.domain.SOA && that.domain.NS && that.domain.NS.length > 1) {
+				if(that.domain.SOA && that.domain.NS && (that.domain.NS.length > 1 || that.domain.NS[0].value.length > 1)) {
 					ScalaDNS.DomainService.saveDomain(that.domain, function(result) {
 						if(result.code === 0) {
 							that.domain = result.data[0];
@@ -136,7 +136,6 @@ var ScalaDNS = ScalaDNS || {};
 			});
 		}
 		this.datatable.fnClearTable();
-		//$('tbody', this._tpl).empty();
 		
 		ScalaDNS.ConfirmBox.setMessage('Delete records', '<p>You are about to delete the selected record(s). This action is irreversible.</p><p>Do you want to proceed?</p>', 'btn-danger');
 		if(this.domain !== null) {
@@ -144,7 +143,6 @@ var ScalaDNS = ScalaDNS || {};
 				if(that.domain[typ]) {
 					recordSet = that.domain[typ];
 					for(i = 0; i < recordSet.length; i++) {
-						//row = that._row_tpl.clone();
 						row = [];
 						record = recordSet[i];
 						data = that.buildValue(typ, record);
@@ -172,26 +170,6 @@ var ScalaDNS = ScalaDNS || {};
 						addedRow = that.datatable.fnSettings().aoData[addedData[0]].nTr;
 						$(addedRow).attr('data-id', i);
 						$(addedRow).attr('data-typ', typ);
-						//$('table tr:last', that._tpl).attr('data-id', i);
-						/*row.attr('data-id', i);
-						row.attr('data-typ', typ);
-						row.addClass('even');
-						$('[data-type="record-name"]', row).html(record.name);
-						$('[data-type="record-type"]', row).html(typ);
-						
-						if(data.value) {
-							$('[data-type="record-value"]', row).html(data.value);
-						} else {
-							$('[data-type="record-value"]', row).html(data);
-						}
-						if(data.ttl) {
-							$('[data-type="record-ttl"]', row).html(data.ttl);
-						}
-						if(data.weight) {
-							$('[data-type="record-weight"]', row).html(data.weight);
-						}
-						
-						$('tbody', that._tpl).append(row);*/
 					}
 				}
 			});
