@@ -66,10 +66,9 @@ var ScalaDNS = ScalaDNS || {};
 					validateHead, validateBody, record;
 				evt.preventDefault();
 				
-				validateHead = that._validator.name.validate();
-				
 				switch(typ) {
 					case 'A':
+						validateHead = that._validator.name.validate();
 						if($('[data-id="ipv4_routing_simple"]').prop('checked')) {
 							validateBody = that._validator[typ + 'Simple'].validate();
 						} else {
@@ -77,6 +76,7 @@ var ScalaDNS = ScalaDNS || {};
 						}
 						break;
 					case 'AAAA':
+						validateHead = that._validator.name.validate();
 						if($('[data-id="ipv6_routing_simple"]').prop('checked')) {
 							validateBody = that._validator[typ + 'Simple'].validate();
 						} else {
@@ -84,13 +84,19 @@ var ScalaDNS = ScalaDNS || {};
 						}
 						break;
 					case 'NS':
+						validateHead = that._validator.name.validate();
 						if($('[data-id="ns_routing_simple"]').prop('checked')) {
 							validateBody = that._validator[typ + 'Simple'].validate();
 						} else {
 							validateBody = that._validator[typ + 'Weighted'].validate();
 						}
 						break;
+					case 'CNAME':
+						validateHead = that._validator.simpleName.validate();
+						validateBody = that._validator[typ].validate();
+						break;
 					default:
+						validateHead = that._validator.name.validate();
 						validateBody = that._validator[typ].validate();
 						break;
 				}
@@ -643,6 +649,7 @@ var ScalaDNS = ScalaDNS || {};
 		
 		return {
 			name: that._initNameValidation(form, callback),
+			simpleName: that._initSimpleNameValidation(form, callback),
 			ASimpleDuplicity: that._initASimpleDuplicityValidation(form, duplicityCallback),
 			AWeightedDuplicity: that._initAWeightedDuplicityValidation(form, duplicityCallback),
 			ASimple: that._initASimpleValidation(form, callback),
@@ -686,6 +693,25 @@ var ScalaDNS = ScalaDNS || {};
 				parent.removeClass('error');
 			}
 		}
+	}
+	
+	ScalaDNS.DomainRecordForm.prototype._initSimpleNameValidation = function(form, callback) {
+		return form.validateDNS({
+			rules: {
+				name: {
+					hostName: {
+						relative: true,
+						absolute: false
+					}
+				}
+			},
+			messages: {
+				name: {
+					hostName: 'Not a valid host name'
+				}
+			},
+			callback: callback
+		});
 	}
 	
 	ScalaDNS.DomainRecordForm.prototype._initNameValidation = function(form, callback) {

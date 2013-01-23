@@ -33,7 +33,7 @@ case class MX(preference: Int, record: List[Array[Byte]]) extends AbstractRecord
   }
   
   def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = 
-    Name.toCompressedByteArray(record, (input._1 ++ RRData.shortToBytes(preference.toShort), input._2))
+    Name.toCompressedByteArray(record :+ Array[Byte](), (input._1 ++ RRData.shortToBytes(preference.toShort), input._2))
 }
 
 object MX {

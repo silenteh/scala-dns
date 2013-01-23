@@ -28,6 +28,7 @@ import records._
 import org.slf4j.LoggerFactory
 import scala.Array.canBuildFrom
 import scala.annotation.tailrec
+import models.SoaHost
 
 object DnsLookupService {
   val logger = LoggerFactory.getLogger("app")
@@ -59,16 +60,22 @@ object DnsLookupService {
   def zoneToRecords(qname: List[String], qclass: Int) = {
     val domain = DNSCache.getDomain(RecordType.ALL.id, qname)
     logger.debug(qname.mkString(".") + "., " + relativeHostName(qname, domain))
+    val othersoa = domain.findHost(relativeHostName(qname, domain), RecordType.SOA.id) match {
+      case Some(soa) => domain.settings.filterNot(s => s.equals(soa)).toArray
+      case None => Array[SoaHost]()
+    }
+    
     val (hostnames, fullNameExists) = {
-      val fullMatches = domain.hosts
+      val fullMatches = domain.hosts.filterNot(h => othersoa.exists(s => h.name.endsWith(s.name)))
         .filter(host => relativeHostName(qname, domain) == domain.fullName || (host.name.endsWith(relativeHostName(qname, domain))))
         .map(host => (host.name.split("""\.""") ++ domain.nameParts).toList).distinct
 
       if (!fullMatches.isEmpty && domain.hosts.exists(h => 
-        relativeHostName(h.name.split("""\.""").toList, domain) == relativeHostName(qname, domain))) (fullMatches, true)
-      else (findAncestors(domain, qname, qclass, true), false)
+        absoluteHostName(h.name, domain.fullName).endsWith(qname.mkString(".") + "."))) (fullMatches, true)
+      //else (findAncestors(domain, qname, qclass, true), false)
+      else (List(), false)
     }
-
+    
     val records = hostnames.foldRight(Set[List[(String, AbstractRecord)]]()) { case (name, records) =>
       if(!fullNameExists && !records.isEmpty && records.size > 0) records
       else
@@ -97,9 +104,12 @@ object DnsLookupService {
     })
 
     if (!soaExists) List()
-    else toDistinct(records.foldRight(List[(String, AbstractRecord)]()) { case (left, right) => 
-      left.filterNot(record => right.exists(r => r._1 == record._1 && r._2.isEqualTo(record._2))) ++ right
-    }.toList)
+    else {
+      val distinctRecords = toDistinct(records.foldRight(List[(String, AbstractRecord)]()) { case (left, right) => 
+        left.filterNot(record => right.exists(r => r._1 == record._1 && r._2.isEqualTo(record._2))) ++ right
+      }.toList).partition(_._1 == qname.mkString(".") + ".")
+      distinctRecords._1.head :: (distinctRecords._2 ++ distinctRecords._1.tail)
+    }
   }
 
   // Not a tail recursion
@@ -170,7 +180,7 @@ object DnsLookupService {
     if (hnm.length == 0 || hnm == "@") domain.fullName else hnm
   }
 
-  private def absoluteHostName(name: String, basename: String) =
+  private def absoluteHostName(name: String, basename: String) = 
     if (name == "@") basename
     else if (name.endsWith(".")) name
     else name + "." + basename

@@ -88,7 +88,7 @@ object DomainValidationService {
   
   def checkCnameHost(host: CnameHost, domain: ExtendedDomain) = {
     val names = domain.cname.map(_.name).toList
-    val name = checkHostName(host, names)
+    val name = checkHostName(host, names, true)
     val cname = checkDomainName(host.hostname)
     val unique = isUnique(host.hostname, names)
     (name._1 && cname._1 && unique._1, name._2 :: cname._2 :: unique._2 :: Nil)
@@ -171,11 +171,13 @@ object DomainValidationService {
       (true, null)
   }
 
-  def checkHostName(host: Host, names: List[String]) = {
+  def checkHostName(host: Host, names: List[String], ignoreUnique: Boolean = false) = {
     val domainCheck = checkDomainName(host.name, false, true)
     if(!domainCheck._1) domainCheck
     else {
-      val uniqueCheck = isUnique(host.name, names)
+      val uniqueCheck = 
+        if(ignoreUnique) (true, null)
+        else isUnique(host.name, names)
       if(!uniqueCheck._1) uniqueCheck
       else if (host.name == "@" || host.name.matches("""([a-zA-Z0-9\*]{1}([a-zA-Z0-9\-\*]*[a-zA-Z0-9\*]{1})*\.{0,1})*""")) (true, null)
       else (false, validationMessages("name_not_hostname").format(host.name))

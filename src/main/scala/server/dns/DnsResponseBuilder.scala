@@ -45,11 +45,14 @@ object DnsResponseBuilder {
         val domain = DNSCache.getDomain(query.qtype, qname)
         
         val records =
+          // Zone file transfer
           if(query.qtype == RecordType.AXFR.id) {
             val allowedIps = ConfigService.config.getStringList("zoneTransferAllowedIps").toList
-            if(maxLength < 0) throw new DomainNotFoundException
+            if(maxLength != -1) throw new DomainNotFoundException
             else if(!allowedIps.contains(sourceIP.substring(0, sourceIP.lastIndexOf(":")))) throw new DomainNotFoundException
             else DnsLookupService.zoneToRecords(qname, query.qclass)
+            
+          // Standard DNS response
           } else {
             val rdata = DnsLookupService.hostToRecords(qname, query.qtype, query.qclass)
             if (!rdata.isEmpty) rdata
@@ -57,7 +60,7 @@ object DnsResponseBuilder {
           }
         
         // @TODO: Return NS when host not found
-
+        
         val authority =
           if (!records.isEmpty || query.qtype == RecordType.AXFR.id) List[(String, AbstractRecord)]()
           else DnsLookupService.ancestorToRecords(domain, qname, RecordType.NS.id, query.qclass, false)

@@ -31,7 +31,7 @@ case class NS(record: List[Array[Byte]]) extends AbstractRecord {
     case _ => false
   }
   
-  def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = Name.toCompressedByteArray(record, input)
+  def toCompressedByteArray(input: (Array[Byte], Map[String, Int])) = Name.toCompressedByteArray(record :+ Array[Byte](), input)
 }
 
 object NS {
