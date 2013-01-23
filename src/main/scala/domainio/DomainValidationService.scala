@@ -21,6 +21,7 @@ import datastructures.DNSCache
 import enums.RecordType
 import models._
 import org.slf4j.LoggerFactory
+import utils.HostnameUtils
 
 object DomainValidationService {
 
@@ -91,7 +92,13 @@ object DomainValidationService {
     val name = checkHostName(host, names, true)
     val cname = checkDomainName(host.hostname)
     val unique = isUnique(host.hostname, names)
-    (name._1 && cname._1 && unique._1, name._2 :: cname._2 :: unique._2 :: Nil)
+    val uniqueHostname = 
+      if(domain.cname.filterNot(_.equals(host)).exists(c =>
+        c.name == host.name && 
+        HostnameUtils.absoluteHostName(c.hostname, domain.fullName) == HostnameUtils.absoluteHostName(host.hostname, domain.fullName)
+      )) (false, validationMessages("duplicate").format(host.name))
+      else (true, null)
+    (name._1 && cname._1 && unique._1 && uniqueHostname._1, name._2 :: cname._2 :: unique._2 :: uniqueHostname._2 :: Nil)
   }
   
   def checkMXHost(host: MXHost, domain: ExtendedDomain) = {
