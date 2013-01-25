@@ -28,14 +28,14 @@ object DomainValidationService {
   val logger = LoggerFactory.getLogger("app")
 
   def validate(domain: ExtendedDomain, filename: String = null) = {
-    if (domain == null) (false, validationMessages("unknown") :: Nil)
+    if (domain == null) (2, validationMessages("unknown") :: Nil)
     else {
       val domainName = checkDomainName(domain.fullName, true, false)
       //val nameValidHostname = checkHostName(domain.fullName)
       val unique =
         if (filename == null) isUnique(domain.fullName, DNSCache.getDomainNames.toList)
         else isUnique(domain.fullName, DNSCache.getDomainNames.toList, filename :: Nil)
-      val body = domain.hosts.foldRight((true, List[String]())) {
+      val body = domain.hosts.foldRight((0, List[String]())) {
         case (host, (valid, messages)) =>
           val check = host match {
             case h: AddressHost => checkAddressHost(h, domain)
@@ -48,18 +48,23 @@ object DomainValidationService {
             case h: TxtHost => checkTxtHost(h, domain)
             case _ => checkGenericHost(host, domain)
           }
-          (valid && check._1, messages ++ check._2)
+          (scala.math.max(valid, check._1), messages ++ check._2)
       }
       val unreachable = checkUnreachable(domain)
       val duplicate = checkRecordDuplicities(domain)
+      val infinite = checkInfiniteLoops(domain)
       val incomplete = 
         if(domain.settings == null || domain.settings.isEmpty || domain.nameservers == null || 
             (domain.nameservers.length < 2 && domain.nameservers.head.hostnames.length < 2)) 
-          (false, validationMessages("incomplete") :: Nil)
+          (2, validationMessages("incomplete") :: Nil)
         else
-          (true, Nil)
-      (domainName._1 && unique._1 && body._1 && unreachable._1 && duplicate._1 && incomplete._1, 
-       (domainName._2 :: unique._2 :: (body._2 ++ unreachable._2 ++ duplicate._2 ++ incomplete._2)).filterNot(_ == null).distinct)
+          (0, Nil)
+          
+          List(1, 2, 1, 0, 1).max
+          
+      ((domainName._1 :: unique._1 :: body._1 :: unreachable._1 :: duplicate._1 :: incomplete._1 :: infinite._1 :: Nil).max, 
+       (domainName._2 :: unique._2 :: (body._2 ++ unreachable._2 ++ duplicate._2 ++ incomplete._2 ++ infinite._2))
+         .filterNot(_ == null).distinct)
     }
   }
   
@@ -67,23 +72,23 @@ object DomainValidationService {
   def checkAddressHost(host: AddressHost, domain: ExtendedDomain) = {
     val names = domain.address.map(_.name).toList
     val name = checkHostName(host, names)
-    if(host.ips == null || host.ips.isEmpty) (false, validationMessages("empty").format("IP address") :: Nil)
+    if(host.ips == null || host.ips.isEmpty) (2, validationMessages("empty").format("IP address") :: Nil)
     else host.ips.foldRight(name._1, List(name._2)) {case (ip, (valid, messages)) =>
       val ipParts = ip.ip.split("""\.""")
       if (ipParts.length == 4 && ipParts.forall(_.matches("""^[0-9]+$"""))) (valid, messages)
-      else (false, validationMessages("ipv4_not_valid").format(ip.ip) :: messages)
+      else (2, validationMessages("ipv4_not_valid").format(ip.ip) :: messages)
     }
   }
   
   def checkIPv6AddressHost(host: IPv6AddressHost, domain: ExtendedDomain) = {
     val names = domain.ipv6address.map(_.name).toList
     val name = checkHostName(host, names)
-    if(host.ips == null || host.ips.isEmpty) (false, validationMessages("empty").format("IP address") :: Nil)
+    if(host.ips == null || host.ips.isEmpty) (2, validationMessages("empty").format("IP address") :: Nil)
     else host.ips.foldRight(name._1, List(name._2)) {case (ip, (valid, messages)) =>
       val ipParts = ip.ip.split("""\:""")
       if ((ipParts.length == 6 || (ip.ip.contains("::") && ip.ip.indexOf("::") == ip.ip.lastIndexOf("::"))) &&
         ipParts.forall(p => p == "" || p.matches("""^[0-9a-fA-F]{1,4}$"""))) (valid, messages)
-      else (false, validationMessages("ipv6_not_valid").format(ip.ip) :: messages)
+      else (2, validationMessages("ipv6_not_valid").format(ip.ip) :: messages)
     }
   }
   
@@ -96,9 +101,9 @@ object DomainValidationService {
       if(domain.cname.filterNot(_.equals(host)).exists(c =>
         c.name == host.name && 
         HostnameUtils.absoluteHostName(c.hostname, domain.fullName) == HostnameUtils.absoluteHostName(host.hostname, domain.fullName)
-      )) (false, validationMessages("duplicate").format(host.name))
-      else (true, null)
-    (name._1 && cname._1 && unique._1 && uniqueHostname._1, name._2 :: cname._2 :: unique._2 :: uniqueHostname._2 :: Nil)
+      )) (2, validationMessages("duplicate").format(host.name))
+      else (0, null)
+    ((name._1 :: cname._1 :: unique._1 :: uniqueHostname._1 :: Nil).max, name._2 :: cname._2 :: unique._2 :: uniqueHostname._2 :: Nil)
   }
   
   def checkMXHost(host: MXHost, domain: ExtendedDomain) = {
@@ -106,7 +111,7 @@ object DomainValidationService {
     val name = checkHostName(host, names)
     val mx = checkDomainName(host.hostname)
     val unique = isUnique(host.hostname, names)
-    (name._1 && mx._1 && unique._1, name._2 :: mx._2 :: unique._2 :: Nil)
+    ((name._1 :: mx._1 :: unique._1 :: Nil).max, name._2 :: mx._2 :: unique._2 :: Nil)
   }
   
   /*def checkNSHost2(host: NSHost, domain: ExtendedDomain) = {
@@ -120,11 +125,11 @@ object DomainValidationService {
   def checkNSHost(host: NSHost, domain: ExtendedDomain) = {
     val names = domain.nameservers.map(_.name).toList
     val name = checkHostName(host, names)
-    if(host.hostnames == null || host.hostnames.isEmpty) (false, validationMessages("empty").format("IP address") :: Nil)
+    if(host.hostnames == null || host.hostnames.isEmpty) (2, validationMessages("empty").format("IP address") :: Nil)
     else host.hostnames.foldRight(name._1, List(name._2)) {case (hostname, (valid, messages)) =>
       val ns = checkDomainName(hostname.hostname)
       val unique = isUnique(hostname.hostname, names)
-      (valid && ns._1 && unique._1, ns._2 :: unique._2 :: messages)
+      ((valid :: ns._1 :: unique._1 :: Nil).max, ns._2 :: unique._2 :: messages)
     }
   }
   
@@ -133,7 +138,7 @@ object DomainValidationService {
     val name = checkHostName(host, names)
     val ptr = checkDomainName(host.ptrdname)
     val unique = isUnique(host.ptrdname, names)
-    (name._1 && ptr._1 && unique._1, name._2 :: ptr._2 :: unique._2 :: Nil)
+    ((name._1 :: ptr._1 :: unique._1 :: Nil).max, name._2 :: ptr._2 :: unique._2 :: Nil)
   }
   
   def checkSoaHost(host: SoaHost, domain: ExtendedDomain) = {
@@ -146,7 +151,7 @@ object DomainValidationService {
     val retry = checkTimeValue(host.retry)
     val minimum = checkTimeValue(host.minimum)
     val expire = checkTimeValue(host.expire)
-    (name._1 && mname._1 && rname._1 && ttl._1 && refresh._1 && retry._1 && minimum._1 && expire._1,
+    ((name._1 :: mname._1 :: rname._1 :: ttl._1 :: refresh._1 :: retry._1 :: minimum._1 :: expire._1 :: Nil).max,
      name._2 :: mname._2 :: rname._2 :: ttl._2 :: refresh._2 :: retry._2 :: minimum._2 :: expire._2 :: Nil)
   }
   
@@ -154,7 +159,7 @@ object DomainValidationService {
     val names = domain.text.map(_.name).toList
     val name = checkHostName(host, names)
     if(host.strings != null && !host.strings.isEmpty) (name._1, name._2 :: Nil)
-    else (false, validationMessages("empty").format("Text") :: Nil)
+    else (2, validationMessages("empty").format("Text") :: Nil)
   }
   
   def checkGenericHost(host: Host, domain: ExtendedDomain) = {
@@ -165,39 +170,39 @@ object DomainValidationService {
   
   def checkDomainName(name: String, absolute: Boolean = true, relative: Boolean = true) = {
     if (name == null)
-      (false, validationMessages("required").format("domain name"))
+      (2, validationMessages("required").format("domain name"))
     else if (name.length > 255)
-      (false, validationMessages("name_long").format(name))
+      (2, validationMessages("name_long").format(name))
     else if (name.split("""\.""").exists(_.length > 63))
-      (false, validationMessages("name_part_long").format(name))
+      (2, validationMessages("name_part_long").format(name))
     else if (!relative && absolute && name != "@" && name.lastIndexOf(".") != name.length - 1)
-      (false, validationMessages("name_not_absolute").format(name))
+      (2, validationMessages("name_not_absolute").format(name))
     else if (relative && !absolute && name != "@" && name.lastIndexOf(".") == name.length - 1)
-      (false, validationMessages("name_not_relative").format(name))
+      (2, validationMessages("name_not_relative").format(name))
     else
-      (true, null)
+      (0, null)
   }
 
   def checkHostName(host: Host, names: List[String], ignoreUnique: Boolean = false) = {
     val domainCheck = checkDomainName(host.name, false, true)
-    if(!domainCheck._1) domainCheck
+    if(domainCheck._1 == 2) domainCheck
     else {
       val uniqueCheck = 
-        if(ignoreUnique) (true, null)
+        if(ignoreUnique) (0, null)
         else isUnique(host.name, names)
-      if(!uniqueCheck._1) uniqueCheck
-      else if (host.name == "@" || host.name.matches("""([a-zA-Z0-9\*]{1}([a-zA-Z0-9\-\*]*[a-zA-Z0-9\*]{1})*\.{0,1})*""")) (true, null)
-      else (false, validationMessages("name_not_hostname").format(host.name))
+      if(uniqueCheck._1 == 2) uniqueCheck
+      else if (host.name == "@" || host.name.matches("""([a-zA-Z0-9\*]{1}([a-zA-Z0-9\-\*]*[a-zA-Z0-9\*]{1})*\.{0,1})*""")) (0, null)
+      else (2, validationMessages("name_not_hostname").format(host.name))
     }
   }
 
   def isUnique(item: String, items: List[String], exclude: List[String] = Nil) =
-    if (exclude.contains(item) || items.filter(_ == item).length <= 1) (true, null)
-    else (false, validationMessages("duplicate").format(item))
+    if (exclude.contains(item) || items.filter(_ == item).length <= 1) (0, null)
+    else (2, validationMessages("duplicate").format(item))
 
   def checkTimeValue(time: String) =
-    if (time != null && time.matches("""^([0-9]+[hdmswHDMSW]{0,1})+$""")) (true, null)
-    else (false, validationMessages("ttl_not_valid").format(time))
+    if (time != null && time.matches("""^([0-9]+[hdmswHDMSW]{0,1})+$""")) (0, null)
+    else (2, validationMessages("ttl_not_valid").format(time))
 
   def checkUnreachable(domain: ExtendedDomain) = {
     val domainNames = DNSCache.getDomainNames
@@ -208,13 +213,13 @@ object DomainValidationService {
         findName(domainNameParts.tail)
       else domainNameParts.mkString(".") + "." + domain.fullName
 
-    domain.hosts.foldLeft((true, List[String]())) { (status, host) =>
+    domain.hosts.foldLeft((0, List[String]())) { (status, host) =>
       val name = findName(host.name.split("""\.""").tail)
-      val valid = name == domain.fullName
+      val valid = if(name == domain.fullName) 0 else 2
       val message =
-        if (valid) null
+        if (valid == 0) null
         else validationMessages("unreachable").format(host.name, domain.fullName, name)
-      (status._1 && valid, if (valid) status._2 else message :: status._2)
+      (scala.math.max(status._1, valid), if (valid == 0) status._2 else message :: status._2)
     }
   }
 
@@ -248,13 +253,34 @@ object DomainValidationService {
       }
     }.filterNot(_ == null)
 
-    if (duplicities.isEmpty) (true, Nil)
-    else (false, duplicities.map {
+    if (duplicities.isEmpty) (0, Nil)
+    else (2, duplicities.map {
       case (path, typ, domain) =>
         validationMessages("duplicate_record").format(typ, path, domain.fullName)
     })
   }
 
+  def checkInfiniteLoops(domain: ExtendedDomain) = {
+    val ahn = HostnameUtils.absoluteHostName _
+    val dfn = domain.fullName
+    
+    @tailrec
+    def resolveCname(name: String, checkedCnames: List[String] = List()): (Int, String) = 
+      domain.cname.find(c => ahn(c.name, dfn) == name) match {
+        case None => (0, null)
+        case Some(cname) => 
+          if(checkedCnames.contains(ahn(cname.hostname, dfn))) 
+            (1, validationMessages("infinite").format((ahn(cname.hostname, dfn) :: name :: checkedCnames).reverse.mkString(" -> ")))
+          else resolveCname(ahn(cname.hostname, dfn), name :: checkedCnames)
+      }
+    
+    domain.cname.foldRight((0, List[String]())) { case(cname, (valid, messages)) =>
+      val (curValid, curMessage) = resolveCname(ahn(cname.hostname, dfn), ahn(cname.name, dfn) :: Nil)
+      (scala.math.max(curValid, valid), curMessage :: messages)
+    }
+    
+  }
+  
   def reorganize(srcdomain: ExtendedDomain) = {
     val name = srcdomain.nameParts.toList
 
@@ -329,5 +355,6 @@ object DomainValidationService {
     "unreachable" -> "'%s' in %sjson zone file is unreachable. Rename it and move it to %s zone.",
     "duplicate_record" -> "%s record pointing to %s already exists in the %s zone.",
     "unknown" -> "Unknown data format",
-    "incomplete" -> "The domain is missing required records")
+    "incomplete" -> "The domain is missing required records",
+    "infinite" -> "Infinite loop when resolving a CNAME: %s")
 }

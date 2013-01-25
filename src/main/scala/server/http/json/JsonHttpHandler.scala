@@ -114,8 +114,8 @@ class JsonHttpHandler extends HttpHandler {
         case ex: Exception => null
       }
       val replaceFilename = data.get("replace_filename").getOrElse(null)
-      val (valid, messages) = DomainValidationService.validate(domainCandidate, replaceFilename)
-      if (valid) {
+      val (validcode, messages) = DomainValidationService.validate(domainCandidate, replaceFilename)
+      if (validcode < 2) {
         if (replaceFilename != null) {
           DNSCache.removeDomain(replaceFilename.split("""\.""").toList)
           JsonIO.removeDomain(replaceFilename)
@@ -123,12 +123,13 @@ class JsonHttpHandler extends HttpHandler {
         val domains = DomainValidationService.reorganize(domainCandidate)
         DNSCache.setDomain(domains.head)
         JsonIO.storeDomain(domains.head)
-        "{\"code\":0,\"message\":\"Now look what you've done\",\"data\":" + JsonIO.Json.writeValueAsString(domains) + "}"
+        "{\"code\":" + validcode + ",\"messages\":" + messages.mkString("[\"", "\",\"", "\"]") + ",\"data\":" + 
+          JsonIO.Json.writeValueAsString(domains) + "}"
       } else {
-        "{\"code\":1,\"messages\":" + messages.mkString("[\"", "\",\"", "\"]") + "}"
+        "{\"code\":" + validcode + ",\"messages\":" + messages.mkString("[\"", "\",\"", "\"]") + "}"
       }
     } else {
-      "{\"code\":1,\"message\":\"Error: Unknown request\"}"
+      "{\"code\":2,\"message\":\"Error: Unknown request\"}"
     }
   }
   
