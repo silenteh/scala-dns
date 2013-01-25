@@ -35,8 +35,8 @@ case class NSHost(
   //protected def getRData2 = new NS((hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList)
   
   protected def getRData = 
-    if(hostnames.size == 1) hostnames(0).weightNS.map(hostname => new NS((hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList))
-    else hostnames.map(hostname => hostname.weightNS.map(wns =>  new NS((wns.split(".").map(_.getBytes) :+ Array(0.toByte)).toList))).flatten
+    if(hostnames.size == 1) hostnames(0).weightNS.map(hostname => new NS((hostname.split("""\.""").map(_.getBytes) :+ Array(0.toByte)).toList))
+    else hostnames.map(hostname => hostname.weightNS.map(wns =>  new NS((wns.split("""\.""").map(_.getBytes) :+ Array(0.toByte)).toList))).flatten
 }
 
 case class WeightedNS(

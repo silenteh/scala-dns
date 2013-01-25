@@ -33,5 +33,5 @@ case class MXHost(
     case _ => false
   }
   
-  protected def getRData = new MX(priority, (hostname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList)
+  protected def getRData = new MX(priority, (hostname.split("""\.""").map(_.getBytes) :+ Array(0.toByte)).toList)
 }

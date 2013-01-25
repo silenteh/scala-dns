@@ -58,9 +58,9 @@ case class SoaHost(
   @JsonIgnore
   private def strNumToLong(number: String): Long = 
     if(number == "") 0L else number.toLong
-  
+    
   @JsonIgnore
   protected def getRData = 
-    new SOA((mname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList, (rname.split(".").map(_.getBytes) :+ Array(0.toByte)).toList,
+    new SOA((mname.split("""\.""").map(_.getBytes) :+ Array(0.toByte)).toList, (rname.split("""\.""").map(_.getBytes) :+ Array(0.toByte)).toList,
       serial.toLong, timeStrToLong(refresh), timeStrToLong(retry), timeStrToLong(expire), timeStrToLong(minimum))
 }
