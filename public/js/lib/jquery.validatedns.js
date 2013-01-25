@@ -142,7 +142,7 @@
 			},
 			ttl : function(item) {
 				var valid = true;
-				if($(item).val().match(/^([0-9]+[hdmswHDMSW]{0,1})+$/g) == null) {
+				if($(item).val().match(/^([0-9]+[HDMSW]{0,1})+$/g) == null) {
 					valid = false;
 				}
 				that.applyCallback(item, 'ttl', valid);

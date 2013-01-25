@@ -269,6 +269,8 @@ var ScalaDNS = ScalaDNS || {};
 	
 	ScalaDNS.DomainRecords.prototype._recordsUpdated = function() {
 		this.domain = ScalaDNS.fullDomains.get(this.domain.origin);
+		this.selectedRecord = null;
+		$('[data-type="button-bar"] button', this._tpl).attr('disabled', 'disabled');
 		this.draw();
 	}
 	

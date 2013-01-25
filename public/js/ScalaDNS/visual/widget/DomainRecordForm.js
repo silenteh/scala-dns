@@ -250,7 +250,7 @@ var ScalaDNS = ScalaDNS || {};
 			
 			$('button', buttonGroup).removeClass('active');
 			$(this).addClass('active');
-			$('input[type="text"]', parent).val($(this).text());
+			$('input[type="text"]', parent).val($(this).text().toUpperCase());
 		});
 
 		$('input[type="text"]', $('[data-toggle="buttons-radio"]', this._tpl).closest('.control-group')).bind('keyup', function() {
