@@ -115,11 +115,14 @@ var ScalaDNS = ScalaDNS || {};
 					
 					if(domain.SOA && domain.NS && (domain.NS.length > 1 || domain.NS[0].value.length > 1)) {
 						ScalaDNS.DomainService.saveDomain(domain, function(result) {
-							if(result.code === 0) {
+							if(result.code < 2) {
 								ScalaDNS.onRecordsUpdate.raise(new ScalaDNS.UpdatedEvent(this, {}));
 								that.record = null;
 								that.domain = result.data[0];
 								that.clearForm();
+								if(result.code > 0) {
+									ScalaDNS.AlertBox.showClear('<h4>Warning!</h4>' + result.messages.join('<br/>'));
+								}
 								if(result.data.length > 1) {
 									ScalaDNS.AlertBox.showClear('<strong>Warning!</strong> The domains have been reorganized.');
 								}

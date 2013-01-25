@@ -82,7 +82,7 @@ ScalaDNS.DomainService = (function() {
 	
 	function saveDomain(domain, callback) {
 		$.post('http://' + ScalaDNS.config.urlBase + '/domains/', {data: JSON.stringify(domain)}, function(result) {
-			if(result.code == 0) {
+			if(result.code < 2) {
 				jQuery.each(result.data, function() {
 					ScalaDNS.fullDomains.set(this.origin, this);
 				});
@@ -98,7 +98,7 @@ ScalaDNS.DomainService = (function() {
 			data: JSON.stringify(domain), 
 			replace_filename: replaceFilename
 		}, function(result) {
-			if(result.code == 0) {
+			if(result.code < 2) {
 				jQuery.each(result.data, function() {
 					ScalaDNS.fullDomains.set(this.origin, this);
 				});
