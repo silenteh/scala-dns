@@ -274,7 +274,8 @@ object DomainValidationService {
           else resolveCname(ahn(cname.hostname, dfn), name :: checkedCnames)
       }
     
-    domain.cname.foldRight((0, List[String]())) { case(cname, (valid, messages)) =>
+    if(domain.cname == null) (0, Nil)
+    else domain.cname.foldRight((0, List[String]())) { case(cname, (valid, messages)) =>
       val (curValid, curMessage) = resolveCname(ahn(cname.hostname, dfn), ahn(cname.name, dfn) :: Nil)
       (scala.math.max(curValid, valid), curMessage :: messages)
     }
