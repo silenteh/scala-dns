@@ -226,7 +226,7 @@
 			notEqualToElem : function(item, param) {
 				var value, valid;
 				if(param) {
-					elem = $(':fname(' + param + ')', that.form).val();
+					value = $(':fname(' + param + ')', that.form).val();
 				}
 				valid = $(item).val() != value;
 				that.applyCallback(item, 'notEqualToElem', valid);
