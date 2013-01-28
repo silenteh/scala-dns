@@ -124,7 +124,8 @@ object DnsLookupService {
   ): Array[(String, AbstractRecord)] =
     host match {
       case host: CnameHost =>
-        if (!usedCnames.contains(absoluteHostName(host.hostname, domain.fullName))) {
+        if(qtype == RecordType.CNAME.id) addRecord(host, oldDomain, Nil, records)
+        else if (!usedCnames.contains(absoluteHostName(host.hostname, domain.fullName)))
           try {
             val (qname, newDomain, newHost) =
               if (host.hostname.contains("@")) {
@@ -148,16 +149,23 @@ object DnsLookupService {
             case ex: DomainNotFoundException =>
               records ++ recordsToFlatArray(shownCnames.reverse) ++ host.toRData.map((absoluteHostName(host.name, oldDomain.fullName), _))
           }
-        } else {
+        else {
           logger.warn("Infinite loop when resolving a CNAME: " + usedCnames.reverse.mkString(" -> ") + " -> " + host.hostname)
           records
         }
-      case _ => {
-        //if(host.typ == RecordType.SOA.toString && !shownCnames.isEmpty && )
-        val absname = absoluteHostName(host.name, oldDomain.fullName)
-        records ++ recordsToFlatArray(shownCnames.reverse) ++ host.toRData.map((absname, _))
-      }
+      case _ => addRecord(host, oldDomain, shownCnames, records)
     }
+  
+  private def addRecord(
+    host: Host, 
+    domain: ExtendedDomain, 
+    prevRecords: List[(String, Array[AbstractRecord])], 
+    records: Array[(String, AbstractRecord)]
+  ) = {
+    val absname = absoluteHostName(host.name, domain.fullName)
+    if(prevRecords.isEmpty) records ++ host.toRData.map((absname, _))
+    else records ++ recordsToFlatArray(prevRecords.reverse) ++ host.toRData.map((absname, _))
+  }
   
   private def findAncestors(domain: ExtendedDomain, qname: List[String], qclass: Int, wildcards: Boolean) = {
     val name = qname.take(qname.lastIndexOfSlice(domain.nameParts))
