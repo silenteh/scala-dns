@@ -49,7 +49,7 @@ object DnsResponseBuilder {
           if(query.qtype == RecordType.AXFR.id) {
             val allowedIps = ConfigService.config.getStringList("zoneTransferAllowedIps").toList
             if(maxLength != -1) throw new DomainNotFoundException
-            else if(!allowedIps.contains(sourceIP.substring(0, sourceIP.lastIndexOf(":")))) throw new DomainNotFoundException
+            else if(!allowedIps.contains(sourceIP.substring(1, sourceIP.lastIndexOf(":")))) throw new DomainNotFoundException
             else DnsLookupService.zoneToRecords(qname, query.qclass)
             
           // Standard DNS response
@@ -89,7 +89,7 @@ object DnsResponseBuilder {
 
       val (answers, authorities, additionals) =
         (responseParts("answer"), responseParts("authority"), responseParts("additional"))
-
+        
       if (!answers.isEmpty) {
         val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
           message.header.recursionDesired, false, 0, ResponseCode.OK.id, message.header.questionCount, answers.length, 0, 0)
@@ -114,6 +114,7 @@ object DnsResponseBuilder {
     }
 
     val bytes = response.toCompressedByteArray((Array[Byte](), Map[String, Int]()))._1
+    
     if (maxLength < 0 || bytes.length <= maxLength) bytes
     else {
       val headerBytes = response.header.setTruncated(true).toCompressedByteArray(Array[Byte](), Map[String, Int]())._1
