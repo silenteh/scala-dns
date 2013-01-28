@@ -44,7 +44,7 @@ object Name {
 
   // we should rewrite this in a more functional way
   
-  def parse(buf: ChannelBuffer) = {
+  def parse(buf: ChannelBuffer, offset: Int = 0) = {
     @tailrec
     def loop(namesize: Int, length: Short, jumped: Boolean, list: List[Array[Byte]]): List[Array[Byte]] = {
       if (length <= 0 || buf.readableBytes < 1) {
@@ -52,7 +52,7 @@ object Name {
         Array[Byte]() :: list
         
       } else if ((length & MASK_POINTER) != 0) {
-        val p = ((length ^ MASK_POINTER) << 8) + buf.readUnsignedByte
+        val p = ((length ^ MASK_POINTER) << 8) + buf.readUnsignedByte + offset
         //val p = length ^ MASK_POINTER
         if (!jumped) buf.markReaderIndex
         buf.readerIndex(p)

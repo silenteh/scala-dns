@@ -39,9 +39,9 @@ case class MX(preference: Int, record: List[Array[Byte]]) extends AbstractRecord
 object MX {
   val logger = LoggerFactory.getLogger("app")
 
-  def apply(buf: ChannelBuffer, recordclass: Int, size: Int) = {
+  def apply(buf: ChannelBuffer, recordclass: Int, size: Int, offset: Int = 0) = {
     val preference = buf.readUnsignedShort
-    val record = Name.parse(buf)
+    val record = Name.parse(buf, offset)
     new MX(preference, record)
   }
 }

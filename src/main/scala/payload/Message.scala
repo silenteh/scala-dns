@@ -55,22 +55,32 @@ case class Message(
 }
 
 object Message {
-  def apply(buf: ChannelBuffer) = {
-    val logger = LoggerFactory.getLogger("app")
+  val logger = LoggerFactory.getLogger("app")
+  
+  def apply(buf: ChannelBuffer, offset: Int = 0) = {
     val header = Header(buf)
-    
     new Message(
       header,
-      deserializeQuestions(buf, header.questionCount),
-      deserializeRRData(buf, header.answerCount),
-      deserializeRRData(buf, header.authorityCount),
-      deserializeRRData(buf, header.additionalCount)
+      deserialize(buf, header.questionCount, offset, deserializeQuestions),
+      deserialize(buf, header.answerCount, offset, deserializeRRData),
+      deserialize(buf, header.authorityCount, offset, deserializeRRData),
+      deserialize(buf, header.additionalCount, offset, deserializeRRData)
     )
   }
+  
+  def deserialize[T: ClassManifest](buf: ChannelBuffer, n: Int, o: Int, fn: (ChannelBuffer, Int, Int) => Array[T]) = 
+    try {
+      fn(buf, n, o)
+    } catch {
+      case e: Exception => {
+        logger.debug(e.getStackTraceString)
+        Array[T]()
+      }
+    }
+  
+  def deserializeQuestions(buf: ChannelBuffer, n: Int, o: Int): Array[Question] =
+    if (n >= 1) Array.tabulate(n) { i => Question(buf, o) } else Array()
 
-  def deserializeQuestions(buf: ChannelBuffer, n: Int): Array[Question] =
-    if (n >= 1) Array.tabulate(n) { i => Question(buf) } else Array()
-
-  def deserializeRRData(buf: ChannelBuffer, n: Int): Array[RRData] = 
-    if (n >= 1) Array.tabulate(n) { i => RRData(buf) } else Array()
+  def deserializeRRData(buf: ChannelBuffer, n: Int, o: Int): Array[RRData] = 
+    if (n >= 1) Array.tabulate(n) { i => RRData(buf, o) } else Array()
 }

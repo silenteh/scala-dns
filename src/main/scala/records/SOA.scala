@@ -56,9 +56,9 @@ object SOA {
 
   val logger = LoggerFactory.getLogger("app")
 
-  def apply(buf: ChannelBuffer, recordclass: Int, size: Int) = {
-    val mname = Name.parse(buf)
-    val rname = Name.parse(buf)
+  def apply(buf: ChannelBuffer, recordclass: Int, size: Int, offset: Int = 0) = {
+    val mname = Name.parse(buf, offset)
+    val rname = Name.parse(buf, offset)
     val serial = buf.readUnsignedInt
     val refresh = buf.readUnsignedInt
     val retry = buf.readUnsignedInt

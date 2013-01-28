@@ -55,9 +55,9 @@ case class Question(qname: List[Array[Byte]], qtype: Int, qclass: Int) {
 object Question {
   val logger = LoggerFactory.getLogger("app")
   
-  def apply(buf: ChannelBuffer) = 
+  def apply(buf: ChannelBuffer, offset: Int) = 
     new Question(
-      Name.parse(buf), 
+      Name.parse(buf, offset), 
       buf.readUnsignedShort,
       buf.readUnsignedShort
     )

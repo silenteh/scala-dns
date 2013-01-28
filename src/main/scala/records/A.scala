@@ -49,7 +49,6 @@ object A {
       case 255 => 0L // not implemented yet
       case _ => throw new Error("Error: Unknown address format")
     }
-    logger.info(record.toString)
     new A(record)
   }
   

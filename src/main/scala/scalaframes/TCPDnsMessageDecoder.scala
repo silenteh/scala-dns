@@ -53,8 +53,10 @@ class TCPDnsMessageDecoder extends FrameDecoder {
       // Read the length field.
       //val length = buf.readUnsigned
       //println(buf.readableBytes())
+      //logger.debug(buf.readableBytes.toString)
       val length = buf.readUnsignedShort
-      payload.Message(buf)
+      //logger.debug(buf.slice().readableBytes.toString)
+      payload.Message(buf, 2)
     }
 
   }

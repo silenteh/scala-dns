@@ -40,10 +40,10 @@ object CNAME {
 
   val logger = LoggerFactory.getLogger("app")
 
-  def apply(buf: ChannelBuffer, recordclass: Int, size: Int) = {
+  def apply(buf: ChannelBuffer, recordclass: Int, size: Int, offset: Int = 0) = {
     val record = recordclass match {
       // IN
-      case 1 => Name.parse(buf)
+      case 1 => Name.parse(buf, offset)
       // *
       case 255 => null // not implemented yet
       case _ => throw new Error("Error: Unknown record class")

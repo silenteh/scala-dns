@@ -53,30 +53,30 @@ object RRData {
 
   val logger = LoggerFactory.getLogger("app")
 
-  def apply(buf: ChannelBuffer) = {
-    val name = Name.parse(buf)
+  def apply(buf: ChannelBuffer, offset: Int = 0) = {
+    val name = Name.parse(buf, offset)
     val rtype = buf.readUnsignedShort
     val rclass = buf.readUnsignedShort
     val ttl = buf.readUnsignedInt()
     val rdlength = buf.readUnsignedShort
-    val rdata = deserializeRecord(buf, rtype, rclass, rdlength)
+    val rdata = deserializeRecord(buf, rtype, rclass, rdlength, offset)
     new RRData(name, rtype, rclass, ttl, rdlength, rdata)
   }
 
-  private def deserializeRecord(buf: ChannelBuffer, recordtype: Int, recordclass: Int, size: Int) = 
+  private def deserializeRecord(buf: ChannelBuffer, recordtype: Int, recordclass: Int, size: Int, offset: Int) = 
     recordtype match {
       // A 
       case 1 => A(buf, recordclass, size)
       // NS
-      case 2 => NS(buf, recordclass, size)
+      case 2 => NS(buf, recordclass, size, offset)
       // MD
       case 3 => AAAA(buf, recordclass, size) // NYI
       // MF
       case 4 => null // NYI
       // CNAME
-      case 5 => CNAME(buf, recordclass, size)
+      case 5 => CNAME(buf, recordclass, size, offset)
       // SOA
-      case 6 => SOA(buf, recordclass, size)
+      case 6 => SOA(buf, recordclass, size, offset)
       // MB
       case 7 => null
       // MG
@@ -88,13 +88,13 @@ object RRData {
       // WKS
       case 11 => null
       // PTR
-      case 12 => PTR(buf, recordclass, size)
+      case 12 => PTR(buf, recordclass, size, offset)
       //HINFO
       case 13 => null
       // MINFO
       case 14 => null
       // MX
-      case 15 => MX(buf, recordclass, size)
+      case 15 => MX(buf, recordclass, size, offset)
       // TXT
       case 16 => TXT(buf, recordclass, size)
 
