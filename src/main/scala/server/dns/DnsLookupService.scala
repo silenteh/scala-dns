@@ -29,12 +29,14 @@ import org.slf4j.LoggerFactory
 import scala.Array.canBuildFrom
 import scala.annotation.tailrec
 import models.SoaHost
+import datastructures.DNSAuthoritativeSection
 
 object DnsLookupService {
   val logger = LoggerFactory.getLogger("app")
 
   def hostToRecords(qname: List[String], qtype: Int, qclass: Int): List[(String, AbstractRecord)] = {
-    val domain = DNSCache.getDomain(qtype, qname)
+    //val domain = DNSCache.getDomain(qtype, qname)
+    val domain = DNSAuthoritativeSection.getDomain(qtype, qname)
     filterDuplicities(qname.mkString(".") + ".", domain.getHosts(relativeHostName(qname, domain))
       .filter(h => qtype == RecordType.ALL.id || h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
       .map { host =>
@@ -43,6 +45,13 @@ object DnsLookupService {
       }).flatten
   }
 
+  def hostToRecordsWithDefault(qname: List[String], qtype: Int, qclass: Int): List[(String, AbstractRecord)] = 
+    try{
+      hostToRecords(qname, qtype, qclass)
+    } catch {
+      case e: Exception => List()
+    }
+  
   // Queries for ancestors of a specified host name, stops when the first match is found, 
   // e.g. for www.example.com host name the example.com and com host names would be examined.
   // When a "wildcards" parameter is set to true, all queries are prefixed with "*".
@@ -58,7 +67,8 @@ object DnsLookupService {
   
   // Prepares output for zone file transfer.
   def zoneToRecords(qname: List[String], qclass: Int) = {
-    val domain = DNSCache.getDomain(RecordType.ALL.id, qname)
+    //val domain = DNSCache.getDomain(RecordType.ALL.id, qname)
+    val domain = DNSAuthoritativeSection.getDomain(RecordType.ALL.id, qname)
     logger.debug(qname.mkString(".") + "., " + relativeHostName(qname, domain))
     val othersoa = domain.findHost(relativeHostName(qname, domain), RecordType.SOA.id) match {
       case Some(soa) => domain.settings.filterNot(s => s.equals(soa)).toArray
@@ -133,7 +143,8 @@ object DnsLookupService {
                 (qname, oldDomain, host.changeHostname(qname.mkString(".") + "."))
               } else {
                 val qname = absoluteHostName(host.hostname, domain.fullName).split("""\.""").toList
-                (qname, DNSCache.getDomain(qtype, qname), host)
+                //(qname, DNSCache.getDomain(qtype, qname), host)
+                (qname, DNSAuthoritativeSection.getDomain(qtype, qname), host)
               }
 
             records ++ newDomain.getHosts(relativeHostName(qname, newDomain))
@@ -153,7 +164,7 @@ object DnsLookupService {
           logger.warn("Infinite loop when resolving a CNAME: " + usedCnames.reverse.mkString(" -> ") + " -> " + host.hostname)
           records
         }
-      case _ => addRecord(host, oldDomain, shownCnames, records)
+      case _ => addRecord(host.toAbsoluteNames(domain), oldDomain, shownCnames, records)
     }
   
   private def addRecord(

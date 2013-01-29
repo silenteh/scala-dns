@@ -10,6 +10,6 @@ object HostnameUtils {
 
   def absoluteHostName(name: String, basename: String) = 
     if (name == "@") basename
-    else if (name.endsWith(".")) name
+    else if (name == null || name.endsWith(".")) name
     else name + "." + basename
 }

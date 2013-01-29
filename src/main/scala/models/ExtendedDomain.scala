@@ -136,6 +136,8 @@ case class ExtendedDomain(
         new ExtendedDomain(fullName, ttl, nameservers, settings, cname, address, ipv6address, pointer, text, mailx, remove(otherhosts, h))
     }
   }
+  
+  def getFilename = if(fullName.startsWith("*")) "-wildcard" + fullName.substring(1) else fullName
 }
 
 class HostNotFoundException extends Exception

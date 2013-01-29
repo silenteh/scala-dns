@@ -18,6 +18,7 @@ package models
 import records.CNAME
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import utils.HostnameUtils
 
 @JsonIgnoreProperties(Array("typ"))
 case class CnameHost(
@@ -30,6 +31,9 @@ case class CnameHost(
   def setName(newname: String) = CnameHost(cls, newname, hostname)
   
   def changeHostname(hostname: String) = CnameHost(cls, name, hostname)
+  
+  override def toAbsoluteNames(domain: ExtendedDomain) = 
+    new CnameHost(cls, HostnameUtils.absoluteHostName(name, domain.fullName), HostnameUtils.absoluteHostName(hostname, domain.fullName))
   
   override def equals(other: Any) = other match {
     case h: CnameHost => h.cls == cls && h.name == name && h.hostname == hostname

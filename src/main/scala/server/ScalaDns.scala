@@ -32,7 +32,7 @@ object ScalaDns {
   
   def main(args: Array[String]) = {
 
-    JsonIO.loadDomains()
+    JsonIO.loadData
 	JsonIO.loadUsers()
     
 	/*val domain = DNSCache.getDomain(RecordType.NS.id, List("blah", "blah"))

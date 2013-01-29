@@ -20,6 +20,7 @@ import records.SOA
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import utils.HostnameUtils
 
 @JsonIgnoreProperties(Array("typ"))
 case class SoaHost(
@@ -38,6 +39,10 @@ case class SoaHost(
   def setName(newname: String) = SoaHost(cls, newname, mname, rname, ttl, serial, refresh, retry, expire, minimum)
   
   def updateSerial(serial: String) = SoaHost(cls, name, mname, rname, ttl, serial, refresh, retry, expire, minimum)
+  
+  override def toAbsoluteNames(domain: ExtendedDomain) = 
+    SoaHost(cls, HostnameUtils.absoluteHostName(name, domain.fullName), HostnameUtils.absoluteHostName(mname, domain.fullName),
+      HostnameUtils.absoluteHostName(rname, domain.fullName), ttl, serial, refresh, retry, expire, minimum)
   
   override def equals(other: Any) = other match {
     case h: SoaHost => h.cls == cls && h.name == name && h.mname == mname && h.rname == rname && h.ttl == ttl && 

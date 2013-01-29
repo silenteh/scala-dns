@@ -18,6 +18,7 @@ package models
 import records.PTR
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import utils.HostnameUtils
 
 @JsonIgnoreProperties(Array("typ"))
 case class PointerHost(
@@ -27,6 +28,9 @@ case class PointerHost(
 ) extends Host("PTR") {
 
   def setName(newname: String) = PointerHost(cls, newname, ptrdname)
+  
+  override def toAbsoluteNames(domain: ExtendedDomain) = 
+    PointerHost(cls, HostnameUtils.absoluteHostName(name, domain.fullName), HostnameUtils.absoluteHostName(ptrdname, domain.fullName))
   
   override def equals(other: Any) = other match {
     case h: PointerHost => h.cls == cls && h.name == name && h.ptrdname == ptrdname

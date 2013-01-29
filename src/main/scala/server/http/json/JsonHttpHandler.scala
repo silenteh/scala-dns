@@ -32,6 +32,7 @@ import domainio.DomainValidationService
 import domainio.UserValidationService
 import models.User
 import utils.Sha256Digest
+import datastructures.DNSAuthoritativeSection
 
 class JsonHttpHandler extends HttpHandler {
   override def messageReceived(context: ChannelHandlerContext, event: MessageEvent) = {
@@ -80,16 +81,20 @@ class JsonHttpHandler extends HttpHandler {
     if (path.length >= 2) {
       val extension = path(1).substring(path(1).lastIndexOf(".") + 1)
       val name = path(1).substring(0, path(1).lastIndexOf("."))
-      val domain = DNSCache.getDomains(extension)(name)
+      //val domain = DNSCache.getDomains(extension)(name)
+      val domain = DNSAuthoritativeSection.getDomains(extension)(name)
       "{\"domain\":" + JsonIO.Json.writeValueAsString(domain) + "}"
     } else if (!queryString.isEmpty && queryString.contains("menu")) {
-      val domains = DNSCache.getDomains.map { case (extension, value) =>
+      //val domains = DNSCache.getDomains.map { case (extension, value) =>
+      val domains = DNSAuthoritativeSection.getDomains.map { case (extension, value) =>
         value.map { case (name, value) => (name + "." + extension) }
       }.flatten.toList
       JsonIO.Json.writeValueAsString(domains)
     } else {
-      val domains = DNSCache.getDomains.map { case (extension, value) =>
-        value.map { case (name, (timestamp, domain)) => JsonIO.Json.writeValueAsString(domain) }
+      //val domains = DNSCache.getDomains.map { case (extension, value) =>
+      val domains = DNSAuthoritativeSection.getDomains.map { case (extension, value) =>
+        //value.map { case (name, (timestamp, domain)) => JsonIO.Json.writeValueAsString(domain) }
+        value.map { case (name, domain) => JsonIO.Json.writeValueAsString(domain) }
       }.flatten.toList
       "{\"domains\":[" + domains.mkString(",") + "]}"
     }
@@ -97,8 +102,9 @@ class JsonHttpHandler extends HttpHandler {
   private def domainPostResponse(request: HttpRequest) = {
     val data = UriParser.postParams(request)
     if (data.get("delete") != None) {
-      DNSCache.removeDomain(data("delete").split("""\.""").toList)
-      JsonIO.removeDomain(data("delete"))
+      //DNSCache.removeDomain(data("delete").split("""\.""").toList)
+      DNSAuthoritativeSection.removeDomain(data("delete").split("""\.""").toList)
+      JsonIO.removeAuthData(data("delete"))
       "{\"code\":0,\"message\":\"Domain removed\"}"
     } else if (data.get("data") != None) {
       val domainCandidate = try {
@@ -117,12 +123,14 @@ class JsonHttpHandler extends HttpHandler {
       val (validcode, messages) = DomainValidationService.validate(domainCandidate, replaceFilename)
       if (validcode < 2) {
         if (replaceFilename != null) {
-          DNSCache.removeDomain(replaceFilename.split("""\.""").toList)
-          JsonIO.removeDomain(replaceFilename)
+          //DNSCache.removeDomain(replaceFilename.split("""\.""").toList)
+          DNSAuthoritativeSection.removeDomain(replaceFilename.split("""\.""").toList)
+          JsonIO.removeAuthData(replaceFilename)
         }
         val domains = DomainValidationService.reorganize(domainCandidate)
-        DNSCache.setDomain(domains.head)
-        JsonIO.storeDomain(domains.head)
+        //DNSCache.setDomain(domains.head)
+        DNSAuthoritativeSection.setDomain(domains.head)
+        JsonIO.storeAuthData(domains.head)
         "{\"code\":" + validcode + ",\"messages\":" + messages.mkString("[\"", "\",\"", "\"]") + ",\"data\":" + 
           JsonIO.Json.writeValueAsString(domains) + "}"
       } else {

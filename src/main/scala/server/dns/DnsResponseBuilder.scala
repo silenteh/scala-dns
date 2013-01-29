@@ -33,6 +33,8 @@ import scala.Array.canBuildFrom
 import scala.annotation.tailrec
 import configs.ConfigService
 import scala.collection.JavaConversions._
+import datastructures.DNSAuthoritativeSection
+import records.SOA
 
 object DnsResponseBuilder {
 
@@ -42,7 +44,8 @@ object DnsResponseBuilder {
     val response = try {
       val responseParts = message.query.map { query =>
         val qname = query.qname.filter(_.length > 0).map(new String(_, "UTF-8"))
-        val domain = DNSCache.getDomain(query.qtype, qname)
+        //val domain = DNSCache.getDomain(query.qtype, qname)
+        val domain = DNSAuthoritativeSection.getDomain(query.qtype, qname)
         
         val records =
           // Zone file transfer
@@ -67,20 +70,24 @@ object DnsResponseBuilder {
 
         // @TODO: Implement additional where appropriate
 
-        val additionals =
-          if (query.qtype != RecordType.A.id) List[(String, AbstractRecord)]()
-          else (records ++ authority).map {
+        val additionals = {
+          /*if (query.qtype != RecordType.A.id) List[(String, AbstractRecord)]()
+          else */(records ++ authority).map {
             case (name, record) =>
-              record match {
-                case r: MX =>
-                  DnsLookupService.hostToRecords(r.record.map(new String(_, "UTF-8")), RecordType.A.id, query.qclass)
-                case r: NS =>
-                  DnsLookupService.hostToRecords(r.record.map(new String(_, "UTF-8")), RecordType.A.id, query.qclass)
-                case _ =>
-                  List[(String, AbstractRecord)]()
+              try {
+                record match {
+                  case r: MX => DnsLookupService.hostToRecordsWithDefault(bytesToName(r.record), RecordType.A.id, query.qclass)
+                  case r: NS => DnsLookupService.hostToRecordsWithDefault(bytesToName(r.record), RecordType.A.id, query.qclass)
+                  case r: SOA => DnsLookupService.hostToRecordsWithDefault(bytesToName(r.mname), RecordType.A.id, query.qclass) ++
+                    DnsLookupService.hostToRecordsWithDefault(bytesToName(r.rname), RecordType.A.id, query.qclass)
+                  case _ => List[(String, AbstractRecord)]()
+                }
+              } catch {
+                case e: DomainNotFoundException => List[(String, AbstractRecord)]()
               }
           }.flatten
-
+        }
+          
         List(
           "answer" -> recordsToRRData(domain, query.qclass, records),
           "authority" -> recordsToRRData(domain, query.qclass, authority),
@@ -121,7 +128,10 @@ object DnsResponseBuilder {
       (headerBytes ++ bytes.takeRight(bytes.length - headerBytes.length)).take(maxLength)
     }
   }
-
+  
+  private def bytesToName(bytes: List[Array[Byte]]) = 
+    bytes.filterNot(s => s.isEmpty || (s.length == 1 && s.head == 0)).map(new String(_, "UTF-8"))
+  
   private def recordsToRRData(domain: ExtendedDomain, qclass: Int, records: List[(String, AbstractRecord)]) =
     records.map {
       case (name, record) =>

@@ -30,6 +30,8 @@ abstract class Host(@JsonIgnore val typ: String) {
   
   protected def getRData: Any
   
+  def toAbsoluteNames(domain: ExtendedDomain): Host
+  
   def setName(newname: String): Host
   
   def toRData = 

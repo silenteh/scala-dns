@@ -17,6 +17,7 @@ package models
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import utils.HostnameUtils
 
 @JsonIgnoreProperties(Array("typ"))
 case class GenericHost(
@@ -26,6 +27,9 @@ case class GenericHost(
   @JsonProperty("value") value: String = ""
 ) extends Host(typ) {
   def setName(newname: String) = GenericHost(typ, cls, newname, value)
+  
+  override def toAbsoluteNames(domain: ExtendedDomain) = 
+    new GenericHost(typ, cls, HostnameUtils.absoluteHostName(name, domain.fullName), value)
   
   override def equals(other: Any) = other match {
     case h: GenericHost => h.cls == cls && h.name == name && h.value == value

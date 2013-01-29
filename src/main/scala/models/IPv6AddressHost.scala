@@ -18,6 +18,7 @@ package models
 import records.AAAA
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import utils.HostnameUtils
 
 @JsonIgnoreProperties(Array("typ"))
 case class IPv6AddressHost(
@@ -26,6 +27,9 @@ case class IPv6AddressHost(
   @JsonProperty("value") ips: Array[WeightedIP] = null
 ) extends Host("AAAA") {
   def setName(newname: String) = IPv6AddressHost(cls, newname, ips)
+  
+  override def toAbsoluteNames(domain: ExtendedDomain) = 
+    IPv6AddressHost(cls, HostnameUtils.absoluteHostName(name, domain.fullName), ips)
   
   override def equals(other: Any) = other match {
     case h: IPv6AddressHost => h.cls == cls && h.name == name && h.ips.forall(wip => ips.exists(_.ip == wip.ip))

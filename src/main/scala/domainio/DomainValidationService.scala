@@ -22,6 +22,7 @@ import enums.RecordType
 import models._
 import org.slf4j.LoggerFactory
 import utils.HostnameUtils
+import datastructures.DNSAuthoritativeSection
 
 object DomainValidationService {
 
@@ -33,8 +34,10 @@ object DomainValidationService {
       val domainName = checkDomainName(domain.fullName, true, false)
       //val nameValidHostname = checkHostName(domain.fullName)
       val unique =
-        if (filename == null) isUnique(domain.fullName, DNSCache.getDomainNames.toList)
-        else isUnique(domain.fullName, DNSCache.getDomainNames.toList, filename :: Nil)
+        //if (filename == null) isUnique(domain.fullName, DNSCache.getDomainNames.toList)
+        //else isUnique(domain.fullName, DNSCache.getDomainNames.toList, filename :: Nil)
+        if (filename == null) isUnique(domain.fullName, DNSAuthoritativeSection.getDomainNames.toList)
+        else isUnique(domain.fullName, DNSAuthoritativeSection.getDomainNames.toList, filename :: Nil)
       val body = domain.hosts.foldRight((0, List[String]())) {
         case (host, (valid, messages)) =>
           val check = host match {
@@ -205,7 +208,8 @@ object DomainValidationService {
     else (2, validationMessages("ttl_not_valid").format(time))
 
   def checkUnreachable(domain: ExtendedDomain) = {
-    val domainNames = DNSCache.getDomainNames
+    //val domainNames = DNSCache.getDomainNames
+    val domainNames = DNSAuthoritativeSection.getDomainNames
 
     def findName(domainNameParts: Array[String]): String =
       if (domainNameParts.isEmpty) domain.fullName
@@ -234,7 +238,8 @@ object DomainValidationService {
 
           val typ = if(hostTyp == RecordType.CNAME) RecordType.ALL else hostTyp
             
-          DNSCache.findDomain(typ.id, qname.split("""\.""").toList) match {
+          //DNSCache.findDomain(typ.id, qname.split("""\.""").toList) match {
+          DNSAuthoritativeSection.findDomain(typ.id, qname.split("""\.""").toList) match {
             case None => null
             case Some(existingDomain) => {
               if (existingDomain.fullName == domain.fullName) null
@@ -288,7 +293,8 @@ object DomainValidationService {
     @tailrec
     def ancestorDomains(parts: List[String], domains: List[(String, ExtendedDomain)] = List()): List[(String, ExtendedDomain)] = {
       if (parts.isEmpty) domains
-      else DNSCache.findDomain(RecordType.ALL.id, parts) match {
+      //else DNSCache.findDomain(RecordType.ALL.id, parts) match {
+      else DNSAuthoritativeSection.findDomain(RecordType.ALL.id, parts) match {
         case Some(domain) => {
           val index = name.mkString(".").lastIndexOf(parts.mkString(".")) - 1
           ancestorDomains(parts.tail, (name.mkString(".").substring(0, index), domain) :: domains)
@@ -310,8 +316,9 @@ object DomainValidationService {
             if (hosts.isEmpty) domains
             else {
               val newdomain = hosts.foldRight(domain) { case ((name, host), domain) => domain.removeHost(host) }
-              DNSCache.setDomain(newdomain)
-              JsonIO.storeDomain(newdomain)
+              //DNSCache.setDomain(newdomain)
+              DNSAuthoritativeSection.setDomain(newdomain)
+              JsonIO.storeAuthData(newdomain)
               newdomain :: domains
             }
           (allhosts ++ hosts, newdomains)
@@ -332,12 +339,14 @@ object DomainValidationService {
   }
 
   def reorganizeAll =
-    DNSCache.getDomains.foreach {
-      case (extension, domains) =>
+    //DNSCache.getDomains.foreach {
+    DNSAuthoritativeSection.getDomains.foreach {
+      case (extendion, domains) =>
         domains.foreach {
-          case (name, (timestamp, domain)) =>
+//          case (name, (timestamp, domain)) =>
+          case (name, domain) =>
             val newdomain = reorganize(domain)
-            if (newdomain.head.hosts.length != domain.hosts.length) JsonIO.storeDomain(domain)
+            if (newdomain.head.hosts.length != domain.hosts.length) JsonIO.storeAuthData(domain)
         }
     }
   

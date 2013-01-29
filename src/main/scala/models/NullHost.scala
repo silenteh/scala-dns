@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream
 import records.NULL
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import utils.HostnameUtils
 
 @JsonIgnoreProperties(Array("typ"))
 case class NullHost(
@@ -32,6 +33,9 @@ case class NullHost(
   def setName(newname: String) = NullHost(cls, newname, value)
   
   def getRData = new NULL(valueByteArray)
+  
+  override def toAbsoluteNames(domain: ExtendedDomain) = 
+    NullHost(cls, HostnameUtils.absoluteHostName(name, domain.fullName), value)
   
   override def equals(other: Any) = other match {
     case h: NullHost => h.cls == cls && h.name == name && h.value.equals(value)

@@ -18,6 +18,7 @@ package models
 import records.TXT
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import utils.HostnameUtils
 
 @JsonIgnoreProperties(Array("typ"))
 case class TxtHost(
@@ -27,6 +28,9 @@ case class TxtHost(
 ) extends Host("TXT") {
 
   def setName(newname: String) = TxtHost(cls, newname, strings)
+  
+  override def toAbsoluteNames(domain: ExtendedDomain) = 
+    TxtHost(cls, HostnameUtils.absoluteHostName(name, domain.fullName), strings)
   
   override def equals(other: Any) = other match {
     case h: TxtHost => h.cls == cls && h.name == name && h.strings.forall(str => strings.exists(_ == str))

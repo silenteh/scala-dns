@@ -19,6 +19,7 @@ package models
 import records.A
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import utils.HostnameUtils
 
 @JsonIgnoreProperties(Array("typ"))
 case class AddressHost(
@@ -32,6 +33,9 @@ case class AddressHost(
     case h: AddressHost => cls == h.cls && name == h.name && h.ips.forall(wip => ips.exists(_.ip == wip.ip))
     case _ => false
   }
+  
+  override def toAbsoluteNames(domain: ExtendedDomain) = 
+    new AddressHost(cls, HostnameUtils.absoluteHostName(name, domain.fullName), ips)
   
   private def ipToLong(ip: String) = ip.split("""\.""").reverse.foldRight(0L){case(part, total) => (total << 8) + part.toLong}
   protected def getRData = 

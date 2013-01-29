@@ -18,6 +18,7 @@ package models
 import records.MX
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import utils.HostnameUtils
 
 @JsonIgnoreProperties(Array("typ"))
 case class MXHost(
@@ -27,6 +28,9 @@ case class MXHost(
   @JsonProperty("priority") priority: Int = -1
 ) extends Host("MX") {
   def setName(newname: String) = MXHost(cls, newname, hostname, priority)
+  
+  override def toAbsoluteNames(domain: ExtendedDomain) = 
+    MXHost(cls, HostnameUtils.absoluteHostName(name, domain.fullName), HostnameUtils.absoluteHostName(hostname, domain.fullName), priority)
   
   override def equals(other: Any) = other match {
     case h: MXHost => h.cls == cls && h.name == name && h.hostname == hostname && h.priority == priority
