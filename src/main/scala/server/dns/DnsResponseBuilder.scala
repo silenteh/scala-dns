@@ -93,13 +93,14 @@ object DnsResponseBuilder {
           "authority" -> recordsToRRData(domain, query.qclass, authority),
           "additional" -> recordsToRRData(domain, query.qclass, additionals))
       }.flatten.groupBy(_._1).map { case (typ, records) => (typ, records.map(_._2).flatten) }
-
+      
       val (answers, authorities, additionals) =
         (responseParts("answer"), responseParts("authority"), responseParts("additional"))
         
       if (!answers.isEmpty) {
         val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
-          message.header.recursionDesired, false, 0, ResponseCode.OK.id, message.header.questionCount, answers.length, 0, 0)
+          message.header.recursionDesired, false, 0, ResponseCode.OK.id, message.header.questionCount, 
+            answers.length, authorities.length, additionals.length)
         Message(header, message.query, answers, authorities, additionals)
       } else {
         val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
