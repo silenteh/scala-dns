@@ -66,7 +66,11 @@ object DnsResponseBuilder {
         
         val authority =
           if (!records.isEmpty || query.qtype == RecordType.AXFR.id) List[(String, AbstractRecord)]()
-          else DnsLookupService.ancestorToRecords(domain, qname, RecordType.NS.id, query.qclass, false)
+          else {
+            val records = DnsLookupService.hostToRecords(qname, RecordType.NS.id, query.qclass)
+            if(!records.isEmpty) records
+            else DnsLookupService.ancestorToRecords(domain, qname, RecordType.NS.id, query.qclass, false)
+          }
 
         // @TODO: Implement additional where appropriate
 
@@ -103,9 +107,10 @@ object DnsResponseBuilder {
             answers.length, authorities.length, additionals.length)
         Message(header, message.query, answers, authorities, additionals)
       } else {
+        val rcode = if(authorities.isEmpty) ResponseCode.NAME_ERROR.id else ResponseCode.OK.id
         val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
-          message.header.recursionDesired, false, 0, ResponseCode.NAME_ERROR.id, message.header.questionCount, 0, 0, 0)
-        Message(header, message.query, message.answers, message.authority, message.additional)
+          message.header.recursionDesired, false, 0, rcode, message.header.questionCount, 0, authorities.length, additionals.length)
+        Message(header, message.query, message.answers, authorities, additionals)
       }
     } catch {
       case ex: DomainNotFoundException => {
