@@ -103,7 +103,7 @@ object Name {
 
     val newName = if(existingName.isEmpty) name else name.take(name.indexOfSlice(existingName))
     
-    val trailer = if(existingName.isEmpty) Array() else RRData.shortToBytes((names(nameToString(existingName)) + (MASK_POINTER << 8)).toShort)
+    val trailer = if(existingName.isEmpty) Array[Byte]() else RRData.shortToBytes((names(nameToString(existingName)) + (MASK_POINTER << 8)).toShort)
     (bytes ++ toByteArray(newName) ++ trailer, if(newName.isEmpty) names else names ++ storeNewName(newName))
   }
   

@@ -66,6 +66,7 @@ object HttpHandler extends SimpleChannelUpstreamHandler {
   val indexFiles = "index.html" :: "index.htm" :: Nil
   mimeTypesMap.addMimeTypes("application/x-javascript js JS")
   mimeTypesMap.addMimeTypes("text/css css CSS")
+  mimeTypesMap.addMimeTypes("text/html html htm HTML HTM")
   
   def sanitizeURI(uri: String) = {
     val decUri = try {

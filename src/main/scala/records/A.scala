@@ -26,7 +26,7 @@ case class A(record: Long) extends AbstractRecord {
   lazy val address = RRData.intToBytes(record.toInt).map(b => if (b < 0) b + 256 else b).reverse.mkString(".")
 
   def toByteArray = RRData.intToBytes(record.toInt)
-  def addressToByteArray = Array()
+  def addressToByteArray = Array[Byte]()
   
   def isEqualTo(any: Any) = any match {
     case r: A => r.record == record
