@@ -26,4 +26,8 @@ libraryDependencies += "com.fasterxml.jackson.module" % "jackson-module-scala_2.
 
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.1.3"
 
+seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
+
+libraryDependencies += "commons-lang" % "commons-lang" % "2.6"
+
 // libraryDependencies += "org.apache.servicemix.bundles" % "org.apache.servicemix.bundles.aws-java-sdk" % "1.3.27"
