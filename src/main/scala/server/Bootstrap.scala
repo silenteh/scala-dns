@@ -92,7 +92,7 @@ object Bootstrap {
   
   private def startHttp() {
     httpBootstrap.setPipelineFactory(new HttpPipeline)
-    httpBootstrap.bind(new InetSocketAddress("127.0.0.1", 80))
+    httpBootstrap.bind(new InetSocketAddress("127.0.0.1", 8080))
   }
   
   private def stopTCP() {
