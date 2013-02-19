@@ -36,6 +36,8 @@ class TCPDnsHandler extends SimpleChannelUpstreamHandler {
     val sourceIP = e.getRemoteAddress.toString
     e.getMessage match {
       case message: Message => {
+        logger.info(message.toString)
+        logger.info("Request bytes: " + message.toByteArray.toList.toString)
         val response = DnsResponseBuilder(message, sourceIP)
 
         logger.debug("Compressed response length: " + response.length.toString)
