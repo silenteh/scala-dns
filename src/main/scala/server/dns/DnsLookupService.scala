@@ -34,14 +34,14 @@ import datastructures.DNSAuthoritativeSection
 object DnsLookupService {
   val logger = LoggerFactory.getLogger("app")
 
-  def hostToRecords(qname: List[String], qtype: Int, qclass: Int): List[(String, AbstractRecord)] = {
+  def hostToRecords(qname: List[String], qtype: Int, qclass: Int, followCnames: Boolean = true): List[(String, AbstractRecord)] = {
     //val domain = DNSCache.getDomain(qtype, qname)
     val domain = DNSAuthoritativeSection.getDomain(qtype, qname)
     filterDuplicities(qname.mkString(".") + ".", domain.getHosts(relativeHostName(qname, domain))
       .filter(h => qtype == RecordType.ALL.id || h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
       .map { host =>
         val usedCnames = initUsedCnames(host, qname)
-        resolveHost(domain, host, qtype, usedCnames, List(), domain)
+        resolveHost(domain, host, qtype, usedCnames, List(), domain, followCnames)
       }).flatten
   }
 
@@ -69,7 +69,6 @@ object DnsLookupService {
   def zoneToRecords(qname: List[String], qclass: Int) = {
     //val domain = DNSCache.getDomain(RecordType.ALL.id, qname)
     val domain = DNSAuthoritativeSection.getDomain(RecordType.ALL.id, qname)
-    logger.debug(qname.mkString(".") + "., " + relativeHostName(qname, domain))
     val othersoa = domain.findHost(relativeHostName(qname, domain), RecordType.SOA.id) match {
       case Some(soa) => domain.settings.filterNot(s => s.equals(soa)).toArray
       case None => Array[SoaHost]()
@@ -92,7 +91,7 @@ object DnsLookupService {
         records + RecordType.values.filter(t => t.id != 5 && t.id < 252).foldRight(List[(String, AbstractRecord)]()) {
           case (typ, record) =>
             if(fullNameExists) record ++ hostToRecords(name.toList, typ.id, qclass)
-            else record ++ hostToRecords(name.toList, typ.id, qclass).map{ case (n, r) => 
+            else record ++ hostToRecords(name.toList, typ.id, qclass, false).map{ case (n, r) => 
               (n.replace("""*""", qname.take(qname.indexOfSlice(n.split("""\.""").filterNot(_ == "*"))).mkString(".")), r)
 	        }
       }
@@ -118,7 +117,11 @@ object DnsLookupService {
       val distinctRecords = toDistinct(records.foldRight(List[(String, AbstractRecord)]()) { case (left, right) => 
         left.filterNot(record => right.exists(r => r._1 == record._1 && r._2.isEqualTo(record._2))) ++ right
       }.toList).partition(_._1 == qname.mkString(".") + ".")
-      distinctRecords._1.head :: (distinctRecords._2 ++ distinctRecords._1.tail)
+      val edgeRecords = distinctRecords._1.partition(_._2 match {
+        case dr: SOA => true
+        case _ => false
+      })
+      edgeRecords._1 ++ distinctRecords._2 ++ edgeRecords._2 ++ edgeRecords._1
     }
   }
 
@@ -130,11 +133,12 @@ object DnsLookupService {
     usedCnames: List[String],
     shownCnames: List[(String, Array[AbstractRecord])],
     oldDomain: ExtendedDomain,
+    followCnames: Boolean = true,
     records: Array[(String, AbstractRecord)] = Array()
   ): Array[(String, AbstractRecord)] =
     host match {
       case host: CnameHost =>
-        if(qtype == RecordType.CNAME.id) addRecord(host, oldDomain, Nil, records)
+        if(qtype == RecordType.CNAME.id || !followCnames) addRecord(host, oldDomain, Nil, records)
         else if (!usedCnames.contains(absoluteHostName(host.hostname, domain.fullName)))
           try {
             val (qname, newDomain, newHost) =
@@ -150,9 +154,9 @@ object DnsLookupService {
             records ++ newDomain.getHosts(relativeHostName(qname, newDomain))
               .filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
               .map {
-                val absoluteCname = absoluteHostName(newHost.hostname, newDomain.fullName)
-                val absoluteHostname = absoluteHostName(newHost.name, oldDomain.fullName)
-                resolveHost(domain, _, qtype, absoluteCname :: usedCnames, (absoluteHostname, newHost.toRData) :: shownCnames, newDomain)
+                val absCname = absoluteHostName(newHost.hostname, newDomain.fullName)
+                val absHostname = absoluteHostName(newHost.name, oldDomain.fullName)
+                resolveHost(domain, _, qtype, absCname :: usedCnames, (absHostname, newHost.toRData) :: shownCnames, newDomain, followCnames)
               }.flatten
           } catch {
             // Cname points to an external domain, search cache
