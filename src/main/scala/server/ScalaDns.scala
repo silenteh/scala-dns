@@ -25,6 +25,10 @@ import server.dns.DnsLookupService
 import payload._
 import server.dns.DnsResponseBuilder
 import org.jboss.netty.buffer.ChannelBuffers
+import datastructures.DNSAuthoritativeSection
+import configs.ConfigService
+import collection.JavaConversions._
+import client.DNSClient
 
 object ScalaDns {
   
@@ -50,6 +54,12 @@ object ScalaDns {
     if(args.isEmpty || args.contains("-start")) {
 	  Bootstrap.start
     }
+    
+    val questionData = DNSAuthoritativeSection.getDomainNames.map(n => (n.split("""\.""").toList, RecordType.SOA.id, 1)).toList
+    		ConfigService.config.getStringList("zoneTransferAllowedIps").foreach {ip =>
+    		DNSClient.sendNotify(ip, 53, questionData)(message => Unit)
+    }
+    
     
     //val domains = DNSCache.getDomains.map {case(key, value) => (key, value.filterNot(_._1 == "mail.livescore"))}
     

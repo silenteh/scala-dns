@@ -68,8 +68,7 @@ object DNSClient {
   
   private def sendUDP(address: String, port: Int, message: Message) = 
     UDPDnsClient.send(address, port, message) {future =>
-      logger.debug("UDP message sent")
-      future.getChannel().close
+      logger.debug("UDP message sent")      
     }
   
   private def sendTCP(address: String, port: Int, message: Message) = {
