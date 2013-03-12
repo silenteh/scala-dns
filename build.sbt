@@ -16,7 +16,7 @@ libraryDependencies += "com.typesafe.akka" % "akka-actor" % "2.0.3"
  
 libraryDependencies += "com.typesafe.akka" % "akka-remote" % "2.0.3"
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "1.9" % "test"
+libraryDependencies += "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test"
 
 libraryDependencies += "org.skife.com.typesafe.config" % "typesafe-config" % "0.3.0"
 

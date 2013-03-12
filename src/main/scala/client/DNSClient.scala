@@ -23,12 +23,20 @@ object DNSClient {
     val questionArray = questions.map { case(qname, qtype, qclass) =>
       Question(qname.map(_.getBytes) ++ (Array[Byte]() :: Nil), qtype, qclass)
     }.toArray
-    send(address, port, questionArray)(callback)
+    send(address, port, questionArray,0,false)(callback)
   }
+
+  def sendNotify(address: String, port: Int, questions: List[(List[String], Int, Int)])(callback: Message => Unit): Unit = {
+    val questionArray = questions.map { case(qname, qtype, qclass) =>
+      Question(qname.map(_.getBytes) ++ (Array[Byte]() :: Nil), qtype, qclass)
+    }.toArray
+    send(address, port, questionArray,4,true)(callback)
+  }
+
   
-  def send(address: String, port: Int, questions: Array[Question])(callback: Message => Unit): Unit = {
+  def send(address: String, port: Int, questions: Array[Question],opCode :Int, AA :Boolean)(callback: Message => Unit): Unit = {
     val id = RequestIdGenerator.generateId
-    val header = Header(id, false, 0, false, false, true, false, 0, ResponseCode.OK.id, questions.length, 0, 0, 0)
+    val header = Header(id, false, opCode, AA, false, true, false, 0, ResponseCode.OK.id, questions.length, 0, 0, 0)
     val request = Message(header, questions, Array(), Array(), Array())
     addCallback(id, address, port, callback)
     if(questions.exists(_.qtype == RecordType.AXFR.id)) {

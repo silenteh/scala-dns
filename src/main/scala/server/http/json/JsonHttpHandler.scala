@@ -21,18 +21,20 @@ import org.jboss.netty.channel.MessageEvent
 import org.jboss.netty.handler.codec.http.HttpRequest
 import org.jboss.netty.handler.codec.http.HttpMethod._
 import org.jboss.netty.channel.Channel
-import utils.UriParser
+import utils.{NotifyUtil, UriParser, SerialParser, Sha256Digest}
 import datastructures.DNSCache
 import datastructures.UserCache
 import domainio.JsonIO
 import server.http.HttpHandler
 import models.ExtendedDomain
-import utils.SerialParser
 import domainio.DomainValidationService
 import domainio.UserValidationService
 import models.User
-import utils.Sha256Digest
 import datastructures.DNSAuthoritativeSection
+import client.DNSClient
+import configs.ConfigService
+import scala.collection.JavaConversions._
+import enums.RecordType
 
 class JsonHttpHandler extends HttpHandler {
   override def messageReceived(context: ChannelHandlerContext, event: MessageEvent) = {
@@ -131,8 +133,12 @@ class JsonHttpHandler extends HttpHandler {
         //DNSCache.setDomain(domains.head)
         DNSAuthoritativeSection.setDomain(domains.head)
         JsonIO.storeAuthData(domains.head)
-        "{\"code\":" + validcode + ",\"messages\":" + messages.mkString("[\"", "\",\"", "\"]") + ",\"data\":" + 
-          JsonIO.Json.writeValueAsString(domains) + "}"
+        val response = "{\"code\":" + validcode + ",\"messages\":" + messages.mkString("[\"", "\",\"", "\"]") + ",\"data\":" + 
+         JsonIO.Json.writeValueAsString(domains) + "}"
+        NotifyUtil.notify(domainCandidate)
+        
+        response               
+
       } else {
         "{\"code\":" + validcode + ",\"messages\":" + messages.mkString("[\"", "\",\"", "\"]") + "}"
       }
