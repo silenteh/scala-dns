@@ -186,8 +186,8 @@ object DomainValidationService {
       (0, null)
   }
 
-  def checkHostName(host: Host, names: List[String], ignoreUnique: Boolean = false) = {
-    val domainCheck = checkDomainName(host.name, false, true)
+  def checkHostName(host: Host, names: List[String], ignoreUnique: Boolean = false, absolute: Boolean = true, relative: Boolean = true) = {
+    val domainCheck = checkDomainName(host.name, absolute, relative)
     if(domainCheck._1 == 2) domainCheck
     else {
       val uniqueCheck = 

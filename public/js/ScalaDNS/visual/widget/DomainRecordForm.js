@@ -704,7 +704,7 @@ var ScalaDNS = ScalaDNS || {};
 				name: {
 					hostName: {
 						relative: true,
-						absolute: false
+						absolute: true
 					}
 				}
 			},
@@ -728,7 +728,7 @@ var ScalaDNS = ScalaDNS || {};
 				name: {
 					hostName: {
 						relative: true,
-						absolute: false
+						absolute: true
 					},
 					notEqualTo: {
 						value: this._getRecordNames(),

@@ -82,5 +82,5 @@ object Message {
     if (n >= 1) Array.tabulate(n) { i => Question(buf, o) } else Array()
 
   def deserializeRRData(buf: ChannelBuffer, n: Int, o: Int): Array[RRData] = 
-    if (n >= 1) Array.tabulate(n) { i => RRData(buf, o) } else Array()
+    if (n >= 1) Array.tabulate(n) { i => RRData(buf, o) } filterNot(_.rdata == null) else Array()
 }

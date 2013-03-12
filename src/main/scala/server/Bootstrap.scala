@@ -25,6 +25,7 @@ import java.net.InetAddress
 import pipeline.UDPDnsPipeline
 import pipeline.TCPDnsPipeline
 import pipeline.HttpPipeline
+import configs.ConfigService
 
 object Bootstrap {
 
@@ -91,8 +92,10 @@ object Bootstrap {
   }
   
   private def startHttp() {
+    val address = ConfigService.config.getString("address")
+    val port = ConfigService.config.getInt("port")
     httpBootstrap.setPipelineFactory(new HttpPipeline)
-    httpBootstrap.bind(new InetSocketAddress("127.0.0.1", 8080))
+    httpBootstrap.bind(new InetSocketAddress(address, port))
   }
   
   private def stopTCP() {
