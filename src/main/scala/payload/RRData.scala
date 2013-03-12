@@ -99,14 +99,10 @@ object RRData {
       case 16 => TXT(buf, recordclass, size)
 
       case 28 => AAAA(buf, recordclass, size)
-      //OPT
-      case 41 => null
       // AXFR
       case 252 => null
       // *
       case 255 => null
-      // Everything else
-      case _ => null
     }
   
     def intToBytes(number: Int) = {
