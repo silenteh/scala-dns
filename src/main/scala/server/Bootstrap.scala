@@ -25,6 +25,7 @@ import java.net.InetAddress
 import pipeline.UDPDnsPipeline
 import pipeline.TCPDnsPipeline
 import pipeline.HttpPipeline
+import configs.ConfigService
 
 object Bootstrap {
 
@@ -51,6 +52,9 @@ object Bootstrap {
   // ### UDP
   val udpFactory = new NioDatagramChannelFactory(executorUDP)
   val udpBootstrap = new ConnectionlessBootstrap(udpFactory)
+  
+  val httpServerAddress = ConfigService.config.getString("httpServerAddress")
+  val httpServerPort = ConfigService.config.getInt("httpServerPort")
   
   // Starts both services
   def start() {
@@ -92,7 +96,7 @@ object Bootstrap {
   
   private def startHttp() {
     httpBootstrap.setPipelineFactory(new HttpPipeline)
-    httpBootstrap.bind(new InetSocketAddress("127.0.0.1", 8080))
+    httpBootstrap.bind(new InetSocketAddress(httpServerAddress, httpServerPort))
   }
   
   private def stopTCP() {
