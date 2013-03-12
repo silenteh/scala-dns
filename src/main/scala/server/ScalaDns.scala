@@ -51,13 +51,14 @@ object ScalaDns {
       else println(UserCreator(userParts(0), userParts(1)))
     }
 	
-    if(args.isEmpty || args.contains("-start")) {
-	  Bootstrap.start
+    val questionData = DNSAuthoritativeSection.getDomainNames.map(n => (n.split("""\.""").toList, RecordType.SOA.id, 1)).toList
+    ConfigService.config.getStringList("zoneTransferAllowedIps").foreach {ip =>
+      logger.debug("Message is about to be sent")  
+      DNSClient.sendNotify(ip, 53, questionData)(message => Unit)
     }
     
-    val questionData = DNSAuthoritativeSection.getDomainNames.map(n => (n.split("""\.""").toList, RecordType.SOA.id, 1)).toList
-    		ConfigService.config.getStringList("zoneTransferAllowedIps").foreach {ip =>
-    		DNSClient.sendNotify(ip, 53, questionData)(message => Unit)
+    if(args.isEmpty || args.contains("-start")) {
+	  Bootstrap.start
     }
     
     

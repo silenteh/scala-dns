@@ -33,11 +33,12 @@ import org.slf4j.LoggerFactory
   def notify(domain :ExtendedDomain) {
 
     val notifyQuestion = List((domain.fullName.split("""\.""").toList,RecordType.SOA.id,1))
-    ConfigService.config.getStringList("zoneTransferAllowedIps").toList.foreach( e =>
+    ConfigService.config.getStringList("zoneTransferAllowedIps").toList.foreach { e =>
+      logger.debug("Notification is about to be sent")
       DNSClient.sendNotify(e,53,notifyQuestion){future =>
       logger.debug("Notify message sent")
     }
-    )
+    }
 
   }
 

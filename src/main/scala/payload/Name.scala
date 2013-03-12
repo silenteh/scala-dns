@@ -76,11 +76,23 @@ object Name {
   }
 
   def toByteArray(name: List[Array[Byte]]): Array[Byte] = 
-    name.foldRight(Array[Byte]()) {case(bytes, total) => 
+    name.filterNot(_.deep == Array(0).deep).foldRight(Array[Byte]()) {case(bytes, total) => 
       RRData.shortToByte((bytes.length & MAX_LABEL_SIZE).toShort) ++ bytes ++ total}
   
-  def toByteArray(name: String): Array[Byte] = 
+  /*def toByteArray(name: List[Array[Byte]]): Array[Byte] = {
+    logger.debug(name.filterNot(_.deep == Array(0).deep).map(_.toList).toString)
+    def namePartToBytes(name: List[Array[Byte]], bytes: Array[Byte]): Array[Byte] = {
+      if(name.isEmpty) bytes
+      //else if(name.head.deep == Array(RRData.shortToByte(0)).deep) bytes
+      else if(name.head.isEmpty) bytes ++ RRData.shortToByte(0)
+      else namePartToBytes(name.tail, bytes ++ RRData.shortToByte((name.head.length & MAX_LABEL_SIZE).toShort) ++ name.head)
+    }
+    namePartToBytes(name.filterNot(_.deep == Array(0).deep), Array())
+  }*/
+  
+  def toByteArray(name: String): Array[Byte] = {
     toByteArray(name.split("""\.""").map(_.getBytes).toList)
+  }
     
   def toCompressedByteArray(
     name: List[Array[Byte]], 
