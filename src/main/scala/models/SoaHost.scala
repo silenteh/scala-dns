@@ -40,6 +40,8 @@ case class SoaHost(
   
   def updateSerial(serial: String) = SoaHost(cls, name, mname, rname, ttl, serial, refresh, retry, expire, minimum)
   
+  lazy val ttlToLong = timeStrToLong(ttl)
+  
   override def toAbsoluteNames(domain: ExtendedDomain) = 
     SoaHost(cls, HostnameUtils.absoluteHostName(name, domain.fullName), HostnameUtils.absoluteHostName(mname, domain.fullName),
       HostnameUtils.absoluteHostName(rname, domain.fullName), ttl, serial, refresh, retry, expire, minimum)

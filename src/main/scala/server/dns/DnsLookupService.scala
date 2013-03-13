@@ -198,12 +198,12 @@ object DnsLookupService {
     }
   }
   
-  private def relativeHostName(qname: List[String], domain: ExtendedDomain) = {
+  def relativeHostName(qname: List[String], domain: ExtendedDomain) = {
     val hnm = qname.take(qname.lastIndexOfSlice(domain.nameParts)).mkString(".")
     if (hnm.length == 0 || hnm == "@") domain.fullName else hnm
   }
 
-  private def absoluteHostName(name: String, basename: String) = 
+  def absoluteHostName(name: String, basename: String) = 
     if (name == "@") basename
     else if (name.endsWith(".")) name
     else name + "." + basename

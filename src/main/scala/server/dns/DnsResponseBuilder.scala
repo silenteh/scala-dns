@@ -35,6 +35,7 @@ import configs.ConfigService
 import scala.collection.JavaConversions._
 import datastructures.DNSAuthoritativeSection
 import records.SOA
+import models.SoaHost
 
 object DnsResponseBuilder {
 
@@ -140,14 +141,12 @@ object DnsResponseBuilder {
   
   private def recordsToRRData(domain: ExtendedDomain, qclass: Int, records: List[(String, AbstractRecord)]) =
     records.map {
-      case (name, record) =>
-        new RRData(
-          (((name).split("""\.""") :+ "").map(_.getBytes)).toList,
-          RecordType.withName(record.description).id,
-          qclass,
-          domain.ttl,
-          record.toByteArray.length,
-          record)
+      case (name, record) => {
+        val nameParts = name.split("""\.""")
+        val nameBytes = ((nameParts :+ "").map(_.getBytes)).toList
+        val ttl = if(domain.settings.size == 1) domain.settings.head.ttlToLong else ttlForNamePart(nameParts, domain)
+        new RRData(nameBytes, RecordType.withName(record.description).id, qclass, ttl, record.toByteArray.length, record)
+      }
     }
 
   @tailrec
@@ -158,5 +157,13 @@ object DnsResponseBuilder {
         if (results.exists(_.name.toArray.deep == name.toArray.deep)) distinctAliases(records.tail, results)
         else distinctAliases(records.tail, results :+ records.head)
       case _ => distinctAliases(records.tail, results :+ records.head)
+    }
+  
+  @tailrec
+  def ttlForNamePart(name: Array[String], domain: ExtendedDomain): Long = 
+    if(name.isEmpty) domain.ttl.toLong
+    else domain.findHost(DnsLookupService.relativeHostName(name.toList, domain), RecordType.SOA.id) match {
+      case Some(soa: SoaHost) => soa.ttlToLong
+      case _ => ttlForNamePart(name.tail, domain)
     }
 }
