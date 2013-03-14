@@ -1,7 +1,7 @@
 package client
 
 import payload.Question
-import collection.mutable
+import collection.concurrent
 import payload.Message
 import utils.RequestIdGenerator
 import payload.Header
@@ -16,8 +16,9 @@ import enums.RecordType
 object DNSClient {
 
   val logger = LoggerFactory.getLogger("app")
-  val addresses: mutable.ConcurrentMap[Int, (String, Int)] = new ConcurrentHashMap[Int, (String, Int)]
-  val callbacks: mutable.ConcurrentMap[Int, Message => Unit] = new ConcurrentHashMap[Int, Message => Unit]
+  
+  val addresses: concurrent.Map[Int, (String, Int)] = new ConcurrentHashMap[Int, (String, Int)]
+  val callbacks: concurrent.Map[Int, Message => Unit] = new ConcurrentHashMap[Int, Message => Unit]
   
   def send(address: String, port: Int, questions: List[(List[String], Int, Int)])(callback: Message => Unit): Unit = {
     val questionArray = questions.map { case(qname, qtype, qclass) =>
