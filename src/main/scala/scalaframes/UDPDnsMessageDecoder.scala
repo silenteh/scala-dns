@@ -20,7 +20,6 @@ import org.jboss.netty.buffer.ChannelBuffer
 import org.jboss.netty.channel.Channel
 import org.jboss.netty.channel.ChannelHandlerContext
 import org.jboss.netty.handler.codec.frame.FrameDecoder
-import com.google.protobuf.Message
 import payload.Header
 import scala.collection.immutable.BitSet
 import payload.Question
@@ -34,7 +33,7 @@ class UDPDnsMessageDecoder extends FrameDecoder {
 
   //@Override
   override def decode(ctx: ChannelHandlerContext, channel: Channel, buf: ChannelBuffer): payload.Message = {
-    
+    logger.debug("Reading message delivered by UDP")
     // 12 it is the minimum lenght in bytes of the header
     if (buf.readableBytes() < 12) null
     else {

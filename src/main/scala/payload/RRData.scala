@@ -103,6 +103,11 @@ object RRData {
       case 252 => null
       // *
       case 255 => null
+      // Unknown
+      case _ => {
+        logger.warn("Unknown RR type of " + recordtype + " received")
+        null
+      }
     }
   
     def intToBytes(number: Int) = {

@@ -8,13 +8,13 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 
 resolvers += "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots/"
 
-resolvers += "repo.codahale.com" at "http://repo.codahale.com"
+//resolvers += "repo.codahale.com" at "http://repo.codahale.com"
 
 libraryDependencies += 	"io.netty" % "netty" % "3.6.0.Final"
 
-libraryDependencies += "com.typesafe.akka" % "akka-actor" % "2.0.3"
+//libraryDependencies += "com.typesafe.akka" % "akka-actor" % "2.0.3"
  
-libraryDependencies += "com.typesafe.akka" % "akka-remote" % "2.0.3"
+//libraryDependencies += "com.typesafe.akka" % "akka-remote" % "2.0.3"
 
 libraryDependencies += "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test"
 

@@ -20,7 +20,6 @@ import org.jboss.netty.buffer.ChannelBuffer
 import org.jboss.netty.channel.Channel
 import org.jboss.netty.channel.ChannelHandlerContext
 import org.jboss.netty.handler.codec.frame.FrameDecoder
-import com.google.protobuf.Message
 import payload.Header
 import scala.collection.immutable.BitSet
 import payload.Question
@@ -29,12 +28,11 @@ import org.slf4j.LoggerFactory
 import scala.annotation.tailrec
 
 class TCPDnsMessageDecoder extends FrameDecoder {
-
   val logger = LoggerFactory.getLogger("app")
 
   //@Override
   override def decode(ctx: ChannelHandlerContext, channel: Channel, buf: ChannelBuffer): payload.Message = {
-    
+    logger.debug("Reading message delivered by TCP")
     // 14 bytes: 2(length of the data) + 12(the minimum length in bytes of the header)
     if (buf.readableBytes() < 14) null
     else {

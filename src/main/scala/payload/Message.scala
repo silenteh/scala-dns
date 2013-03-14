@@ -19,6 +19,7 @@ package payload
 import org.jboss.netty.buffer.ChannelBuffer
 import enums.RecordType
 import org.slf4j.LoggerFactory
+import scala.reflect.ClassTag
 
 // This class reassemble the network frames
 case class Message(
@@ -68,7 +69,7 @@ object Message {
     )
   }
   
-  def deserialize[T: ClassManifest](buf: ChannelBuffer, n: Int, o: Int, fn: (ChannelBuffer, Int, Int) => Array[T]) = 
+  def deserialize[T: ClassTag](buf: ChannelBuffer, n: Int, o: Int, fn: (ChannelBuffer, Int, Int) => Array[T]) = 
     try {
       fn(buf, n, o)
     } catch {

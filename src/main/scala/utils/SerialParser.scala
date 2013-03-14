@@ -15,7 +15,6 @@
  ******************************************************************************/
 package utils
  
-import org.apache.http.impl.cookie.DateUtils
 import java.util.Calendar
 /*
     Serial Format: YYYYMMDDII where II is an integer between 0 and 9
