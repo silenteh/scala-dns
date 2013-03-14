@@ -35,8 +35,11 @@ import client.DNSClient
 import configs.ConfigService
 import scala.collection.JavaConversions._
 import enums.RecordType
+import org.slf4j.LoggerFactory
 
 class JsonHttpHandler extends HttpHandler {
+  val logger = LoggerFactory.getLogger("app")
+  
   override def messageReceived(context: ChannelHandlerContext, event: MessageEvent) = {
     val channel = event.getChannel
     event.getMessage match {
