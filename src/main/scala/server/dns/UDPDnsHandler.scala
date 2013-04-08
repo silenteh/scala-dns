@@ -37,11 +37,14 @@ class UDPDnsHandler extends SimpleChannelUpstreamHandler {
       case message: Message => {
         logger.info(message.toString)
         logger.info("Request bytes: " + message.toByteArray.toList.toString)
-        val response = DnsResponseBuilder(message, sourceIP, UdpResponseMaxSize)
+        val responses = DnsResponseBuilder(message, sourceIP, UdpResponseMaxSize)
         
-        logger.debug("Compressed response length: " + response.length.toString)
-        logger.debug("Compressed response bytes: " + response.toList.toString)
-        e.getChannel.write(ChannelBuffers.copiedBuffer(response), e.getRemoteAddress)
+        if(responses.length == 1) {
+          logger.debug("Compressed response length: " + responses.head.length.toString)
+          logger.debug("Compressed response bytes: " + responses.head.toList.toString)
+        }
+        
+        responses.foreach(response => e.getChannel.write(ChannelBuffers.copiedBuffer(response), e.getRemoteAddress))
       }
       case _ => {
         logger.error("Unsupported message type")

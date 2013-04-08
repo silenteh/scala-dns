@@ -103,37 +103,46 @@ object DnsResponseBuilder {
         (responseParts("answer"), responseParts("authority"), responseParts("additional"))
         
       if (!answers.isEmpty) {
-        val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
-          message.header.recursionDesired, false, 0, ResponseCode.OK.id, message.header.questionCount, 
-            answers.length, authorities.length, additionals.length)
-        Message(header, message.query, answers, authorities, additionals)
+        if(message.query.size == 1 && message.query.head.qtype == RecordType.AXFR.id) {
+          val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
+            message.header.recursionDesired, false, 0, ResponseCode.OK.id, message.header.questionCount, 1, 0, 0)
+          answers.map(answer => Message(header, message.query, Array(answer), Array(), Array()))
+        } else {
+          val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
+            message.header.recursionDesired, false, 0, ResponseCode.OK.id, message.header.questionCount, 
+              answers.length, authorities.length, additionals.length)
+          Array(Message(header, message.query, answers, authorities, additionals))
+        }
       } else {
         val rcode = if(authorities.isEmpty) ResponseCode.NAME_ERROR.id else ResponseCode.OK.id
         val header = Header(message.header.id, true, message.header.opcode, true, message.header.truncated,
           message.header.recursionDesired, false, 0, rcode, message.header.questionCount, 0, authorities.length, additionals.length)
-        Message(header, message.query, message.answers, authorities, additionals)
+        Array(Message(header, message.query, message.answers, authorities, additionals))
       }
     } catch {
       case ex: DomainNotFoundException => {
         val header = Header(message.header.id, true, message.header.opcode, false, message.header.truncated,
           message.header.recursionDesired, false, 0, ResponseCode.REFUSED.id, message.header.questionCount, 0, 0, 0)
-        Message(header, message.query, message.answers, message.authority, message.additional)
+        Array(Message(header, message.query, message.answers, message.authority, message.additional))
       }
       case ex: Exception => {
         logger.error(ex.getClass.getName + "\n" + ex.getStackTraceString)
         val header = Header(message.header.id, true, message.header.opcode, false, message.header.truncated,
           message.header.recursionDesired, false, 0, ResponseCode.SERVER_FAILURE.id, message.header.questionCount, 0, 0, 0)
-        Message(header, message.query, message.answers, message.authority, message.additional)
+        Array(Message(header, message.query, message.answers, message.authority, message.additional))
       }
     }
 
-    val bytes = response.toCompressedByteArray((Array[Byte](), Map[String, Int]()))._1
+    response.map {response =>
+      val bytes = response.toCompressedByteArray((Array[Byte](), Map[String, Int]()))._1
     
-    if (maxLength < 0 || bytes.length <= maxLength) bytes
-    else {
-      val headerBytes = response.header.setTruncated(true).toCompressedByteArray(Array[Byte](), Map[String, Int]())._1
-      (headerBytes ++ bytes.takeRight(bytes.length - headerBytes.length)).take(maxLength)
+      if (maxLength < 0 || bytes.length <= maxLength) bytes
+      else {
+        val headerBytes = response.header.setTruncated(true).toCompressedByteArray(Array[Byte](), Map[String, Int]())._1
+        (headerBytes ++ bytes.takeRight(bytes.length - headerBytes.length)).take(maxLength)
+      }
     }
+    
   }
   
   private def bytesToName(bytes: List[Array[Byte]]) = 

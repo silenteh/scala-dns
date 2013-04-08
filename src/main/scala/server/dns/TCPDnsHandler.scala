@@ -36,12 +36,22 @@ class TCPDnsHandler extends SimpleChannelUpstreamHandler {
     val sourceIP = e.getRemoteAddress.toString
     e.getMessage match {
       case message: Message => {
-        val response = DnsResponseBuilder(message, sourceIP)
+        val responses = DnsResponseBuilder(message, sourceIP)
 
-        logger.debug("Compressed response length: " + response.length.toString)
-        logger.debug("Compressed response bytes: " + response.toList.toString)
-        e.getChannel.write(ChannelBuffers.copiedBuffer(RRData.shortToBytes(response.length.toShort) ++ response))
+        if(responses.length == 1) {
+          logger.debug("Compressed response length: " + responses.head.length.toString)
+          logger.debug("Compressed response bytes: " + responses.head.toList.toString)
+        }
+        
+        Array.tabulate(responses.length) {i =>
+          val response = responses(i)
+          if(i < responses.length - 1) {
+            e.getChannel.write(ChannelBuffers.copiedBuffer(RRData.shortToBytes(response.length.toShort) ++ response))
+          } else {
+            e.getChannel.write(ChannelBuffers.copiedBuffer(RRData.shortToBytes(response.length.toShort) ++ response))
           .addListener(ChannelFutureListener.CLOSE)
+          }
+        }
       }
       case _ => {
         logger.error("Unsupported message type")
