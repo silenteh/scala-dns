@@ -48,7 +48,7 @@ object DnsResponseBuilder {
         //val domain = DNSCache.getDomain(query.qtype, qname)
         val domain = DNSAuthoritativeSection.getDomain(query.qtype, qname)
         
-        val records =
+        val records = 
           // Zone file transfer
           if(query.qtype == RecordType.AXFR.id) {
             val allowedIps = ConfigService.config.getStringList("zoneTransferAllowedIps").toList
@@ -162,9 +162,10 @@ object DnsResponseBuilder {
   private def distinctAliases(records: Array[RRData], results: Array[RRData] = Array()): Array[RRData] =
     if (records.isEmpty) results
     else records.head match {
-      case RRData(name, _, _, _, _, record: CNAME) =>
-        if (results.exists(_.name.toArray.deep == name.toArray.deep)) distinctAliases(records.tail, results)
-        else distinctAliases(records.tail, results :+ records.head)
+      case RRData(name, _, _, _, _, record: CNAME) if (results.exists(_.name.toArray.deep == name.toArray.deep)) => 
+        distinctAliases(records.tail, results)
+        //if (results.exists(_.name.toArray.deep == name.toArray.deep)) distinctAliases(records.tail, results)
+        //else distinctAliases(records.tail, results :+ records.head)
       case _ => distinctAliases(records.tail, results :+ records.head)
     }
   

@@ -156,7 +156,8 @@ object DnsLookupService {
               .map {
                 val absCname = absoluteHostName(newHost.hostname, newDomain.fullName)
                 val absHostname = absoluteHostName(newHost.name, oldDomain.fullName)
-                resolveHost(domain, _, qtype, absCname :: usedCnames, (absHostname, newHost.toRData) :: shownCnames, newDomain, followCnames)
+                //resolveHost(domain, _, qtype, absCname :: usedCnames, (absHostname, newHost.toRData) :: shownCnames, newDomain, followCnames)
+                resolveHost(newDomain, _, qtype, absCname :: usedCnames, (absHostname, newHost.toRData) :: shownCnames, domain, followCnames)
               }.flatten
           } catch {
             // Cname points to an external domain, search cache
