@@ -153,11 +153,11 @@ object DnsLookupService {
 
             records ++ newDomain.getHosts(relativeHostName(qname, newDomain))
               .filter(h => h.typ == RecordType(qtype).toString || h.typ == RecordType.CNAME.toString)
-              .map {
+              .map {h =>
                 val absCname = absoluteHostName(newHost.hostname, newDomain.fullName)
-                val absHostname = absoluteHostName(newHost.name, oldDomain.fullName)
+                val absHostname = absoluteHostName(newHost.name, domain.fullName)
                 //resolveHost(domain, _, qtype, absCname :: usedCnames, (absHostname, newHost.toRData) :: shownCnames, newDomain, followCnames)
-                resolveHost(newDomain, _, qtype, absCname :: usedCnames, (absHostname, newHost.toRData) :: shownCnames, domain, followCnames)
+                resolveHost(newDomain, h, qtype, absCname :: usedCnames, (absHostname, newHost.copy(hostname = absCname).toRData) :: shownCnames, domain, followCnames)
               }.flatten
           } catch {
             // Cname points to an external domain, search cache
