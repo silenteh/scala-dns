@@ -30,7 +30,10 @@ object DNSCache extends DNSDomainStorage[(Long, ExtendedDomain)] {
 
   @tailrec
   protected def findDomainName(typ: Int, parts: List[String], storedMap: Map[String, (Long, ExtendedDomain)], name: Seq[String]): Option[ExtendedDomain] = 
-    if(name.isEmpty) None
+    if(name.isEmpty) storedMap.get("").filter { case(timestamp, domain) =>
+      val diff = timestamp + domain.ttl * 1000 - System.currentTimeMillis()
+      (parts.size - 1 != name.size || domain.hasRootEntry(typ)) && diff > 0
+    }.map(_._2)
     else storedMap.get(name.mkString(".")) match {
       case Some((timestamp, domain)) => {
         val diff = timestamp + domain.ttl * 1000 - System.currentTimeMillis()

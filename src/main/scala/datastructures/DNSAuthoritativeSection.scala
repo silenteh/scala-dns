@@ -11,7 +11,7 @@ object DNSAuthoritativeSection extends DNSDomainStorage[ExtendedDomain] {
   
   @tailrec
   protected def findDomainName(typ: Int, parts: List[String], storedMap: Map[String, ExtendedDomain], name: Seq[String]): Option[ExtendedDomain] = 
-    if(name.isEmpty) None
+    if(name.isEmpty) storedMap.get("").filter(d => parts.size - 1 != name.size || d.hasRootEntry(typ))
     else storedMap.get(name.mkString(".")) match {
       case Some(domain) => {
         if(parts.size - 1 != name.size || domain.hasRootEntry(typ)) Some(domain)

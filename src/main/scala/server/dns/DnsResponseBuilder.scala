@@ -70,9 +70,14 @@ object DnsResponseBuilder {
           else {
             val records = DnsLookupService.hostToRecords(qname, RecordType.NS.id, query.qclass)
             if(!records.isEmpty) records
-            else DnsLookupService.ancestorToRecords(domain, qname, RecordType.NS.id, query.qclass, false)
+            else {
+              val ancestors = DnsLookupService.ancestorToRecords(domain, qname, RecordType.NS.id, query.qclass, false).filterNot(_._1 == domain.fullName)
+              logger.debug(ancestors.toString)
+              ancestors
+            }
           }
 
+        
         // @TODO: Implement additional where appropriate
 
         val additionals = {

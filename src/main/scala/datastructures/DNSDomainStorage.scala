@@ -22,7 +22,7 @@ trait DNSDomainStorage[T] {
   
   def findDomain(typ: Int, parts: List[String]): Option[ExtendedDomain] = {
     val extension = parts.reverse.head
-    val name = parts.take(parts.size - 1)
+    val name = if(parts.length <= 1) List("") else parts.take(parts.size - 1)
     domains.get(extension) match {
       case None => None
       case Some(storedMap) => 
