@@ -10,7 +10,7 @@ resolvers += "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshot
 
 //resolvers += "repo.codahale.com" at "http://repo.codahale.com"
 
-libraryDependencies += 	"io.netty" % "netty" % "3.6.0.Final"
+libraryDependencies += 	"io.netty" % "netty" % "3.6.6.Final"
 
 //libraryDependencies += "com.typesafe.akka" % "akka-actor" % "2.0.3"
  
@@ -31,3 +31,5 @@ seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 libraryDependencies += "commons-lang" % "commons-lang" % "2.6"
 
 // libraryDependencies += "org.apache.servicemix.bundles" % "org.apache.servicemix.bundles.aws-java-sdk" % "1.3.27"
+
+libraryDependencies += "com.maxmind.geoip2" % "geoip2" % "0.4.0"
