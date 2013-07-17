@@ -43,14 +43,15 @@ object Lookup {
     val country = ipToCountry(ip).getIsoCode().toLowerCase()
     val continent = CountryContinent.getOrElse(country, unknown)  
     continent match {
-      case unknown => ContinentsEnum.unknown
-      case europe => ContinentsEnum.europe
-      case northAmerica => ContinentsEnum.northAmerica
-      case southAmerica => ContinentsEnum.southAmerica
-      case asia => ContinentsEnum.asia
-      case africa => ContinentsEnum.africa
-      case oceania => ContinentsEnum.oceania
-      case antarctica => ContinentsEnum.antarctica
+      
+      case `unknown` => ContinentsEnum.unknown      
+      case `europe` => ContinentsEnum.europe
+      case `northAmerica` => ContinentsEnum.northAmerica
+      case `southAmerica` => ContinentsEnum.southAmerica
+      case `asia` => ContinentsEnum.asia
+      case `africa` => ContinentsEnum.africa
+      case `oceania` => ContinentsEnum.oceania
+      case `antarctica` => ContinentsEnum.antarctica
     }
   }
   
